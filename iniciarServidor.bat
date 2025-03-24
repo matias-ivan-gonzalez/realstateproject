@@ -1,3 +1,3 @@
 @echo off
-python backend\app.py
+python backend\run.py
 pause

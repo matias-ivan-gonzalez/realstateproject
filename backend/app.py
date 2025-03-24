@@ -1,16 +1,13 @@
-from flask import Flask, render_template
+from flask import Flask
 import os
+from routes import main  # Asegúrate de importar el Blueprint correctamente
 
-
-app = Flask(
-    __name__,
-    static_folder=os.path.join('..', 'static'),  # Ruta a la carpeta 'static'
-    template_folder=os.path.join('..', 'templates')  # Ruta a la carpeta 'templates'
-)
-# Ruta para la página principal
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-if __name__ == '__main__':
-    app.run(debug=True)
+def create_app():
+    app = Flask(
+        __name__,
+        static_folder=os.path.join('..', 'static'),
+        template_folder=os.path.join('..', 'templates')
+    )
+    # Registrar el Blueprint
+    app.register_blueprint(main)
+    return app
