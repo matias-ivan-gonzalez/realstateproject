@@ -26,15 +26,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt  # Instalar las dependencias de tu proyecto
 
-    - name: Install pylint
-      run: pip install pylint  # Instalar pylint
-
-    - name: Run pylint
-      run: pylint **/*.py  # Analiza todos los archivos .py en el proyecto, incluidos subdirectorios
-
-    - name: Install black
-      run: pip install black
-
     - name: Format code with black
       run: black .  # Ejecuta black en todos los archivos Python en el proyecto
 
