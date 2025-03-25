@@ -30,7 +30,7 @@ jobs:
       run: pip install pylint  # Instalar pylint
 
     - name: Run pylint
-      run: pylint realstateproject  # Reemplaza 'your_project_directory' con la ruta de tu código fuente
+      run: pylint **/*.py  # Analiza todos los archivos .py en el proyecto, incluidos subdirectorios
 
     - name: Install coverage
       run: pip install coverage  # Instalar coverage
