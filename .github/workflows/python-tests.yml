@@ -32,6 +32,12 @@ jobs:
     - name: Run pylint
       run: pylint **/*.py  # Analiza todos los archivos .py en el proyecto, incluidos subdirectorios
 
+    - name: Install black
+      run: pip install black
+
+    - name: Format code with black
+      run: black .  # Ejecuta black en todos los archivos Python en el proyecto
+
     - name: Install coverage
       run: pip install coverage  # Instalar coverage
 
