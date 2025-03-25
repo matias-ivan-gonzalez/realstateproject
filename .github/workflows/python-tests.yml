@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest  # Puedes cambiar esto si prefieres un sistema diferente (por ejemplo, 'windows-latest')
+    runs-on: windows-latest  # Puedes cambiar esto si prefieres un sistema diferente (por ejemplo, 'ubuntu-latest')
 
     steps:
     - name: Check out the repository
@@ -25,7 +25,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt  # Instalar las dependencias de tu proyecto
-        
+
     - name: Install black
       run: pip install black
 
@@ -40,7 +40,11 @@ jobs:
         coverage run -m pytest  # Ejecuta los tests con coverage
         coverage report  # Muestra el reporte de cobertura en la salida
         coverage html  # (Opcional) Genera un reporte en HTML, puedes eliminar este paso si no lo necesitas
+        coverage xml  # Genera un reporte XML para usar con herramientas externas, como Codecov
 
-    - name: Run tests
-      run: |
-        pytest --maxfail=1 --disable-warnings -q  # Ejecuta los tests con pytest
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: coverage.xml  # Subir el reporte de cobertura XML como artefacto
