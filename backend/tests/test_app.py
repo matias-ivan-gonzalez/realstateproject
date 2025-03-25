@@ -1,13 +1,3 @@
-import pytest
-from app import create_app
-
-# Fixture para inicializar la aplicación de prueba
-@pytest.fixture
-def client():
-    app = create_app()
-    app.testing = True  # Configurar el modo de prueba
-    return app.test_client()
-
 # Test para la ruta principal
 def test_index(client):
     response = client.get('/')
