@@ -3,49 +3,51 @@ name: Python Tests
 on:
   pull_request:
     branches:
-      - develop   # O la rama donde estés haciendo los PRs (por ejemplo, 'develop' si usas esa)
+      - develop   # O la rama donde estés haciendo los PRs
   push:
     branches:
-      - main   # Si deseas que los tests también se ejecuten en cada push a la rama principal
+      - main   # Si deseas que los tests se ejecuten en cada push a la rama principal
 
 jobs:
   test:
-    runs-on: windows-latest  # Puedes cambiar esto si prefieres un sistema diferente (por ejemplo, 'ubuntu-latest')
+    runs-on: windows-latest
 
     steps:
     - name: Check out the repository
-      uses: actions/checkout@v2  # Descarga el código del repositorio en el runner
+      uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.13.2'  # Asegúrate de usar la versión de Python que estés usando localmente
+        python-version: '3.13.2'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt  # Instalar las dependencias de tu proyecto
+        pip install -r requirements.txt
 
     - name: Install black
       run: pip install black
 
     - name: Format code with black
-      run: black .  # Ejecuta black en todos los archivos Python en el proyecto
+      run: black .
 
     - name: Install coverage
-      run: pip install coverage  # Instalar coverage
+      run: pip install coverage
 
     - name: Run tests with coverage
       run: |
-        coverage run -m pytest  # Ejecuta los tests con coverage
-        coverage report  # Muestra el reporte de cobertura en la salida
-        coverage html  # (Opcional) Genera un reporte en HTML, puedes eliminar este paso si no lo necesitas
-        coverage xml  # Genera un reporte XML para usar con herramientas externas, como Codecov
+        coverage run -m pytest
+        coverage report
+        coverage html
+        coverage xml
+
+    - name: List generated files
+      run: dir  # Esto mostrará los archivos del directorio actual en Windows
 
     - name: Upload coverage report
-      if: always()  # Se ejecuta incluso si los tests fallan
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: coverage-report
-        path: coverage.xml  # Subir el reporte de cobertura XML como artefacto
-  
+        path: ./coverage.xml
