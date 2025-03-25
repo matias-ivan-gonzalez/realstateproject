@@ -1,0 +1,31 @@
+name: Python Tests
+
+on:
+  pull_request:
+    branches:
+      - develop   # O la rama donde estés haciendo los PRs (por ejemplo, 'develop' si usas esa)
+  push:
+    branches:
+      - main   # Si deseas que los tests también se ejecuten en cada push a la rama principal
+
+jobs:
+  test:
+    runs-on: windows-latest  # Puedes cambiar esto si prefieres un sistema diferente (por ejemplo, 'windows-latest')
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2  # Descarga el código del repositorio en el runner
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.13.2'  # Asegúrate de usar la versión de Python que estés usando localmente
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt  # Instalar las dependencias de tu proyecto
+
+    - name: Run tests
+      run: |
+        pytest --maxfail=1 --disable-warnings -q  # Ejecuta los tests con pytest
