@@ -26,6 +26,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt  # Instalar las dependencias de tu proyecto
 
+    - name: Install pylint
+      run: pip install pylint  # Instalar pylint
+
+    - name: Run pylint
+      run: pylint your_project_directory  # Reemplaza 'your_project_directory' con la ruta de tu código fuente
+
+    - name: Install coverage
+      run: pip install coverage  # Instalar coverage
+
+    - name: Run tests with coverage
+      run: |
+        coverage run -m pytest  # Ejecuta los tests con coverage
+        coverage report  # Muestra el reporte de cobertura en la salida
+        coverage html  # (Opcional) Genera un reporte en HTML, puedes eliminar este paso si no lo necesitas
+
     - name: Run tests
       run: |
         pytest --maxfail=1 --disable-warnings -q  # Ejecuta los tests con pytest
