@@ -3,10 +3,10 @@ name: Python Tests
 on:
   pull_request:
     branches:
-      - develop
+      - develop   # O la rama donde estés haciendo los PRs
   push:
     branches:
-      - main
+      - main   # Si deseas que los tests se ejecuten en cada push a la rama principal
 
 jobs:
   test:
@@ -37,17 +37,21 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        coverage run --source=backend -m pytest  # Asegura que Coverage rastree el directorio 'backend'
-        coverage report
-        coverage html
-        coverage xml
+        coverage run -m pytest  # Ejecuta los tests con coverage
+        coverage report         # Muestra el reporte en consola
+        coverage xml            # Genera el archivo coverage.xml
+
+    - name: Prepare coverage report directory
+      run: |
+        mkdir coverage-report   # Crea el directorio para el reporte
+        move coverage.xml coverage-report/  # Mueve el archivo XML al directorio
 
     - name: List generated files
-      run: dir  # Muestra los archivos del directorio actual en Windows
+      run: dir  # Esto mostrará los archivos del directorio actual en Windows
 
     - name: Upload coverage report
       if: always()
       uses: actions/upload-pages-artifact@v3
       with:
         name: coverage-report
-        path: ./coverage.xml
+        path: coverage-report/  # Sube el contenido del directorio como artefacto
