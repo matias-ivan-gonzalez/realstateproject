@@ -1,0 +1,7 @@
+[run]
+source = backend  # Reemplaza 'backend' con la carpeta principal de tu código
+branch = True
+
+[report]
+omit =
+    */tests/*
