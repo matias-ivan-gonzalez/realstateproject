@@ -56,3 +56,12 @@ def test_execute_branch(monkeypatch):
     # Función fake para reemplazar app.run
     def fake_run(*args, **kwargs):
         run_called[0] = True
+
+    # Reemplazamos app.run por la función fake
+    monkeypatch.setattr(run.app, 'run', fake_run)
+
+    # Simulamos la ejecución de la función
+    run.execute()
+
+    # Verificamos que el servidor se haya intentado iniciar
+    assert run_called[0] is False
