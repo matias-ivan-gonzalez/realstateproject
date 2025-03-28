@@ -1,7 +1,7 @@
 [run]
-source = backend  # Reemplaza 'backend' con la carpeta principal de tu código
+source = backend
 branch = True
-
 [report]
 omit =
     */tests/*
+    */site-packages/*
