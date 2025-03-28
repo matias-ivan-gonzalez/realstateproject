@@ -1,37 +1,68 @@
-import pytest
-import requests
-from run import app  # Importamos la app desde run.py
 import threading
 import time
+import pytest
+import requests
 from werkzeug.serving import make_server
+from run import app, execute
 
-# Función auxiliar para correr la app en un hilo y poder detenerla después
+# Función auxiliar para iniciar el servidor en un hilo
 def run_app_in_thread(app, host='127.0.0.1', port=5000):
     server = make_server(host, port, app)
     server.serve_forever()
 
-# Test para verificar que la app se levanta en el puerto 5000 y responde correctamente
-def test_run_py():
-    # Iniciamos la app en un hilo para no bloquear el test
+def test_execute_no_arranca_servidor_cuando_no_es_main():
+    """
+    Como la función execute() solo llama a app.run() si __name__ == '__main__',
+    al importar el módulo (__name__ != '__main__'), execute() no debería iniciar el servidor.
+    """
+    result = execute()
+    # Esperamos que la función no haga nada y retorne None.
+    assert result is None
+
+def test_run_server_responde():
+    """
+    Inicia el servidor en un hilo y verifica que se responde en el puerto 5000.
+    Este test simula la ejecución del servidor sin depender de la condición __name__ == '__main__'.
+    """
+    # Inicia el servidor en un hilo usando make_server
     server_thread = threading.Thread(target=run_app_in_thread, args=(app,))
-    server_thread.daemon = True  # Permite que el hilo se cierre cuando el programa principal termine
+    server_thread.daemon = True  # Permite que el hilo se termine con el proceso principal
     server_thread.start()
-    
-    # Damos un poco de tiempo para que el servidor se inicie (esperamos que arranque)
+
+    # Espera un momento para que el servidor se inicie
     time.sleep(2)
-    
+
     try:
-        # Verificar que la app esté corriendo en el puerto 5000
-        response = requests.get('http://127.0.0.1:5000')  # Realizamos una solicitud GET a la app
-        
-        # Verifica que la respuesta sea correcta (código de estado 200)
+        # Realiza una solicitud GET al servidor
+        response = requests.get('http://127.0.0.1:5000')
+        # Verifica que la respuesta tenga código 200
         assert response.status_code == 200
-        
-        # Verifica que el contenido principal esté presente en la respuesta
+        # Verifica que el contenido esperado esté en la respuesta
+        # (Ajusta el texto según lo que realmente devuelve tu app)
         assert b'Frontend levantado desde Flask' in response.content
-        
     except requests.exceptions.RequestException as e:
-        pytest.fail(f'Error al hacer ping a la app: {e}')  # Si ocurre algún error en la solicitud, falla el test
-    
-    # Finalizamos el hilo del servidor después de la verificación
-    # No es necesario hacer join() aquí ya que estamos utilizando daemon threads
+        pytest.fail(f'Error al hacer ping a la app: {e}')
+
+def test_execute_branch(monkeypatch):
+    """
+    Forzar que el bloque 'if __name__ == "__main__":' se ejecute en la función execute().
+    Se reemplaza 'app.run' para evitar iniciar el servidor real.
+    """
+    # Importamos el módulo 'run' de forma que podamos modificar su __name__
+    import run  
+    # Creamos un flag mutable para detectar si se llamó a run()
+    run_called = [False]
+
+    # Función fake para reemplazar app.run
+    def fake_run(*args, **kwargs):
+        run_called[0] = True
+
+    # Reemplazamos 'app.run' con la función fake
+    monkeypatch.setattr(run.app, "run", fake_run)
+    # Forzamos que el módulo 'run' piense que se está ejecutando como __main__
+    monkeypatch.setitem(run.__dict__, '__name__', '__main__')
+
+    # Llamamos a execute(), que ahora debería invocar fake_run()
+    run.execute()
+    # Verificamos que fake_run fue llamada
+    assert run_called[0] is True
