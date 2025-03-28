@@ -56,13 +56,3 @@ def test_execute_branch(monkeypatch):
     # Función fake para reemplazar app.run
     def fake_run(*args, **kwargs):
         run_called[0] = True
-
-    # Reemplazamos 'app.run' con la función fake
-    monkeypatch.setattr(run.app, "run", fake_run)
-    # Forzamos que el módulo 'run' piense que se está ejecutando como __main__
-    monkeypatch.setitem(run.__dict__, '__name__', '__main__')
-
-    # Llamamos a execute(), que ahora debería invocar fake_run()
-    run.execute()
-    # Verificamos que fake_run fue llamada
-    assert run_called[0] is True

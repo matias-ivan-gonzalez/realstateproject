@@ -1,7 +1,7 @@
 [run]
 source = backend
 branch = True
+
 [report]
 omit =
     */tests/*
-    */site-packages/*
