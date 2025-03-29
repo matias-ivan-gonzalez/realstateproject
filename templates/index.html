@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi aplicación Flask con Bootstrap</title>
+    <!-- Incluir Bootstrap desde archivos locales -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">¡Frontend levantado desde Flask!</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <p class="lead">Este es un ejemplo de cómo usar Flask para el backend y Bootstrap para el frontend.</p>
+                <button class="btn btn-primary">Haz clic aquí</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir Bootstrap JS desde archivos locales -->
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>
