@@ -37,7 +37,7 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$(pwd)  # Asegurar que el código es importable
         coverage run -m pytest -v --disable-warnings || echo "Tests failed!"
         coverage report --fail-under=100 || echo "Coverage below 100%"
-        coverage xml || echo "Failed to generate coverage.xml"
+        coverage xml -o coverage.xml || echo "Failed to generate coverage.xml"
 
 
     - name: Prepare coverage report directory
