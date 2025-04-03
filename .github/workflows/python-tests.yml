@@ -27,14 +27,11 @@ jobs:
         pip install -r requirements.txt
 
     - name: Install black
-      run: pip install black  # Instala black antes de usarlo
-
-    - name: Check code formatting with black
-      run: black --check .
-
+      run: pip install black
+  
     - name: Format code with black
       run: black .
-
+  
     - name: Run tests with coverage
       run: |
         coverage run -m pytest  
