@@ -41,7 +41,7 @@ jobs:
     - name: Prepare coverage report directory
       run: |
         mkdir coverage-report   # Crea el directorio para el reporte
-        move coverage.xml coverage-report/  # Mueve el archivo XML al directorio
+        mv coverage.xml coverage-report/  # Mueve el archivo XML al directorio
 
     - name: List generated files
       run: dir  # Esto mostrará los archivos del directorio actual en Windows
