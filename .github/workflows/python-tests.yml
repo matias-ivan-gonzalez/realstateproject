@@ -45,9 +45,8 @@ jobs:
         mkdir coverage-report   # Crea el directorio para el reporte
         mv coverage.xml coverage-report/  # Mueve el archivo XML al directorio
 
-    - name: List generated files
-      run: dir  # Esto mostrará los archivos del directorio actual en Windows
-
+    - name: List files in workspace (debugging)
+      run: ls -R
 
     - name: Upload coverage report
       uses: actions/upload-pages-artifact@v3
