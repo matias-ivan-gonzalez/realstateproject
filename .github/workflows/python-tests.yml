@@ -35,7 +35,7 @@ jobs:
     - name: Run tests with coverage
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)  # Asegurar que el código es importable
-        coverage run -m pytest -v --disable-warnings || echo "Tests failed!"
+        coverage run --rcfile=.coveragerc --data-file=.coverage -m pytest --no-cov
         coverage report --fail-under=100 || echo "Coverage below 100%"
         coverage xml -o coverage.xml || echo "Failed to generate coverage.xml"
 
