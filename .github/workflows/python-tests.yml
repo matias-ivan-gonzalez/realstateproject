@@ -3,55 +3,40 @@ name: Python Tests
 on:
   pull_request:
     branches:
-      - develop   # O la rama donde estés haciendo los PRs
+      - develop  
   push:
     branches:
-      - main   # Si deseas que los tests se ejecuten en cada push a la rama principal
+      - main  
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # Usa Linux para mejor compatibilidad y velocidad
 
     steps:
     - name: Check out the repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.13.2'
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Install black
-      run: pip install black
-
-    - name: Format code with black
-      run: black .
-
-    - name: Install coverage
-      run: pip install coverage
+    - name: Check code formatting with black
+      run: black --check .
 
     - name: Run tests with coverage
       run: |
-        coverage run -m pytest  # Ejecuta los tests con coverage
-        coverage report         # Muestra el reporte en consola
-        coverage xml            # Genera el archivo coverage.xml
-
-    - name: Prepare coverage report directory
-      run: |
-        mkdir coverage-report   # Crea el directorio para el reporte
-        move coverage.xml coverage-report/  # Mueve el archivo XML al directorio
-
-    - name: List generated files
-      run: dir  # Esto mostrará los archivos del directorio actual en Windows
+        coverage run -m pytest  
+        coverage report --fail-under=100  # Bloquea si la cobertura es menor al 100%
+        coverage xml  
 
     - name: Upload coverage report
-      if: always()
       uses: actions/upload-pages-artifact@v3
       with:
         name: coverage-report
-        path: coverage-report/  # Sube el contenido del directorio como artefacto
+        path: coverage.xml
