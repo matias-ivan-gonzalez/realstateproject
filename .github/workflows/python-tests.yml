@@ -49,7 +49,7 @@ jobs:
       run: ls -R
 
     - name: Upload coverage report
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
         name: coverage-report
         path: coverage.xml
