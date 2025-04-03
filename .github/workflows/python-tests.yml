@@ -36,7 +36,7 @@ jobs:
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)  # Asegurar que el código es importable
         coverage run --rcfile=.coveragerc --data-file=.coverage -m pytest --no-cov
-        coverage report --fail-under=100 || echo "Coverage below 100%"
+        coverage report --fail-under=100
         coverage xml -o coverage.xml || echo "Failed to generate coverage.xml"
 
 
