@@ -38,6 +38,15 @@ jobs:
         coverage report --fail-under=100  # Bloquea si la cobertura es menor al 100%
         coverage xml  
 
+    - name: Prepare coverage report directory
+      run: |
+        mkdir coverage-report   # Crea el directorio para el reporte
+        move coverage.xml coverage-report/  # Mueve el archivo XML al directorio
+
+    - name: List generated files
+      run: dir  # Esto mostrará los archivos del directorio actual en Windows
+
+
     - name: Upload coverage report
       uses: actions/upload-pages-artifact@v3
       with:
