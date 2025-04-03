@@ -7,7 +7,7 @@ def test_index(client):
     assert response.status_code == 200
     
     # Verifica que el texto principal esté presente
-    assert b'Frontend levantado desde Flaska' in response.data
+    assert b'Frontend levantado desde Flask' in response.data
     
     # Verifica que los archivos estáticos estén incluidos (por ejemplo, Bootstrap CSS)
     assert b'href="/static/css/bootstrap.min.css"' in response.data
