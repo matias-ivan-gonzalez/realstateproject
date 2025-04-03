@@ -2,7 +2,7 @@
 def test_index(client):
     # Realiza una solicitud GET a la ruta '/'
     response = client.get('/')
-    
+    #
     # Verifica que la respuesta tenga el código de estado 200
     assert response.status_code == 200
     
