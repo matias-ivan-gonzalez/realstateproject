@@ -3,6 +3,8 @@ __pycache__/
 **/__pycache__/
 *.py[cod]
 *.pyo
+**/*.pyc
+**/*.pyo
 
 # Caches de backend específicos
 backend/__pycache__/
