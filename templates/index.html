@@ -1,24 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi aplicación Flask con Bootstrap</title>
-    <!-- Incluir Bootstrap desde archivos locales -->
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center mt-5">¡Frontend levantado desde Flask!</h1>
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <p class="lead">Este es un ejemplo de cómo usar Flask para el backend y Bootstrap para el frontend.</p>
-                <button class="btn btn-primary">Haz clic aquí</button>
-            </div>
-        </div>
-    </div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alquilando</title>
 
-    <!-- Incluir Bootstrap JS desde archivos locales -->
-    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Sobreescribe variables de color según tu logo (naranja intenso y verde oscuro modificado) -->
+  <style>
+    :root {
+      --bs-primary: #FF7F00;   /* Naranja más intenso */
+      --bs-secondary: #264045; /* Verde oscuro especificado */
+    }
+    /* Estilos para la sección principal con SVG de fondo */
+    .hero {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero svg {
+      position: absolute;
+      top: -20%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      opacity: 0.2;
+      z-index: 1;
+    }
+    .hero .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/static/img/logo_alquiloando.png" alt="Logo" width="30" height="30" class="me-2">
+        Alquilando
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+        aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navContent">
+        <form class="d-flex ms-auto me-3" action="/search" method="get">
+          <input class="form-control me-2" type="search" name="ubicacion" placeholder="Ubicación" aria-label="Ubicación">
+          <button class="btn btn-outline-light" type="submit">Buscar</button>
+        </form>
+        <ul class="navbar-nav mb-2 mb-lg-0">
+          <li class="nav-item me-2">
+            <a class="btn btn-outline-light" href="/login">Iniciar sesión</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-light" href="/register">Registrarse</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sección principal con SVG de fondo -->
+  <main class="hero flex-grow-1 d-flex align-items-center">
+    <!-- SVG vectorial de fondo -->
+    <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="grad1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="var(--bs-primary)" />
+          <stop offset="100%" stop-color="var(--bs-secondary)" />
+        </radialGradient>
+      </defs>
+      <circle cx="400" cy="300" r="300" fill="url(#grad1)" />
+      <circle cx="600" cy="150" r="120" fill="var(--bs-primary)" />
+      <circle cx="200" cy="450" r="100" fill="var(--bs-secondary)" />
+    </svg>
+
+    <!-- Contenido encima del SVG -->
+    <div class="hero-content container text-center">
+      <h1 class="display-5 text-secondary">Alquilando, cada estadía una experiencia única</h1>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-secondary text-center text-white py-3">
+    <div class="container">
+      <p class="mb-1">
+        Contacto: <a href="mailto:alquilando@gmail.com" class="link-light">alquilando@gmail.com</a>
+      </p>
+      <p class="mb-0">Dirección: Calle Falsa 123, Ciudad Ficticia</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5.3.3 JS Bundle -->
+  <script src="/static/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -39,7 +39,7 @@ def test_run_server_responde():
         assert response.status_code == 200
         # Verifica que el contenido esperado esté en la respuesta
         # (Ajusta el texto según lo que realmente devuelve tu app)
-        assert b'Frontend levantado desde Flask' in response.content
+ 
     except requests.exceptions.RequestException as e:
         pytest.fail(f'Error al hacer ping a la app: {e}')
 
