@@ -2,6 +2,7 @@ import pytest
 from app import create_app
 from database import db
 from models import User
+from datetime import date
 
 @pytest.fixture
 def app():
@@ -27,15 +28,46 @@ def db_session(app):
         yield db.session
         db.session.rollback()
 
-def test_create_user(db_session):
-    user = User(username='testuser', email='test@example.com')
-    db_session.add(user)
+def test_create_cliente(db_session):
+    cliente = User.Cliente(
+        nombre='Juan',
+        apellido='Pérez',
+        dni='12345678',
+        email='juanperez@example.com',
+        contrasena='securepassword',
+        telefono='1234567890',
+        nacionalidad='Argentina',
+        fecha_nacimiento=date(1990, 1, 1),  # Usa date() en lugar de cadena
+        direccion='Calle Ficticia 123'
+    )
+    
+    db_session.add(cliente)
     db_session.commit()
     
-    retrieved_user = User.query.filter_by(username='testuser').first()
-    assert retrieved_user is not None
-    assert retrieved_user.email == 'test@example.com'
+    retrieved_cliente = User.Cliente.query.filter_by(dni='12345678').first()
+    
+    assert retrieved_cliente is not None
+    assert retrieved_cliente.email == 'juanperez@example.com'
+    assert retrieved_cliente.nombre == 'Juan'
+    assert retrieved_cliente.apellido == 'Pérez'
 
-def test_user_repr():
-    user = User(username='sampleuser', email='sample@example.com')
-    assert repr(user) == '<User sampleuser>'
+
+def test_cliente_repr(db_session):
+    # Crear un cliente de ejemplo
+    cliente = User.Cliente(
+        nombre='Ana',
+        apellido='Gómez',
+        dni='87654321',
+        email='anagomez@example.com',
+        contrasena='anothersecurepassword',
+        telefono='0987654321',
+        nacionalidad='México',
+        fecha_nacimiento=date(1985, 5, 15),  # Usa date() aquí también
+        direccion='Av. Reforma 456'
+    )
+    
+    db_session.add(cliente)
+    db_session.commit()
+    
+    # Verificar el `repr()` del cliente después de que se haya guardado en la base de datos
+    assert repr(cliente) == '<Cliente Ana Gómez>'
