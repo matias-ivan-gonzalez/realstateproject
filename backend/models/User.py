@@ -24,6 +24,9 @@ class Usuario(db.Model):
         'polymorphic_identity': 'usuario',
         'polymorphic_on': tipo
     }
+    
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.nombre} {self.apellido}>"
 
 class Cliente(Usuario):
   
