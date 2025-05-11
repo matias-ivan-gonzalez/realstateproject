@@ -2,6 +2,7 @@ import pytest
 from app import create_app
 from database import db
 from models import User
+from datetime import date
 
 @pytest.fixture
 def app():
@@ -28,7 +29,6 @@ def db_session(app):
         db.session.rollback()
 
 def test_create_cliente(db_session):
-    # Crear un cliente con los campos definidos en el modelo
     cliente = User.Cliente(
         nombre='Juan',
         apellido='Pérez',
@@ -37,24 +37,22 @@ def test_create_cliente(db_session):
         contrasena='securepassword',
         telefono='1234567890',
         nacionalidad='Argentina',
-        fecha_nacimiento='1990-01-01',
+        fecha_nacimiento=date(1990, 1, 1),  # Usa date() en lugar de cadena
         direccion='Calle Ficticia 123'
     )
     
     db_session.add(cliente)
     db_session.commit()
     
-    # Recuperar el cliente de la base de datos para verificar su existencia
     retrieved_cliente = User.Cliente.query.filter_by(dni='12345678').first()
     
-    # Asegurarse de que el cliente fue guardado y se recuperó correctamente
     assert retrieved_cliente is not None
     assert retrieved_cliente.email == 'juanperez@example.com'
     assert retrieved_cliente.nombre == 'Juan'
     assert retrieved_cliente.apellido == 'Pérez'
 
 
-def test_cliente_repr():
+def test_cliente_repr(db_session):
     # Crear un cliente de ejemplo
     cliente = User.Cliente(
         nombre='Ana',
@@ -64,9 +62,12 @@ def test_cliente_repr():
         contrasena='anothersecurepassword',
         telefono='0987654321',
         nacionalidad='México',
-        fecha_nacimiento='1985-05-15',
+        fecha_nacimiento=date(1985, 5, 15),  # Usa date() aquí también
         direccion='Av. Reforma 456'
     )
     
-    # Verificar el `repr()` del cliente
+    db_session.add(cliente)
+    db_session.commit()
+    
+    # Verificar el `repr()` del cliente después de que se haya guardado en la base de datos
     assert repr(cliente) == '<Cliente Ana Gómez>'
