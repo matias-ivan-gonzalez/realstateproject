@@ -1,26 +1,9 @@
-{% extends "base.html" %}
+{# templates/index.html #}
+{% extends "base_hero.html" %}
 
 {% block title %}Alquilando{% endblock %}
 
-{% block content %}
-<main class="hero flex-grow-1 d-flex align-items-center justify-content-center">
-  <!-- SVG de fondo -->
-  <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <radialGradient id="grad1" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="var(--bs-primary)" />
-        <stop offset="100%" stop-color="var(--bs-secondary)" />
-      </radialGradient>
-    </defs>
-    <circle cx="400" cy="300" r="300" fill="url(#grad1)" />
-    <circle cx="600" cy="150" r="120" fill="var(--bs-primary)" />
-    <circle cx="200" cy="450" r="100" fill="var(--bs-secondary)" />
-  </svg>
-
-  <!-- Contenido encima del SVG -->
-  <div class="hero-content container text-center w-100">
-    <h1 class="display-5 text-secondary">Alquilando, cada estadia una experiencia unica</h1>
-  </div>
-</main>
+{% block hero_content %}
+<h1 class="display-5 text-secondary">Alquilando, cada estadía una experiencia única</h1>
 {% endblock %}
 

@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base_hero.html" %}
 
 {% block title %}Iniciar sesión - Alquilando{% endblock %}
 
-{% block content %}
-<main class="d-flex flex-column align-items-center justify-content-center flex-grow-1 py-5 bg-light">
-  <div class="card p-4 shadow" style="max-width: 400px; width: 100%; z-index: 2;">
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5" style="z-index: 2;">
+  <div class="card p-4 shadow text-start" style="max-width: 400px; width: 100%; background-color: white;">
     <h2 class="text-center text-secondary mb-4">¡Hola, de nuevo!</h2>
 
     <form method="post">
@@ -27,5 +27,5 @@
       </div>
     </form>
   </div>
-</main>
+</div>
 {% endblock %}
