@@ -1,0 +1,24 @@
+{# templates/base_hero.html #}
+{% extends "base.html" %}
+
+{% block content %}
+<main class="hero flex-grow-1 d-flex align-items-center justify-content-center">
+  <!-- SVG de fondo -->
+  <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="grad1" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="var(--bs-primary)" />
+        <stop offset="100%" stop-color="var(--bs-secondary)" />
+      </radialGradient>
+    </defs>
+    <circle cx="400" cy="300" r="300" fill="url(#grad1)" />
+    <circle cx="600" cy="150" r="120" fill="var(--bs-primary)" />
+    <circle cx="200" cy="450" r="100" fill="var(--bs-secondary)" />
+  </svg>
+
+  <!-- Contenido específico que irá encima del fondo -->
+  <div class="hero-content container text-center w-100">
+    {% block hero_content %}{% endblock %}
+  </div>
+</main>
+{% endblock %}
