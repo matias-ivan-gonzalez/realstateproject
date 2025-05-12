@@ -1,0 +1,72 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Crear cuenta - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5" style="z-index: 2;">
+  <div class="card p-4 shadow text-start" style="max-width: 600px; width: 100%; background-color: white;">
+    <h2 class="text-center text-secondary mb-4">Crea tu cuenta</h2>
+
+    <form method="post">
+      <div class="row mb-3">
+        <div class="col">
+          <label for="nombre" class="form-label text-secondary">Nombre</label>
+          <input type="text" class="form-control" id="nombre" name="nombre" required>
+        </div>
+        <div class="col">
+          <label for="apellido" class="form-label text-secondary">Apellido</label>
+          <input type="text" class="form-control" id="apellido" name="apellido" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col">
+          <label for="email" class="form-label text-secondary">Email</label>
+          <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="col">
+          <label for="password" class="form-label text-secondary">Contraseña</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col">
+          <label for="telefono" class="form-label text-secondary">Teléfono</label>
+          <input type="tel" class="form-control" id="telefono" name="telefono" required>
+        </div>
+        <div class="col">
+          <label for="f_nac" class="form-label text-secondary">Fecha de nacimiento</label>
+          <input type="date" class="form-control" id="f_nac" name="f_nac" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col">
+          <label for="domicilio" class="form-label text-secondary">Domicilio</label>
+          <input type="text" class="form-control" id="domicilio" name="domicilio" required>
+        </div>
+        <div class="col">
+          <label for="nacionalidad" class="form-label text-secondary">Nacionalidad</label>
+          <input type="text" class="form-control" id="nacionalidad" name="nacionalidad" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col">
+          <label for="dni" class="form-label text-secondary">DNI</label>
+          <input type="text" class="form-control" id="dni" name="dni" required>
+        </div>
+        <div class="col">
+          <label for="tarjeta" class="form-label text-secondary">Tarjeta</label>
+          <input type="text" class="form-control" id="tarjeta" name="tarjeta" required>
+        </div>
+      </div>
+
+      <div class="d-grid mb-3">
+        <button type="submit" class="btn btn-primary">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
