@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión - Alquilando{% endblock %}
+
+{% block content %}
+<main class="d-flex flex-column align-items-center justify-content-center flex-grow-1 py-5 bg-light">
+  <div class="card p-4 shadow" style="max-width: 400px; width: 100%; z-index: 2;">
+    <h2 class="text-center text-secondary mb-4">¡Hola, de nuevo!</h2>
+
+    <form method="post">
+      <div class="mb-3">
+        <label for="email" class="form-label text-secondary">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="ejemplo@correo.com" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label text-secondary">Contraseña</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="********" required>
+      </div>
+
+      <div class="d-grid mb-3">
+        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+      </div>
+
+      <div class="text-end">
+        <a href="/recuperar" class="text-decoration-none text-secondary small">Recuperar contraseña</a>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}

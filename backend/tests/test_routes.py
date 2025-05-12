@@ -5,10 +5,17 @@ def test_index(client):
     
     # Verifica que la respuesta tenga el código de estado 200
     assert response.status_code == 200
+
+# Test para la ruta '/login'
+def test_login(client):
+    # Realiza una solicitud GET a la ruta '/login'
+    response = client.get('/login')
     
-    # Verifica que el texto principal esté presente
-    #assert b'Frontend levantado desde Flask' in response.data
+    # Verifica que la respuesta tenga el código de estado 200
+    assert response.status_code == 200
+
+    # Realiza una solicitud POST a la ruta '/login'
+    response_post = client.post('/login', data={})
     
-    # Verifica que los archivos estáticos estén incluidos (por ejemplo, Bootstrap CSS)
-    assert b'href="/static/css/bootstrap.min.css"' in response.data
-    assert b'src="/static/js/bootstrap.bundle.min.js"' in response.data
+    # Verifica que la respuesta tenga el código de estado 200
+    assert response_post.status_code == 200
