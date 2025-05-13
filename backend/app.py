@@ -2,7 +2,7 @@ from flask import Flask
 import os
 from routes import main  # Asegúrate de importar el Blueprint correctamente
 from database import db  # Importa tu configuración de base de datos desde un archivo separado
-from config import Config  # Importa la clase Config
+from config import Config  # Importa la gitclase Config
 
 
 
