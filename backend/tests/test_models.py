@@ -83,11 +83,11 @@ def test_cliente_repr(db_session):
     assert repr(cliente) == '<Cliente Ana Gómez>'
     
 
-def test_imagen_repr():
+def test_imagen_repr(db_session):
     img = Imagen.query.first()
     assert isinstance(img.__repr__(), str)
 
-def test_propiedad_repr():
+def test_propiedad_repr(db_session):
     prop = Propiedad.query.first()
     assert isinstance(prop.__repr__(), str)
 
