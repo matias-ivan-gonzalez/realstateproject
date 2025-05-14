@@ -3,6 +3,11 @@ from app import create_app
 from database import db
 from models import User
 from datetime import date
+from models.Rol import Rol
+from models.Permiso import Permiso
+from models.User import Cliente, Administrador, Encargado, SuperUsuario
+from models.Propiedad import Propiedad
+from models.Imagen import Imagen
 
 @pytest.fixture
 def app():
@@ -12,6 +17,11 @@ def app():
     
     with app.app_context():
         db.create_all()
+        db.drop_all()
+        db.create_all()
+        from init_db import init_db
+        init_db()
+       
     
     yield app
     
@@ -71,3 +81,17 @@ def test_cliente_repr(db_session):
     
     # Verificar el `repr()` del cliente después de que se haya guardado en la base de datos
     assert repr(cliente) == '<Cliente Ana Gómez>'
+    
+
+def test_imagen_repr(db_session):
+    img = Imagen.query.first()
+    assert isinstance(img.__repr__(), str)
+
+def test_propiedad_repr(db_session):
+    prop = Propiedad.query.first()
+    assert isinstance(prop.__repr__(), str)
+
+
+
+
+

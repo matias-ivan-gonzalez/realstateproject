@@ -3,6 +3,8 @@ import os
 from routes import main  # Asegúrate de importar el Blueprint correctamente
 from database import db  # Importa tu configuración de base de datos desde un archivo separado
 from config import Config  # Importa la gitclase Config
+from werkzeug.security import generate_password_hash
+from datetime import date
 
 
 
@@ -22,9 +24,20 @@ def create_app():
     db.init_app(app)
     
     with app.app_context():
-        from models import Rol, Permiso, User, Rol_Permiso
+        from models.Rol import Rol
+        from models.Permiso import Permiso
+        from models.User import Cliente, Administrador, Encargado, SuperUsuario
+        from models.Propiedad import Propiedad
+        from models.Imagen import Imagen
+        from models.Propiedad_Administrador import propiedad_administrador
+        from models.Favoritos import favoritos
+        # Crear tablas
         db.create_all()
 
+        # Inicializar la base de datos con datos de ejemplo
+        from init_db import init_db
+        init_db()
+        
 
     # Registrar el Blueprint
     app.register_blueprint(main)

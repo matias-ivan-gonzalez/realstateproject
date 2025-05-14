@@ -1,4 +1,7 @@
 from database import db
+from .User import SuperUsuario, Administrador, Encargado
+from .Propiedad_Administrador import propiedad_administrador
+
 
 class Propiedad(db.Model):
     __tablename__ = 'propiedad'
@@ -15,9 +18,16 @@ class Propiedad(db.Model):
     piscina = db.Column(db.Boolean, default=False, nullable=False)
     patio_trasero = db.Column(db.Boolean, default=False, nullable=False)
     descripcion = db.Column(db.String(500), nullable=True)
+    superusuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    encargado_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     
     # Relación con las imágenes
     imagenes = db.relationship('Imagen', back_populates='propiedad', cascade='all, delete-orphan')
+    superusuario = db.relationship('SuperUsuario', backref='propiedades', foreign_keys=[superusuario_id])
+    administradores = db.relationship('Administrador', secondary=propiedad_administrador, backref='propiedades_administradas')
+    encargado = db.relationship('Encargado', backref='propiedades_encargadas', foreign_keys=[encargado_id])
+
+    # clientes_favoritos: relación inversa de favoritos, definida en Cliente con backref
 
     def __repr__(self):
         return f"<Propiedad {self.nombre} - {self.ubicacion}>" 

@@ -1,4 +1,5 @@
 from database import db  
+from .Favoritos import favoritos
 
 
 
@@ -31,8 +32,9 @@ class Usuario(db.Model):
 class Cliente(Usuario):
   
     tarjeta = db.Column(db.String(100), nullable=True)
-    fecha_nacimiento = db.Column(db.Date, nullable=False)
-    direccion = db.Column(db.String(200), nullable=False)
+    fecha_nacimiento = db.Column(db.Date, nullable=True)
+    direccion = db.Column(db.String(200), nullable=True)
+    favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
     __mapper_args__ = {
         'polymorphic_identity': 'cliente',
     }
