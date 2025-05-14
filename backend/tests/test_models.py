@@ -169,3 +169,15 @@ def test_models():
     assert añadir_favorito in rol_cliente.permisos, 'Permiso añadir_favorito no asignado a cliente'
 
     print('Todos los tests automáticos de modelos pasaron OK') 
+
+
+if __name__ == "__main__":
+    from app import create_app
+    from init_db import init_db
+
+    app = create_app()
+    with app.app_context():
+        from database import db
+        db.create_all()
+        init_db()
+        test_models()
