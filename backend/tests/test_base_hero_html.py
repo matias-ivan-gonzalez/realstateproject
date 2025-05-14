@@ -1,29 +1,27 @@
 import pytest
 from flask import Blueprint, render_template_string
 
-def test_base_hero_template_rendering(app, client):
-    """
-    Testea que el template base_hero.html se renderiza correctamente cuando es extendido.
-    """
-    # Definir un template temporal que extiende de base_hero.html
+@pytest.fixture
+def app_with_base_hero(app):
     test_template = '''
     {% extends "base_hero.html" %}
     {% block hero_content %}
       <h2>Contenido de prueba</h2>
     {% endblock %}
     '''
-
-    # Crear un Blueprint temporal para la ruta de test
     test_bp = Blueprint('test_bp', __name__)
 
     @test_bp.route("/test-base-hero")
     def test_base_hero():
         return render_template_string(test_template)
 
-    # Registrar el Blueprint temporal
     app.register_blueprint(test_bp)
+    return app
 
-    # Hacer la petición a la ruta de test
+def test_base_hero_template_rendering(app_with_base_hero, client):
+    """
+    Testea que el template base_hero.html se renderiza correctamente cuando es extendido.
+    """
     response = client.get("/test-base-hero")
     assert response.status_code == 200
 
