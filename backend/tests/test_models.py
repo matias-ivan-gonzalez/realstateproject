@@ -21,7 +21,7 @@ def app():
         db.create_all()
         from init_db import init_db
         init_db()
-        yield
+       
     
     yield app
     
