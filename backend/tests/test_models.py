@@ -17,6 +17,11 @@ def app():
     
     with app.app_context():
         db.create_all()
+        db.drop_all()
+        db.create_all()
+        from init_db import init_db
+        init_db()
+        yield
     
     yield app
     
