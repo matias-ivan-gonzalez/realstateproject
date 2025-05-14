@@ -3,67 +3,73 @@
 {% block title %}Crear cuenta - Alquilando{% endblock %}
 
 {% block hero_content %}
-<div class="d-flex flex-column align-items-center justify-content-center py-5" style="z-index: 2;">
-  <div class="card p-4 shadow text-start" style="max-width: 600px; width: 100%; background-color: white;">
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: auto;">
+  <div class="card p-4 shadow text-start" style="max-width: 800px; width: 100%;">
+
     <h2 class="text-center text-secondary mb-4">Crea tu cuenta</h2>
 
     <form method="post">
-      <div class="row mb-3">
-        <div class="col">
+      <!-- FILA 1: Nombre, Apellido, Email, Contraseña -->
+      <div class="row mb-2">
+        <div class="col-md-3 mb-2">
           <label for="nombre" class="form-label text-secondary">Nombre</label>
           <input type="text" class="form-control" id="nombre" name="nombre" required>
         </div>
-        <div class="col">
+        <div class="col-md-3 mb-2">
           <label for="apellido" class="form-label text-secondary">Apellido</label>
           <input type="text" class="form-control" id="apellido" name="apellido" required>
         </div>
-      </div>
-
-      <div class="row mb-3">
-        <div class="col">
+        <div class="col-md-3 mb-2">
           <label for="email" class="form-label text-secondary">Email</label>
           <input type="email" class="form-control" id="email" name="email" required>
         </div>
-        <div class="col">
+        <div class="col-md-3 mb-2">
           <label for="password" class="form-label text-secondary">Contraseña</label>
           <input type="password" class="form-control" id="password" name="password" required>
         </div>
       </div>
 
-      <div class="row mb-3">
-        <div class="col">
+      <!-- FILA 2: Teléfono, Fecha de nacimiento, Domicilio, Nacionalidad -->
+      <div class="row mb-2">
+        <div class="col-md-3 mb-2">
           <label for="telefono" class="form-label text-secondary">Teléfono</label>
           <input type="tel" class="form-control" id="telefono" name="telefono" required>
         </div>
-        <div class="col">
+        <div class="col-md-3 mb-2">
           <label for="f_nac" class="form-label text-secondary">Fecha de nacimiento</label>
           <input type="date" class="form-control" id="f_nac" name="f_nac" required>
         </div>
-      </div>
-
-      <div class="row mb-3">
-        <div class="col">
+        <div class="col-md-3 mb-2">
           <label for="domicilio" class="form-label text-secondary">Domicilio</label>
           <input type="text" class="form-control" id="domicilio" name="domicilio" required>
         </div>
-        <div class="col">
+        <div class="col-md-3 mb-2">
           <label for="nacionalidad" class="form-label text-secondary">Nacionalidad</label>
           <input type="text" class="form-control" id="nacionalidad" name="nacionalidad" required>
         </div>
       </div>
 
-      <div class="row mb-3">
-        <div class="col">
+      <!-- FILA 3: DNI, Tarjeta -->
+      <div class="row mb-2">
+        <div class="col-md-6 mb-2">
           <label for="dni" class="form-label text-secondary">DNI</label>
           <input type="text" class="form-control" id="dni" name="dni" required>
         </div>
-        <div class="col">
-          <label for="tarjeta" class="form-label text-secondary">Tarjeta</label>
-          <input type="text" class="form-control" id="tarjeta" name="tarjeta" required>
+        <div class="col-md-6 mb-2">
+          <label for="tarjeta" class="form-label text-secondary">
+            Tarjeta <small class="text-muted">(opcional)</small>
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="tarjeta"
+            name="tarjeta"
+            placeholder="Número de tarjeta (opcional)"
+          >
         </div>
       </div>
 
-      <div class="d-grid mb-3">
+      <div class="d-grid mt-3">
         <button type="submit" class="btn btn-primary">Confirmar</button>
       </div>
     </form>
