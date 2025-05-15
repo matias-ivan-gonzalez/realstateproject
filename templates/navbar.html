@@ -10,10 +10,34 @@
       </button>
   
       <div class="collapse navbar-collapse" id="navContent">
-        <form class="d-flex ms-auto me-3" action="/search" method="get">
-          <input class="form-control me-2" type="search" name="ubicacion" placeholder="Ubicación" aria-label="Ubicación">
-          <button class="btn btn-outline-light" type="submit">Buscar</button>
+        <form class="d-flex ms-auto me-3 flex-column align-items-stretch" action="/search" method="get" style="gap: 0.5rem; width: 100%; max-width: 350px;">
+          <input class="form-control mb-1" type="search" name="ubicacion" id="input-ubicacion" placeholder="Ubicación" aria-label="Ubicación">
+          <div id="fechas-container" style="display: none; gap: 0.5rem; flex-direction: row;">
+            <input class="form-control mb-1" type="date" name="fecha_inicio" id="fecha-inicio" placeholder="Desde" aria-label="Fecha de inicio" disabled>
+            <input class="form-control mb-1" type="date" name="fecha_fin" id="fecha-fin" placeholder="Hasta" aria-label="Fecha de fin" disabled>
+          </div>
+          <button class="btn btn-outline-light mt-1" type="submit">Buscar</button>
         </form>
+        <script>
+          const inputUbicacion = document.getElementById('input-ubicacion');
+          const fechasContainer = document.getElementById('fechas-container');
+          const fechaInicio = document.getElementById('fecha-inicio');
+          const fechaFin = document.getElementById('fecha-fin');
+
+          inputUbicacion.addEventListener('input', function() {
+            if (this.value.trim() !== '') {
+              fechasContainer.style.display = 'flex';
+              fechaInicio.disabled = false;
+              fechaFin.disabled = false;
+            } else {
+              fechasContainer.style.display = 'none';
+              fechaInicio.disabled = true;
+              fechaFin.disabled = true;
+              fechaInicio.value = '';
+              fechaFin.value = '';
+            }
+          });
+        </script>
         <ul class="navbar-nav mb-2 mb-lg-0">
           <li class="nav-item me-2">
             <a class="btn btn-outline-light" href="/login">Iniciar sesión</a>

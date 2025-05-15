@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados de búsqueda{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Resultados de búsqueda</h2>
+    <p><strong>Ubicación:</strong> {{ ubicacion or 'Cualquier ubicación' }}</p>
+    <p><strong>Fecha de inicio:</strong> {{ fecha_inicio or 'No seleccionada' }}</p>
+    <p><strong>Fecha de fin:</strong> {{ fecha_fin or 'No seleccionada' }}</p>
+    <hr>
+    {% if propiedades %}
+        <div class="row">
+            {% for propiedad in propiedades %}
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ propiedad.nombre }}</h5>
+                            <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
+                            <p class="card-text">Precio: ${{ propiedad.precio }}</p>
+                            <p class="card-text">Habitaciones: {{ propiedad.cantidad_habitaciones }}</p>
+                            <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No se encontraron propiedades para los criterios seleccionados.</p>
+    {% endif %}
+</div>
+{% endblock %} 

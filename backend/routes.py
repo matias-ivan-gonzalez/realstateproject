@@ -24,3 +24,22 @@ def registrarse():
         return redirect(url_for('main.login'))  # Redirige al login después del registro
 
     return render_template('register.html')
+
+@main.route('/search', methods=['GET'])
+def search():
+    from models.Propiedad import Propiedad
+    ubicacion = request.args.get('ubicacion', '')
+    fecha_inicio = request.args.get('fecha_inicio', '')
+    fecha_fin = request.args.get('fecha_fin', '')
+
+    # Filtrar propiedades por ubicación (búsqueda simple)
+    propiedades = []
+    if ubicacion:
+        propiedades = Propiedad.query.filter(Propiedad.ubicacion.ilike(f"%{ubicacion}%")).all()
+    else:
+        propiedades = Propiedad.query.all()
+
+    # Aquí podrías agregar lógica para filtrar por fechas si tienes reservas
+    # Por ahora, solo se filtra por ubicación
+
+    return render_template('search_results.html', propiedades=propiedades, ubicacion=ubicacion, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
