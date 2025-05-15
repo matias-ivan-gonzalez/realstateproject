@@ -33,3 +33,9 @@ def test_usuario_primary_key(app):
         inspector = inspect(db.engine)
         pk = inspector.get_pk_constraint('usuario')['constrained_columns']
         assert pk == ['id']
+
+def test_usuario_repr():
+    from models.user import Usuario
+    usuario = Usuario(nombre='Juan', apellido='Pérez')
+    resultado = repr(usuario)
+    assert resultado == "<Usuario Juan Pérez>"

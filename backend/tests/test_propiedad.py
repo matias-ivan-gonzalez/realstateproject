@@ -47,3 +47,9 @@ def test_propiedad_foreign_keys(app):
         fk_map = {fk['constrained_columns'][0]: (fk['referred_table'], fk['referred_columns'][0]) for fk in fks}
         assert fk_map['superusuario_id'] == ('usuario', 'id')
         assert fk_map['encargado_id'] == ('usuario', 'id')
+
+def test_propiedad_repr():
+    from models.propiedad import Propiedad
+    propiedad = Propiedad(nombre='Casa Centro', ubicacion='Calle Falsa 123')
+    resultado = repr(propiedad)
+    assert resultado == "<Propiedad Casa Centro - Calle Falsa 123>"

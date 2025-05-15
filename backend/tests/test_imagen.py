@@ -38,3 +38,9 @@ def test_imagen_foreign_key(app):
             fk['constrained_columns'] == ['propiedad_id'] and fk['referred_table'] == 'propiedad'
             for fk in fks
         )
+
+def test_imagen_repr():
+    from models.imagen import Imagen
+    imagen = Imagen(nombre_archivo='foto.jpg', propiedad_id=42)
+    resultado = repr(imagen)
+    assert resultado == "<Imagen foto.jpg de Propiedad 42>"
