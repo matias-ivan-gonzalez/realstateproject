@@ -3,11 +3,11 @@ from app import create_app
 from database import db
 from models import User
 from datetime import date
-from models.Rol import Rol
-from models.Permiso import Permiso
-from models.User import Cliente, Administrador, Encargado, SuperUsuario
-from models.Propiedad import Propiedad
-from models.Imagen import Imagen
+from models.rol import Rol
+from models.permiso import Permiso
+from models.user import Cliente, Administrador, Encargado, SuperUsuario
+from models.propiedad import Propiedad
+from models.imagen import Imagen
 
 @pytest.fixture
 def app():

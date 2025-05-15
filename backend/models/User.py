@@ -1,8 +1,5 @@
 from database import db  
-from .Favoritos import favoritos
-
-
-
+from .favoritos import favoritos
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'

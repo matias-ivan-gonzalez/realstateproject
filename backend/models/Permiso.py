@@ -1,8 +1,6 @@
 from database import db  
 
-
-from .Rol_Permiso import rol_permiso
-
+from .rol_permiso import rol_permiso
 
 class Permiso(db.Model):
     __tablename__ = 'permiso'

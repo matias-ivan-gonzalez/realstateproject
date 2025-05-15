@@ -6,9 +6,6 @@ from config import Config  # Importa la gitclase Config
 from werkzeug.security import generate_password_hash
 from datetime import date
 
-
-
-
 flask_params = {
     'static_folder': os.path.join('..', 'static'),
     'template_folder': os.path.join('..', 'templates')
@@ -24,13 +21,13 @@ def create_app():
     db.init_app(app)
     
     with app.app_context():
-        from models.Rol import Rol
-        from models.Permiso import Permiso
-        from models.User import Cliente, Administrador, Encargado, SuperUsuario
-        from models.Propiedad import Propiedad
-        from models.Imagen import Imagen
-        from models.Propiedad_Administrador import propiedad_administrador
-        from models.Favoritos import favoritos
+        from models.rol import Rol
+        from models.permiso import Permiso
+        from models.user import Cliente, Administrador, Encargado, SuperUsuario
+        from models.propiedad import Propiedad
+        from models.imagen import Imagen
+        from models.propiedad_administrador import propiedad_administrador
+        from models.favoritos import favoritos
         # Crear tablas
         db.create_all()
 
