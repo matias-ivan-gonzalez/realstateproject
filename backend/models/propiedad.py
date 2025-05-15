@@ -1,7 +1,6 @@
 from database import db
-from .User import SuperUsuario, Administrador, Encargado
-from .Propiedad_Administrador import propiedad_administrador
-
+from .user import SuperUsuario, Administrador, Encargado
+from .propiedad_administrador import propiedad_administrador
 
 class Propiedad(db.Model):
     __tablename__ = 'propiedad'

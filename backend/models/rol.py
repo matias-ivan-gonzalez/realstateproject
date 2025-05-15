@@ -1,5 +1,5 @@
 from database import db
-from .Rol_Permiso import rol_permiso  # Import relativo correcto
+from .rol_permiso import rol_permiso  # Import relativo correcto
 
 class Rol(db.Model):
     __tablename__ = 'rol'

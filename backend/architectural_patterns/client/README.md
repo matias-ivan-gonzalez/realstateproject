@@ -1,0 +1,1 @@
+# Esta capa sirve para alojar toda la lógica de llamadas a servicios externos de nuestra aplicacion, tiene que ser llamada desde el service (archivos dentro de la capa "service"), y desde aca se generan llamadas a las dependencias que requieran salir de nuestro ecosistema
