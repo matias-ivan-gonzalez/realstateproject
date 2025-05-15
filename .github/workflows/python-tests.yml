@@ -26,6 +26,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Check required test files
+      run: python check_tests.py
+
     - name: Install black
       run: pip install black
   
@@ -38,7 +41,6 @@ jobs:
         coverage run --rcfile=.coveragerc --data-file=.coverage -m pytest --no-cov
         coverage report --fail-under=100
         coverage xml -o coverage.xml || echo "Failed to generate coverage.xml"
-
 
     - name: Prepare coverage report directory
       run: |
