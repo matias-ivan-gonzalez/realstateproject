@@ -17,6 +17,8 @@ class Propiedad(db.Model):
     piscina = db.Column(db.Boolean, default=False, nullable=False)
     patio_trasero = db.Column(db.Boolean, default=False, nullable=False)
     descripcion = db.Column(db.String(500), nullable=True)
+    latitud = db.Column(db.Float, nullable=True)
+    longitud = db.Column(db.Float, nullable=True)
     superusuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     encargado_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     

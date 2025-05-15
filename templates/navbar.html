@@ -1,52 +1,29 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="/">
-        <img src="/static/img/logo_alquiloando.png" alt="Logo" width="30" height="30" class="me-2">
-        Alquilando
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
-        aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-  
-      <div class="collapse navbar-collapse" id="navContent">
-        <form class="d-flex ms-auto me-3 flex-column align-items-stretch" action="/search" method="get" style="gap: 0.5rem; width: 100%; max-width: 350px;">
-          <input class="form-control mb-1" type="search" name="ubicacion" id="input-ubicacion" placeholder="Ubicación" aria-label="Ubicación">
-          <div id="fechas-container" style="display: none; gap: 0.5rem; flex-direction: row;">
-            <input class="form-control mb-1" type="date" name="fecha_inicio" id="fecha-inicio" placeholder="Desde" aria-label="Fecha de inicio" disabled>
-            <input class="form-control mb-1" type="date" name="fecha_fin" id="fecha-fin" placeholder="Hasta" aria-label="Fecha de fin" disabled>
-          </div>
-          <button class="btn btn-outline-light mt-1" type="submit">Buscar</button>
-        </form>
-        <script>
-          const inputUbicacion = document.getElementById('input-ubicacion');
-          const fechasContainer = document.getElementById('fechas-container');
-          const fechaInicio = document.getElementById('fecha-inicio');
-          const fechaFin = document.getElementById('fecha-fin');
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="/static/img/logo_alquiloando.png" alt="Logo" width="30" height="30" class="me-2">
+      Alquilando
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+      aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-          inputUbicacion.addEventListener('input', function() {
-            if (this.value.trim() !== '') {
-              fechasContainer.style.display = 'flex';
-              fechaInicio.disabled = false;
-              fechaFin.disabled = false;
-            } else {
-              fechasContainer.style.display = 'none';
-              fechaInicio.disabled = true;
-              fechaFin.disabled = true;
-              fechaInicio.value = '';
-              fechaFin.value = '';
-            }
-          });
-        </script>
-        <ul class="navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item me-2">
-            <a class="btn btn-outline-light" href="/login">Iniciar sesión</a>
-          </li>
-          <li class="nav-item">
-            <a class="btn btn-outline-light" href="/register">Registrarse</a>
-          </li>
-        </ul>
-      </div>
+    <div class="collapse navbar-collapse" id="navContent">
+      <form class="d-flex ms-auto me-3" action="/search" method="get">
+        <input class="form-control me-2" type="search" name="ubicacion" placeholder="Ubicación" aria-label="Ubicación">
+        <button class="btn btn-outline-light" type="submit">Buscar</button>
+      </form>
+      <ul class="navbar-nav mb-2 mb-lg-0">
+        <li class="nav-item me-2">
+          <a class="btn btn-outline-light" href="/login">Iniciar sesión</a>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-outline-light" href="/register">Registrarse</a>
+        </li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
+
   

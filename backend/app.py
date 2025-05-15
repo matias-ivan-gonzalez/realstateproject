@@ -13,6 +13,7 @@ flask_params = {
 
 def create_app():
     app = Flask(__name__, **flask_params)
+    app.secret_key = "superclaveultrasecreta_2024_!@#random"
 
     # Cargar configuración desde config.py
     app.config.from_object(Config)

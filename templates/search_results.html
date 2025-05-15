@@ -1,32 +1,114 @@
-{% extends "base.html" %}
+{% extends "base_hero.html" %}
 
 {% block title %}Resultados de búsqueda{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <h2 class="mb-3">Resultados de búsqueda</h2>
-    <p><strong>Ubicación:</strong> {{ ubicacion or 'Cualquier ubicación' }}</p>
-    <p><strong>Fecha de inicio:</strong> {{ fecha_inicio or 'No seleccionada' }}</p>
-    <p><strong>Fecha de fin:</strong> {{ fecha_fin or 'No seleccionada' }}</p>
-    <hr>
+{% block hero_content %}
+<!-- Leaflet CSS y JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+<div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
+    <form method="get" class="mb-4">
+        <div class="row">
+            <div class="col-md-2 mb-2">
+                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label for="fecha_fin" class="form-label">Fecha de fin</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label for="precio_min" class="form-label">Precio mínimo</label>
+                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" value="{{ precio_min or '' }}">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label for="precio_max" class="form-label">Precio máximo</label>
+                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" value="{{ precio_max or '' }}">
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Características</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="wifi" id="wifi"
+                        {% if 'wifi' in caracteristicas %}checked{% endif %}>
+                    <label class="form-check-label" for="wifi">WiFi</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="pileta" id="pileta"
+                        {% if 'pileta' in caracteristicas %}checked{% endif %}>
+                    <label class="form-check-label" for="pileta">Pileta</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="cochera" id="cochera"
+                        {% if 'cochera' in caracteristicas %}checked{% endif %}>
+                    <label class="form-check-label" for="cochera">Cochera</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="mascotas" id="mascotas"
+                        {% if 'mascotas' in caracteristicas %}checked{% endif %}>
+                    <label class="form-check-label" for="mascotas">Apto mascotas</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="patio" id="patio"
+                        {% if 'patio' in caracteristicas %}checked{% endif %}>
+                    <label class="form-check-label" for="patio">Patio trasero</label>
+                </div>
+            </div>
+            <div class="col-md-2 align-self-end mb-2">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            </div>
+        </div>
+    </form>
     {% if propiedades %}
         <div class="row">
+            {% set mapas = [] %}
             {% for propiedad in propiedades %}
                 <div class="col-md-4 mb-3">
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">{{ propiedad.nombre }}</h5>
                             <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
-                            <p class="card-text">Precio: ${{ propiedad.precio }}</p>
+                            {% if cantidad_noches %}
+                                <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
+                                <p class="card-text">Total ({{ cantidad_noches }} noches): ${{ precios_totales[propiedad.id] }}</p>
+                            {% endif %}
                             <p class="card-text">Habitaciones: {{ propiedad.cantidad_habitaciones }}</p>
                             <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
+                            {% if propiedad.latitud and propiedad.longitud %}
+                                <div id="mapa-{{ propiedad.id }}" style="height: 200px;"></div>
+                                {% set _ = mapas.append({'id': propiedad.id, 'lat': propiedad.latitud, 'lng': propiedad.longitud}) %}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
-    {% else %}
-        <p>No se encontraron propiedades para los criterios seleccionados.</p>
+        <script>
+        window.addEventListener("load", function() {
+            var mapas = {{ mapas|tojson|safe }};
+            mapas.forEach(function(m) {
+                var map = L.map('mapa-' + m.id).setView([m.lat, m.lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                L.marker([m.lat, m.lng]).addTo(map);
+            });
+        });
+        </script>
     {% endif %}
 </div>
 {% endblock %} 

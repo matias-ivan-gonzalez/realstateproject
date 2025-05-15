@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from datetime import datetime
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -27,10 +28,15 @@ def registrarse():
 
 @main.route('/search', methods=['GET'])
 def search():
-    from models.Propiedad import Propiedad
+    from models.propiedad import Propiedad
     ubicacion = request.args.get('ubicacion', '')
     fecha_inicio = request.args.get('fecha_inicio', '')
     fecha_fin = request.args.get('fecha_fin', '')
+    precio_min = request.args.get('precio_min', '')
+    precio_max = request.args.get('precio_max', '')
+    caracteristicas = request.args.getlist('caracteristicas')
+    pagina = int(request.args.get('pagina', 1))
+    por_pagina = 5
 
     # Filtrar propiedades por ubicación (búsqueda simple)
     propiedades = []
@@ -39,7 +45,69 @@ def search():
     else:
         propiedades = Propiedad.query.all()
 
-    # Aquí podrías agregar lógica para filtrar por fechas si tienes reservas
-    # Por ahora, solo se filtra por ubicación
+    # Calcular cantidad de noches y precio total
+    precios_totales = {}
+    cantidad_noches = None
+    if fecha_inicio and fecha_fin:
+        try:
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            cantidad_noches = (fecha_fin_dt - fecha_inicio_dt).days
+            if cantidad_noches < 1:
+                cantidad_noches = 1
+        except Exception:
+            cantidad_noches = None
+    
+    propiedades_filtradas = []
+    for propiedad in propiedades:
+        # Filtro por características
+        cumple_caracteristicas = True
+        for c in caracteristicas:
+            if c == 'wifi' and not propiedad.wifi:
+                cumple_caracteristicas = False
+            if c == 'pileta' and not propiedad.piscina:
+                cumple_caracteristicas = False
+            if c == 'cochera' and not propiedad.cochera:
+                cumple_caracteristicas = False
+            if c == 'mascotas' and not propiedad.pet_friendly:
+                cumple_caracteristicas = False
+            if c == 'patio' and not propiedad.patio_trasero:
+                cumple_caracteristicas = False
+        if not cumple_caracteristicas:
+            continue
+        if cantidad_noches:
+            precio_total = round(propiedad.precio * cantidad_noches, 2)
+            precios_totales[propiedad.id] = precio_total
+            # Filtrar por precio mínimo y máximo si están presentes
+            cumple_min = True
+            cumple_max = True
+            if precio_min:
+                try:
+                    cumple_min = precio_total >= float(precio_min)
+                except Exception:
+                    cumple_min = True
+            if precio_max:
+                try:
+                    cumple_max = precio_total <= float(precio_max)
+                except Exception:
+                    cumple_max = True
+            if cumple_min and cumple_max:
+                propiedades_filtradas.append(propiedad)
+        else:
+            precios_totales[propiedad.id] = None
+            # Si no hay fechas, no filtrar por precio total
+            propiedades_filtradas.append(propiedad)
 
-    return render_template('search_results.html', propiedades=propiedades, ubicacion=ubicacion, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+    total_propiedades = len(propiedades_filtradas)
+    total_paginas = (total_propiedades + por_pagina - 1) // por_pagina
+    inicio = (pagina - 1) * por_pagina
+    fin = inicio + por_pagina
+    propiedades_pagina = propiedades_filtradas[inicio:fin]
+
+    # Mensaje específico para rango de precios
+    if precio_min and precio_max and total_propiedades == 0:
+        flash("No se encontraron propiedades dentro del rango de precios seleccionado. Intente ajustar el rango de precios.", "warning")
+    elif total_propiedades == 0:
+        flash("No se encontraron propiedades disponibles en esta ubicación, pruebe otra ubicación.", "warning")
+
+    return render_template('search_results.html', propiedades=propiedades_pagina, ubicacion=ubicacion, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, precio_min=precio_min, precio_max=precio_max, precios_totales=precios_totales, cantidad_noches=cantidad_noches, caracteristicas=caracteristicas, pagina=pagina, total_paginas=total_paginas)
