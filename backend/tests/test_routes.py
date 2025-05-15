@@ -27,3 +27,8 @@ def test_register_post(client):
         response = client.post('/register', data={}, follow_redirects=False)
         assert response.status_code == 302
         assert response.headers['Location'].endswith('/login')
+
+
+def test_get_nueva_propiedad(client):
+    response = client.get('/propiedades/nueva')
+    assert response.status_code == 200
