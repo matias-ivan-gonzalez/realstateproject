@@ -1,0 +1,1 @@
+# Esta capa sirve para alojar toda la lógica de interacción con la base de datos de nuestra aplicacion, tiene que ser llamada desde el service (archivos dentro de la capa "service").
