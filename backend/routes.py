@@ -24,3 +24,8 @@ def registrarse():
         return redirect(url_for('main.login'))  # Redirige al login después del registro
 
     return render_template('register.html')
+
+# Ruta para mostrar el formulario de nueva propiedad
+@main.route('/propiedades/nueva', methods=['GET', 'POST'])
+def nueva_propiedad():
+    return render_template('nueva_propiedad.html')
