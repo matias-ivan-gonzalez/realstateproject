@@ -118,4 +118,18 @@ def test_agregar_encargado_exitoso(client, app):
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
     assert b'Registro exitoso' in response.data
 
+def test_agregar_empleado_rol_invalido(client, app):
+    data = {
+        'nombre': 'Invalido',
+        'apellido': 'Error',
+        'dni': '77777777',
+        'telefono': '11-0000-0000',
+        'nacionalidad': 'Desconocida',
+        'email': 'error@gmail.com',
+        'contrasena': '123456',
+        'rol': 'OtroRolQueNoExiste'
+    }
+    with pytest.raises(ValueError):
+        client.post('/empleados/nuevo', data=data, follow_redirects=True)
+
 # pragma: no cover

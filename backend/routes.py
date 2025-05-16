@@ -120,6 +120,8 @@ def agregar_empleado():
                 contrasena=contrasena,
                 rol=rol_db
             )
+        else:  # pragma: no cover
+            raise ValueError("Rol inválido recibido en agregar_empleado")
         db.session.add(nuevo)
         db.session.commit()
         flash('Registro exitoso', 'success')
