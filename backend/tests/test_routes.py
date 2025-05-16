@@ -107,3 +107,23 @@ def test_agregar_empleado_contrasena_corta(client, app):
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
     assert b'Registro fallido. La contrase' in response.data  # Solo chequea parte del mensaje
+
+def test_agregar_empleado_get(client):
+    response = client.get('/empleados/nuevo')
+    assert response.status_code == 200
+    assert b'Agregar nuevo empleado' in response.data
+
+
+def test_agregar_empleado_rol_no_permitido(client, app):
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Castro',
+        'dni': '12345678',
+        'telefono': '11-2234-3435',
+        'nacionalidad': 'Argentina',
+        'email': 'rolno@prueba.com',
+        'contrasena': '123456',
+        'rol': 'NoExiste'
+    }
+    response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
+    assert b'Rol no permitido' in response.data
