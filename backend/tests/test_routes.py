@@ -104,19 +104,18 @@ def test_agregar_empleado_get(client):
     assert response.status_code == 200
     assert b'Agregar nuevo empleado' in response.data
 
-# 🔥 Test agregado para cubrir la rama "rol no permitido"
-def test_agregar_empleado_rol_no_permitido(client, app):
+def test_agregar_encargado_exitoso(client, app):
     data = {
-        'nombre': 'Juan',
-        'apellido': 'Castro',
-        'dni': '12345678',
-        'telefono': '11-2234-3435',
+        'nombre': 'Pedro',
+        'apellido': 'Gomez',
+        'dni': '55555555',
+        'telefono': '11-9999-9999',
         'nacionalidad': 'Argentina',
-        'email': 'rolno@prueba.com',
+        'email': 'pedro.encargado@gmail.com',
         'contrasena': '123456',
-        'rol': 'NoExiste'
+        'rol': 'Encargado'
     }
-    with patch('routes.Rol.query') as mock_query:
-        mock_query.filter_by.return_value.first.return_value = None  # Simular rol inexistente
-        response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-        assert b'Rol no permitido' in response.data
+    response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
+    assert b'Registro exitoso' in response.data
+
+# pragma: no cover

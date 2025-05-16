@@ -120,9 +120,6 @@ def agregar_empleado():
                 contrasena=contrasena,
                 rol=rol_db
             )
-        else:
-            flash('Rol no permitido', 'danger')
-            return render_template('agregar_empleado.html', roles=roles_permitidos)
         db.session.add(nuevo)
         db.session.commit()
         flash('Registro exitoso', 'success')
