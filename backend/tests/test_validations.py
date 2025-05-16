@@ -1,5 +1,5 @@
-import pytest
-from backend.utils.validations import tiene_permiso
+from init_db import init_db
+from utils.validations import tiene_permiso
 
 class MockPermiso:
     def __init__(self, nombre):
