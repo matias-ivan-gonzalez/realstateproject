@@ -113,7 +113,6 @@ def test_agregar_empleado_get(client):
     assert response.status_code == 200
     assert b'Agregar nuevo empleado' in response.data
 
-
 def test_agregar_empleado_rol_no_permitido(client, app):
     data = {
         'nombre': 'Juan',
