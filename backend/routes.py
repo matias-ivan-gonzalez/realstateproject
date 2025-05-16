@@ -111,3 +111,28 @@ def search():
         flash("No se encontraron propiedades disponibles en esta ubicación, pruebe otra ubicación.", "warning")
 
     return render_template('search_results.html', propiedades=propiedades_pagina, ubicacion=ubicacion, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, precio_min=precio_min, precio_max=precio_max, precios_totales=precios_totales, cantidad_noches=cantidad_noches, caracteristicas=caracteristicas, pagina=pagina, total_paginas=total_paginas)
+
+# Ruta para mostrar el formulario de nueva propiedad
+@main.route('/propiedades/nueva', methods=['GET', 'POST'])
+def nueva_propiedad():
+    return render_template('nueva_propiedad.html')
+
+# Ruta para mostrar el formulario de modificar propiedad
+@main.route('/propiedades/modificar', methods=['GET', 'POST'])
+def modificar_propiedad():
+    # Diccionario de ejemplo con datos de una propiedad
+    propiedad = {
+        "nombre": "Casa de Prueba",
+        "ubicacion": "Calle Falsa 123",
+        "precio": 150000,
+        "cantidad_habitaciones": 3,
+        "limite_personas": 5,
+        "pet_friendly": True,
+        "cochera": False,
+        "wifi": True,
+        "piscina": False,
+        "patio_trasero": True,
+        "descripcion": "Una casa de prueba para modificar."
+    }
+    action_url = "/propiedades/modificar"
+    return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
