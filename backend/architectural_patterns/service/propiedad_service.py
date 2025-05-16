@@ -1,0 +1,33 @@
+from architectural_patterns.repository.propiedad_repository import PropiedadRepository
+
+class PropiedadService:
+    def __init__(self, repository=None):
+        self.repository = repository or PropiedadRepository
+
+    def crear_propiedad(self, data):
+        # Validación de campos obligatorios
+        required_fields = [
+            "nombre", "ubicacion", "precio", "cantidad_habitaciones", "limite_personas"
+        ]
+        for field in required_fields:
+            if not data.get(field):
+                return False, f"El campo {field} es obligatorio."
+
+        # Validación de tipos y valores
+        try:
+            data["precio"] = float(data["precio"])
+            data["cantidad_habitaciones"] = int(data["cantidad_habitaciones"])
+            data["limite_personas"] = int(data["limite_personas"])
+        except ValueError:
+            return False, "Precio, cantidad de habitaciones y límite de personas deben ser numéricos."
+
+        # Validación de unicidad del nombre usando el repository
+        if self.repository.get_by_nombre(data["nombre"]):
+            return False, "Ya existe una propiedad con ese nombre."
+
+        # Guardar en la base de datos
+        try:
+            self.repository.crear_propiedad(data)
+            return True, "Propiedad guardada exitosamente."
+        except Exception as e:
+            return False, f"Error al guardar la propiedad: {str(e)}"
