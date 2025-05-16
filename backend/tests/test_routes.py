@@ -27,6 +27,23 @@ def test_register_post(client):
         response = client.post('/register', data={})
         assert response.status_code in (200, 302)
 
+def test_register_post_success(client):
+    # Datos válidos para registro exitoso
+    data = {
+        'nombre': 'Ana',
+        'apellido': 'Lopez',
+        'email': 'test_registro_exitoso@mail.com',
+        'password': '12345678',
+        'telefono': '456123',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Otra',
+        'nacionalidad': 'Argentina',
+        'dni': '99999999',
+        'tarjeta': '1234'
+    }
+    response = client.post('/register', data=data, follow_redirects=False)
+    assert response.status_code == 302
+    assert '/login' in response.headers['Location']
 
 def test_get_nueva_propiedad(client):
     response = client.get('/propiedades/nueva')
