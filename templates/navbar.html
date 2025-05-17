@@ -11,8 +11,8 @@
 
     <div class="collapse navbar-collapse" id="navContent">
       <form class="d-flex ms-auto me-3" action="/search" method="get">
-        <input class="form-control me-2" type="search" name="ubicacion" placeholder="Ubicación" aria-label="Ubicación">
-        <button class="btn btn-outline-light" type="submit">Buscar</button>
+        <input class="form-control me-2" type="search" name="ubicacion" id="navbar-ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion if ubicacion is defined else request.args.get('ubicacion', '') }}" {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>
+        <button class="btn btn-outline-light" type="submit" id="buscar-btn" disabled {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>Buscar</button>
       </form>
       <ul class="navbar-nav mb-2 mb-lg-0">
         <li class="nav-item me-2">
@@ -25,5 +25,17 @@
     </div>
   </div>
 </nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ubicacionInput = document.getElementById('navbar-ubicacion');
+    const buscarBtn = document.getElementById('buscar-btn');
+    function toggleButton() {
+      buscarBtn.disabled = ubicacionInput.value.trim() === '';
+    }
+    ubicacionInput.addEventListener('input', toggleButton);
+    toggleButton(); // Initial state
+  });
+</script>
 
   

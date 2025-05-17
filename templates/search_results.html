@@ -6,67 +6,68 @@
 <!-- Leaflet CSS y JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="container mt-3">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
 <div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
     <form method="get" class="mb-4">
-        <div class="row">
-            <div class="col-md-2 mb-2">
-                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+        <div class="row align-items-center mb-3">
+            <div class="col-md-4 d-flex align-items-center mt-3">
+                <label for="ubicacion" class="form-label mb-0 me-2">Ubicación</label>
+                <input class="form-control" type="search" name="ubicacion" id="ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion }}">
+            </div>
+            <div class="col-md-3 offset-md-5 mt-3">
+                <label class="form-label mb-2">Características</label>
+                <div class="d-flex flex-column gap-1">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="wifi" id="wifi" {% if 'wifi' in caracteristicas %}checked{% endif %}>
+                        <label class="form-check-label" for="wifi">WiFi</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="pileta" id="pileta" {% if 'pileta' in caracteristicas %}checked{% endif %}>
+                        <label class="form-check-label" for="pileta">Pileta</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="cochera" id="cochera" {% if 'cochera' in caracteristicas %}checked{% endif %}>
+                        <label class="form-check-label" for="cochera">Cochera</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="mascotas" id="mascotas" {% if 'mascotas' in caracteristicas %}checked{% endif %}>
+                        <label class="form-check-label" for="mascotas">Apto mascotas</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="patio" id="patio" {% if 'patio' in caracteristicas %}checked{% endif %}>
+                        <label class="form-check-label" for="patio">Patio trasero</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center mb-3">
+            <div class="col-md-2 d-flex align-items-center mt-2">
+                <label for="fecha_inicio" class="form-label mb-0 me-2">Fecha de inicio</label>
                 <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
             </div>
-            <div class="col-md-2 mb-2">
-                <label for="fecha_fin" class="form-label">Fecha de fin</label>
+            <div class="col-md-2 d-flex align-items-center mt-2">
+                <label for="fecha_fin" class="form-label mb-0 me-2">Fecha de fin</label>
                 <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
             </div>
-            <div class="col-md-2 mb-2">
-                <label for="precio_min" class="form-label">Precio mínimo</label>
+        </div>
+        <div class="row align-items-center mb-3">
+            <div class="col-md-2 d-flex align-items-center mt-2">
+                <label for="precio_min" class="form-label mb-0 me-2">Precio mín.</label>
                 <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" value="{{ precio_min or '' }}">
             </div>
-            <div class="col-md-2 mb-2">
-                <label for="precio_max" class="form-label">Precio máximo</label>
+            <div class="col-md-2 d-flex align-items-center mt-2">
+                <label for="precio_max" class="form-label mb-0 me-2">Precio máx.</label>
                 <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" value="{{ precio_max or '' }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-center mt-2">
+                <label for="orden_precio" class="form-label mb-0 me-2">Ordenar</label>
+                <select class="form-select" id="orden_precio" name="orden_precio">
+                    <option value="" {% if not orden_precio %}selected{% endif %}>---</option>
+                    <option value="asc" {% if orden_precio == 'asc' %}selected{% endif %}>Precio - Menor a Mayor</option>
+                    <option value="desc" {% if orden_precio == 'desc' %}selected{% endif %}>Precio - Mayor a Menor</option>
+                </select>
             </div>
         </div>
         <div class="row mt-2">
-            <div class="col-md-6 mb-2">
-                <label class="form-label">Características</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="wifi" id="wifi"
-                        {% if 'wifi' in caracteristicas %}checked{% endif %}>
-                    <label class="form-check-label" for="wifi">WiFi</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="pileta" id="pileta"
-                        {% if 'pileta' in caracteristicas %}checked{% endif %}>
-                    <label class="form-check-label" for="pileta">Pileta</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="cochera" id="cochera"
-                        {% if 'cochera' in caracteristicas %}checked{% endif %}>
-                    <label class="form-check-label" for="cochera">Cochera</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="mascotas" id="mascotas"
-                        {% if 'mascotas' in caracteristicas %}checked{% endif %}>
-                    <label class="form-check-label" for="mascotas">Apto mascotas</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="caracteristicas" value="patio" id="patio"
-                        {% if 'patio' in caracteristicas %}checked{% endif %}>
-                    <label class="form-check-label" for="patio">Patio trasero</label>
-                </div>
-            </div>
             <div class="col-md-2 align-self-end mb-2">
                 <button type="submit" class="btn btn-primary w-100">Buscar</button>
             </div>
@@ -85,7 +86,6 @@
                                 <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
                                 <p class="card-text">Total ({{ cantidad_noches }} noches): ${{ precios_totales[propiedad.id] }}</p>
                             {% endif %}
-                            <p class="card-text">Habitaciones: {{ propiedad.cantidad_habitaciones }}</p>
                             <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
                             {% if propiedad.latitud and propiedad.longitud %}
                                 <div id="mapa-{{ propiedad.id }}" style="height: 200px;"></div>
@@ -96,6 +96,26 @@
                 </div>
             {% endfor %}
         </div>
+        
+        <!-- Controles de paginación -->
+        <nav aria-label="Paginación de resultados">
+          <ul class="pagination justify-content-center">
+            {# Botón Anterior #}
+            <li class="page-item {% if pagina <= 1 %}disabled{% endif %}">
+              <a class="page-link" href="?{% for key, value in request.args.items() if key != 'pagina' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina={{ pagina-1 }}" tabindex="-1">Anterior</a>
+            </li>
+            {# Números de página #}
+            {% for p in range(1, total_paginas+1) %}
+              <li class="page-item {% if p == pagina %}active{% endif %}">
+                <a class="page-link" href="?{% for key, value in request.args.items() if key != 'pagina' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina={{ p }}">{{ p }}</a>
+              </li>
+            {% endfor %}
+            {# Botón Siguiente #}
+            <li class="page-item {% if pagina >= total_paginas %}disabled{% endif %}">
+              <a class="page-link" href="?{% for key, value in request.args.items() if key != 'pagina' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina={{ pagina+1 }}">Siguiente</a>
+            </li>
+          </ul>
+        </nav>
         <script>
         window.addEventListener("load", function() {
             var mapas = {{ mapas|tojson|safe }};
@@ -111,4 +131,20 @@
         </script>
     {% endif %}
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function togglePriceInputs() {
+      const fechaInicio = document.getElementById('fecha_inicio').value;
+      const fechaFin = document.getElementById('fecha_fin').value;
+      const precioMin = document.getElementById('precio_min');
+      const precioMax = document.getElementById('precio_max');
+      const enabled = fechaInicio && fechaFin;
+      precioMin.disabled = !enabled;
+      precioMax.disabled = !enabled;
+    }
+    document.getElementById('fecha_inicio').addEventListener('input', togglePriceInputs);
+    document.getElementById('fecha_fin').addEventListener('input', togglePriceInputs);
+    togglePriceInputs();
+  });
+</script>
 {% endblock %} 
