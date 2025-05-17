@@ -6,60 +6,67 @@
 <!-- Leaflet CSS y JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
     <form method="get" class="mb-4">
         <div class="row align-items-center mb-3">
             <div class="col-md-4 d-flex align-items-center mt-3">
-                <label for="ubicacion" class="form-label mb-0 me-2">Ubicación</label>
+                <label for="ubicacion" class="form-label mb-0 me-2"><i class="bi bi-geo-alt-fill"></i></label>
                 <input class="form-control" type="search" name="ubicacion" id="ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion }}">
             </div>
+        </div>
+        <div class="row align-items-center mb-3">
             <div class="col-md-3 offset-md-5 mt-3">
                 <label class="form-label mb-2">Características</label>
                 <div class="d-flex flex-column gap-1">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="caracteristicas" value="wifi" id="wifi" {% if 'wifi' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="wifi">WiFi</label>
+                        <label class="form-check-label" for="wifi"><i class="bi bi-wifi"></i> WiFi</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="caracteristicas" value="pileta" id="pileta" {% if 'pileta' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="pileta">Pileta</label>
+                        <label class="form-check-label" for="pileta"><i class="bi bi-water"></i> Pileta</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="caracteristicas" value="cochera" id="cochera" {% if 'cochera' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="cochera">Cochera</label>
+                        <label class="form-check-label" for="cochera"><i class="bi bi-car-front"></i> Cochera</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="caracteristicas" value="mascotas" id="mascotas" {% if 'mascotas' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="mascotas">Apto mascotas</label>
+                        <label class="form-check-label" for="mascotas"><i class="fa-solid fa-cat"></i> Apto mascotas</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="caracteristicas" value="patio" id="patio" {% if 'patio' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="patio">Patio trasero</label>
+                        <label class="form-check-label" for="patio"><i class="bi bi-tree"></i> Patio trasero</label>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row align-items-center mb-3">
-            <div class="col-md-2 d-flex align-items-center mt-2">
-                <label for="fecha_inicio" class="form-label mb-0 me-2">Fecha de inicio</label>
-                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+            <div class="col-12 mb-1">
+                <span class="fw-bold">Rango de fechas</span>
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
-                <label for="fecha_fin" class="form-label mb-0 me-2">Fecha de fin</label>
-                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
+                <label for="fecha_inicio" class="form-label mb-0 me-2"><i class="bi bi-calendar-event"></i> Desde</label>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-center mt-2 offset-md-1">
+                <label for="fecha_fin" class="form-label mb-0 me-2"><i class="bi bi-calendar-event"></i> Hasta</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}" >
             </div>
         </div>
         <div class="row align-items-center mb-3">
             <div class="col-md-2 d-flex align-items-center mt-2">
-                <label for="precio_min" class="form-label mb-0 me-2">Precio mín.</label>
-                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" value="{{ precio_min or '' }}">
+                <label for="precio_min" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
+                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" value="{{ precio_min or '' }}" placeholder="Precio mín.">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
-                <label for="precio_max" class="form-label mb-0 me-2">Precio máx.</label>
-                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" value="{{ precio_max or '' }}">
+                <label for="precio_max" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
+                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" value="{{ precio_max or '' }}" placeholder="Precio máx.">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
-                <label for="orden_precio" class="form-label mb-0 me-2">Ordenar</label>
+                <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;">⬆️⬇️</span></label>
                 <select class="form-select" id="orden_precio" name="orden_precio">
                     <option value="" {% if not orden_precio %}selected{% endif %}>---</option>
                     <option value="asc" {% if orden_precio == 'asc' %}selected{% endif %}>Precio - Menor a Mayor</option>
@@ -69,7 +76,7 @@
         </div>
         <div class="row mt-2">
             <div class="col-md-2 align-self-end mb-2">
-                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Buscar</button>
             </div>
         </div>
     </form>
@@ -87,6 +94,13 @@
                                 <p class="card-text">Total ({{ cantidad_noches }} noches): ${{ precios_totales[propiedad.id] }}</p>
                             {% endif %}
                             <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
+                            <div class="mb-2">
+                                {% if propiedad.wifi %}<i class="bi bi-wifi" title="WiFi"></i> {% endif %}
+                                {% if propiedad.piscina %}<i class="bi bi-water" title="Pileta"></i> {% endif %}
+                                {% if propiedad.cochera %}<i class="bi bi-car-front" title="Cochera"></i> {% endif %}
+                                {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
+                                {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
+                            </div>
                             {% if propiedad.latitud and propiedad.longitud %}
                                 <div id="mapa-{{ propiedad.id }}" style="height: 200px;"></div>
                                 {% set _ = mapas.append({'id': propiedad.id, 'lat': propiedad.latitud, 'lng': propiedad.longitud}) %}
@@ -133,6 +147,21 @@
 </div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    function setFechaFinMin() {
+      const fechaInicio = document.getElementById('fecha_inicio').value;
+      const fechaFinInput = document.getElementById('fecha_fin');
+      if (fechaInicio) {
+        const minDate = new Date(fechaInicio);
+        minDate.setDate(minDate.getDate() + 1);
+        const minDateStr = minDate.toISOString().split('T')[0];
+        fechaFinInput.min = minDateStr;
+        if (fechaFinInput.value && fechaFinInput.value <= fechaInicio) {
+          fechaFinInput.value = '';
+        }
+      } else {
+        fechaFinInput.min = '';
+      }
+    }
     function togglePriceInputs() {
       const fechaInicio = document.getElementById('fecha_inicio').value;
       const fechaFin = document.getElementById('fecha_fin').value;
@@ -142,8 +171,23 @@
       precioMin.disabled = !enabled;
       precioMax.disabled = !enabled;
     }
-    document.getElementById('fecha_inicio').addEventListener('input', togglePriceInputs);
-    document.getElementById('fecha_fin').addEventListener('input', togglePriceInputs);
+    document.getElementById('fecha_inicio').addEventListener('input', function() {
+      setFechaFinMin();
+      togglePriceInputs();
+    });
+    document.getElementById('fecha_fin').addEventListener('input', function() {
+      togglePriceInputs();
+    });
+    // Validación al enviar el formulario
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const fechaInicio = document.getElementById('fecha_inicio').value;
+      const fechaFin = document.getElementById('fecha_fin').value;
+      if (fechaInicio && fechaFin && fechaFin <= fechaInicio) {
+        alert('La fecha de fin debe ser mayor a la fecha de inicio.');
+        e.preventDefault();
+      }
+    });
+    setFechaFinMin(); // <-- Esto asegura que al cargar la página se ajuste el min
     togglePriceInputs();
   });
 </script>

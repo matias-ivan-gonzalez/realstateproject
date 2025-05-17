@@ -37,7 +37,7 @@ def search_properties():
         'precio_max': request.args.get('precio_max', ''),
         'caracteristicas': request.args.getlist('caracteristicas'),
         'pagina': int(request.args.get('pagina', 1)),
-        'por_pagina': 4,
+        'por_pagina': 3,
         'orden_precio': request.args.get('orden_precio', '')
     }
     search_service = SearchService()

@@ -69,7 +69,7 @@ class SearchService:
             propiedades_filtradas.sort(key=lambda p: p.precio, reverse=True)
 
         pagina = int(data.get('pagina', 1))
-        por_pagina = int(data.get('por_pagina', 10))
+        por_pagina = int(data.get('por_pagina', 3))
         total_propiedades = len(propiedades_filtradas)
         total_paginas = (total_propiedades + por_pagina - 1) // por_pagina if por_pagina > 0 else 1
         inicio = (pagina - 1) * por_pagina
