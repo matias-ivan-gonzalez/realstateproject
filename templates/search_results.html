@@ -10,43 +10,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
     <form method="get" class="mb-4">
-        <div class="row align-items-center mb-3">
+        <div class="row align-items-center mb-3" style="margin-top:1.5rem;">
             <div class="col-md-4 d-flex align-items-center mt-3">
                 <label for="ubicacion" class="form-label mb-0 me-2"><i class="bi bi-geo-alt-fill"></i></label>
                 <input class="form-control" type="search" name="ubicacion" id="ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion }}">
             </div>
         </div>
-        <div class="row align-items-center mb-3">
-            <div class="col-md-3 offset-md-5 mt-3">
-                <label class="form-label mb-2">Características</label>
-                <div class="d-flex flex-column gap-1">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="wifi" id="wifi" {% if 'wifi' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="wifi"><i class="bi bi-wifi"></i> WiFi</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="pileta" id="pileta" {% if 'pileta' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="pileta"><i class="bi bi-water"></i> Pileta</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="cochera" id="cochera" {% if 'cochera' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="cochera"><i class="bi bi-car-front"></i> Cochera</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="mascotas" id="mascotas" {% if 'mascotas' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="mascotas"><i class="fa-solid fa-cat"></i> Apto mascotas</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="caracteristicas" value="patio" id="patio" {% if 'patio' in caracteristicas %}checked{% endif %}>
-                        <label class="form-check-label" for="patio"><i class="bi bi-tree"></i> Patio trasero</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row align-items-center mb-3">
-            <div class="col-12 mb-1">
-                <span class="fw-bold">Rango de fechas</span>
-            </div>
+        <!-- Rango de fechas movido debajo de ubicación -->
+        <div class="row align-items-center mb-3" style="margin-top:1.0rem;">
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="fecha_inicio" class="form-label mb-0 me-2"><i class="bi bi-calendar-event"></i> Desde</label>
                 <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
@@ -56,7 +27,39 @@
                 <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}" >
             </div>
         </div>
-        <div class="row align-items-center mb-3">
+        <div class="row align-items-center mb-3" style="margin-top: -10.5rem;">
+            <div class="col-md-3 offset-md-7 d-flex" style="margin-top:2.5rem;">
+                <div class="bg-white rounded shadow-sm p-3 border" style="min-width:280px;">
+                    <label class="form-label mb-2">Características</label>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="caracteristicas" value="wifi" id="wifi" {% if 'wifi' in caracteristicas %}checked{% endif %}>
+                            <label class="form-check-label" for="wifi"><i class="bi bi-wifi"></i> WiFi</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="caracteristicas" value="pileta" id="pileta" {% if 'pileta' in caracteristicas %}checked{% endif %}>
+                            <label class="form-check-label" for="pileta"><i class="bi bi-water"></i> Pileta</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="caracteristicas" value="cochera" id="cochera" {% if 'cochera' in caracteristicas %}checked{% endif %}>
+                            <label class="form-check-label" for="cochera"><i class="bi bi-car-front"></i> Cochera</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="caracteristicas" value="mascotas" id="mascotas" {% if 'mascotas' in caracteristicas %}checked{% endif %}>
+                            <label class="form-check-label" for="mascotas"><i class="fa-solid fa-cat"></i> Apto mascotas</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="caracteristicas" value="patio" id="patio" {% if 'patio' in caracteristicas %}checked{% endif %}>
+                            <label class="form-check-label" for="patio"><i class="bi bi-tree"></i> Patio trasero</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end ms-5" style="min-width:150px;">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Buscar</button>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center mb-3" style="margin-top:-4.5rem;">
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_min" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
                 <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" value="{{ precio_min or '' }}" placeholder="Precio mín.">
@@ -72,11 +75,6 @@
                     <option value="asc" {% if orden_precio == 'asc' %}selected{% endif %}>Precio - Menor a Mayor</option>
                     <option value="desc" {% if orden_precio == 'desc' %}selected{% endif %}>Precio - Mayor a Menor</option>
                 </select>
-            </div>
-        </div>
-        <div class="row mt-2">
-            <div class="col-md-2 align-self-end mb-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Buscar</button>
             </div>
         </div>
     </form>
@@ -191,4 +189,4 @@
     togglePriceInputs();
   });
 </script>
-{% endblock %} 
+{% endblock %}
