@@ -11,9 +11,12 @@
 <div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
     <form method="get" class="mb-4">
         <div class="row align-items-center mb-3" style="margin-top:1.5rem;">
-            <div class="col-md-4 d-flex align-items-center mt-3">
+            <div class="col-md-6 d-flex align-items-center mt-3">
                 <label for="ubicacion" class="form-label mb-0 me-2"><i class="bi bi-geo-alt-fill"></i></label>
                 <input class="form-control" type="search" name="ubicacion" id="ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-center mt-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Buscar</button>
             </div>
         </div>
         <!-- Rango de fechas movido debajo de ubicación -->
@@ -28,8 +31,8 @@
             </div>
         </div>
         <div class="row align-items-center mb-3" style="margin-top: -10.5rem;">
-            <div class="col-md-3 offset-md-7 d-flex" style="margin-top:2.5rem;">
-                <div class="bg-white rounded shadow-sm p-3 border" style="min-width:280px;">
+            <div class="col-md-4 offset-md-8 d-flex" style="margin-top:2.5rem;">
+                <div class="bg-white rounded shadow-sm p-3 border" style="min-width:300px; width:100%;">
                     <label class="form-label mb-2">Características</label>
                     <div class="d-flex flex-column gap-1">
                         <div class="form-check">
@@ -54,9 +57,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex align-items-end ms-5" style="min-width:150px;">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Buscar</button>
-                </div>
             </div>
         </div>
         <div class="row align-items-center mb-3" style="margin-top:-4.5rem;">
@@ -69,7 +69,7 @@
                 <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" value="{{ precio_max or '' }}" placeholder="Precio máx.">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
-                <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;">⬆️⬇️</span></label>
+                <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;"></span></label>
                 <select class="form-select" id="orden_precio" name="orden_precio">
                     <option value="" {% if not orden_precio %}selected{% endif %}>---</option>
                     <option value="asc" {% if orden_precio == 'asc' %}selected{% endif %}>Precio - Menor a Mayor</option>

@@ -29,6 +29,7 @@ def create_app():
         from models.imagen import Imagen
         from models.propiedad_administrador import propiedad_administrador
         from models.favoritos import favoritos
+        from models.reserva import Reserva
         # Crear tablas
         db.create_all()
 

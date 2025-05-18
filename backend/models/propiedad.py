@@ -28,7 +28,8 @@ class Propiedad(db.Model):
     administradores = db.relationship('Administrador', secondary=propiedad_administrador, backref='propiedades_administradas')
     encargado = db.relationship('Encargado', backref='propiedades_encargadas', foreign_keys=[encargado_id])
 
+    reservas = db.relationship('Reserva', back_populates='propiedad', cascade='all, delete-orphan')
     # clientes_favoritos: relación inversa de favoritos, definida en Cliente con backref
 
     def __repr__(self):
-        return f"<Propiedad {self.nombre} - {self.ubicacion}>" 
+        return f"<Propiedad {self.nombre} - {self.ubicacion}>"

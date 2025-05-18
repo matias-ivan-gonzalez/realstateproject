@@ -6,6 +6,9 @@ from models.propiedad import Propiedad
 from models.imagen import Imagen
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
+from models.reserva import Reserva
+from datetime import datetime
+
 
 def init_db():
     # Roles
@@ -220,6 +223,34 @@ def init_db():
         prop1.administradores.append(admin)
     if admin not in prop2.administradores:
         prop2.administradores.append(admin)
+    if admin not in prop3.administradores:
+        prop3.administradores.append(admin)
+    if admin not in prop4.administradores:
+        prop4.administradores.append(admin)
+    if admin not in prop5.administradores:
+        prop5.administradores.append(admin)
+    if admin not in prop6.administradores:
+        prop6.administradores.append(admin)
+    if admin not in prop7.administradores:
+        prop7.administradores.append(admin)
+    if admin not in prop8.administradores:
+        prop8.administradores.append(admin)
+    if admin not in prop9.administradores:
+        prop9.administradores.append(admin)
+    if admin not in prop10.administradores:
+        prop10.administradores.append(admin)
+        
+    # Reservas
+    fecha_inicio = '2025-5-20'	
+    fecha_fin = '2025-5-25'
+    fecha_inicio_convertida = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+    fecha_fin_convertida = datetime.strptime(fecha_fin, '%Y-%m-%d')
+    reserva1 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida).first()
+    if not reserva1:
+        reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3)
+        db.session.add(reserva1)
+        
+    
     db.session.commit()
 
     # Favoritos

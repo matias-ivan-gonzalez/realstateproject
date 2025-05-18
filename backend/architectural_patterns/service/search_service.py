@@ -1,18 +1,17 @@
-from datetime import date
 from architectural_patterns.repository.propiedad_repository import PropiedadRepository
+from architectural_patterns.repository.reserva_repository import ReservaRepository
 from datetime import datetime
-from flask import flash, redirect, url_for
+
 
 class SearchService:
 
-
-
     def search_properties(self, data):
         propiedades = []
-        repo = PropiedadRepository()
-        propiedades = repo.get_properties_by_location(data['ubicacion'])
+        repo_prop = PropiedadRepository()
+        propiedades = repo_prop.get_properties_by_location(data['ubicacion'])
         precios_totales = {}
         cantidad_noches = None
+
         if data['fecha_inicio'] and data['fecha_fin']:
             try:
                 fecha_inicio_dt = datetime.strptime(data['fecha_inicio'], '%Y-%m-%d')
@@ -20,6 +19,10 @@ class SearchService:
                 cantidad_noches = (fecha_fin_dt - fecha_inicio_dt).days
                 if cantidad_noches < 1:
                     cantidad_noches = 1
+
+                repo_res = ReservaRepository()
+                propiedades_ocupadas_ids = repo_res.get_propiedades_reservadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
+                propiedades = [p for p in propiedades if p.id not in propiedades_ocupadas_ids]
             except Exception:
                 cantidad_noches = None
 
@@ -105,4 +108,3 @@ class SearchService:
             "cantidad_noches": cantidad_noches,
             "precios_totales": precios_totales
         }
-
