@@ -1,4 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from werkzeug.security import generate_password_hash
+from models.user import Cliente
+from database import db
+from datetime import datetime
+from architectural_patterns.service.user_service import UserService
 from models.user import Administrador, Encargado, Usuario
 from models.rol import Rol
 from database import db
@@ -20,12 +25,26 @@ def login():
 @main.route('/register', methods=['GET', 'POST'])
 def registrarse():
     if request.method == 'POST':
-        # Aquí podrías capturar los datos del formulario si es necesario
-        # nombre = request.form.get('nombre')
-        # Procesar datos o guardar en la base de datos
-
-        return redirect(url_for('main.login'))  # Redirige al login después del registro
-
+        data = {
+            'nombre': request.form.get('nombre'),
+            'apellido': request.form.get('apellido'),
+            'email': request.form.get('email'),
+            'password': request.form.get('password'),
+            'telefono': request.form.get('telefono'),
+            'f_nac': request.form.get('f_nac'),
+            'domicilio': request.form.get('domicilio'),
+            'nacionalidad': request.form.get('nacionalidad'),
+            'dni': request.form.get('dni'),
+            'tarjeta': request.form.get('tarjeta')
+        }
+        user_service = UserService()
+        success, message = user_service.register_user(data)
+        if success:
+            flash(message, 'success')
+            return redirect(url_for('main.login'))
+        else:
+            flash(message, 'danger')
+            return render_template('register.html')
     return render_template('register.html')
 
 # Ruta para mostrar el formulario de nueva propiedad
