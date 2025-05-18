@@ -31,6 +31,9 @@ class Usuario(db.Model):
 
 class Cliente(Usuario):
     reservas = db.relationship("models.reserva.Reserva", back_populates="cliente", cascade="all, delete-orphan")
+    tarjeta = db.Column(db.String(50), nullable=True)
+    fecha_nacimiento = db.Column(db.Date, nullable=True)
+    direccion = db.Column(db.String(200), nullable=True)
 
     favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
     __mapper_args__ = {
