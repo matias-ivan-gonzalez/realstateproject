@@ -92,7 +92,7 @@ class SearchService:
         elif total_propiedades == 0:
             return {
                 "success": False,
-                "mensaje": "No se encontraron propiedades disponibles en esta ubicación, pruebe otra ubicación."
+                "mensaje": "No se encontraron propiedades en esta ubicación, pruebe otra ubicación."
             }
 
         propiedades_serializadas = [propiedad.to_dict() if hasattr(propiedad, 'to_dict') else propiedad.__dict__ for propiedad in propiedades_pagina]

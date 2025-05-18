@@ -36,3 +36,6 @@ def test_get_nueva_propiedad(client):
 def test_get_modificar_propiedad(client):
     response = client.get('/propiedades/modificar')
     assert response.status_code == 200
+    
+
+    
