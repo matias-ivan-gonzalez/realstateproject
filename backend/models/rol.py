@@ -8,4 +8,4 @@ class Rol(db.Model):
     nombre = db.Column(db.String(50), unique=True, nullable=False)
 
     permisos = db.relationship('Permiso', secondary=rol_permiso, back_populates='roles')
-    usuarios = db.relationship('Usuario', back_populates='rol')
+    usuarios = db.relationship('models.user.Usuario', back_populates='rol')
