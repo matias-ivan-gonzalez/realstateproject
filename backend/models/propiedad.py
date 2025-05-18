@@ -1,5 +1,5 @@
 from database import db
-from .user import SuperUsuario, Administrador, Encargado
+from models.user import SuperUsuario, Administrador, Encargado
 from .propiedad_administrador import propiedad_administrador
 
 class Propiedad(db.Model):
