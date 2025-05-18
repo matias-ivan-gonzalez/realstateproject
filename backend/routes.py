@@ -181,3 +181,9 @@ def agregar_empleado():
         flash('Registro exitoso', 'success')
         return render_template('agregar_empleado.html', roles=roles_permitidos)
     return render_template('agregar_empleado.html', roles=roles_permitidos)
+
+@main.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    flash('Sesión cerrada correctamente.', 'success')
+    return redirect(url_for('main.login'))
