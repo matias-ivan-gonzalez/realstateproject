@@ -4,6 +4,9 @@ from models.user import Cliente
 from database import db
 from datetime import datetime
 from architectural_patterns.service.user_service import UserService
+from models.user import Administrador, Encargado, Usuario
+from models.rol import Rol
+from database import db
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -68,3 +71,78 @@ def modificar_propiedad():
     }
     action_url = "/propiedades/modificar"
     return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
+
+# Ruta para agregar un nuevo empleado (administrador o encargado)
+@main.route('/empleados/nuevo', methods=['GET', 'POST'])
+def agregar_empleado():
+    roles_permitidos = ['Administrador', 'Encargado']  # Por ahora, ambos
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        apellido = request.form.get('apellido')
+        dni = request.form.get('dni')
+        telefono = request.form.get('telefono')
+        nacionalidad = request.form.get('nacionalidad')
+        email = request.form.get('email')
+        contrasena = request.form.get('contrasena')
+        rol_seleccionado = request.form.get('rol')
+        from models.rol import Rol
+        rol_db = Rol.query.filter_by(nombre=rol_seleccionado.lower()).first()
+        # Validaciones
+        errores = []
+        limpiar = {}
+        if len(contrasena) < 6:
+            errores.append('Registro fallido. La contraseña debe tener 6 caracteres como minimo')
+            limpiar['contrasena'] = True
+        existente_dni = Usuario.query.filter_by(dni=dni).first()
+        if existente_dni:
+            errores.append('Registro fallido. El dni ingresado ya se encuentra registrado')
+            limpiar['dni'] = True
+        existente_email = Usuario.query.filter_by(email=email).first()
+        if existente_email:
+            errores.append('Registro fallido. El mail ingresado ya se encuentra registrado')
+            limpiar['email'] = True
+        if errores:
+            for err in errores:
+                flash(err, 'danger')
+            # Limpiar solo los campos con error
+            data = {
+                'nombre': nombre,
+                'apellido': apellido,
+                'dni': '' if limpiar.get('dni') else dni,
+                'telefono': telefono,
+                'nacionalidad': nacionalidad,
+                'email': '' if limpiar.get('email') else email,
+                'contrasena': '' if limpiar.get('contrasena') else contrasena,
+                'rol': rol_seleccionado
+            }
+            return render_template('agregar_empleado.html', roles=roles_permitidos, data=data)
+        # Crear y guardar el nuevo empleado según el rol
+        if rol_seleccionado == 'Administrador':
+            nuevo = Administrador(
+                nombre=nombre,
+                apellido=apellido,
+                dni=dni,
+                telefono=telefono,
+                nacionalidad=nacionalidad,
+                email=email,
+                contrasena=contrasena,
+                rol=rol_db
+            )
+        elif rol_seleccionado == 'Encargado':
+            nuevo = Encargado(
+                nombre=nombre,
+                apellido=apellido,
+                dni=dni,
+                telefono=telefono,
+                nacionalidad=nacionalidad,
+                email=email,
+                contrasena=contrasena,
+                rol=rol_db
+            )
+        else:  # pragma: no cover
+            raise ValueError("Rol inválido recibido en agregar_empleado")
+        db.session.add(nuevo)
+        db.session.commit()
+        flash('Registro exitoso', 'success')
+        return render_template('agregar_empleado.html', roles=roles_permitidos)
+    return render_template('agregar_empleado.html', roles=roles_permitidos)

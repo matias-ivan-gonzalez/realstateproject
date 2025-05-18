@@ -1,0 +1,118 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Agregar Empleado{% endblock %}
+
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: auto;">
+  <div class="card p-4 shadow text-start" style="max-width: 600px; width: 100%;">
+    <h2 class="text-center text-secondary mb-4">Agregar nuevo empleado</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <form method="post">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="nombre" class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="nombre" name="nombre" required value="{{ data.nombre if data is defined else '' }}">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="apellido" class="form-label">Apellido</label>
+          <input type="text" class="form-control" id="apellido" name="apellido" required value="{{ data.apellido if data is defined else '' }}">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="dni" class="form-label">DNI</label>
+          <input type="text" class="form-control" id="dni" name="dni" required value="{{ data.dni if data is defined else '' }}">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="telefono" class="form-label">Teléfono</label>
+          <input type="text" class="form-control" id="telefono" name="telefono" required value="{{ data.telefono if data is defined else '' }}">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="nacionalidad" class="form-label">Nacionalidad</label>
+          <select class="form-select" id="nacionalidad" name="nacionalidad" required>
+            <option value="" disabled {% if data is not defined or not data.nacionalidad %}selected{% endif %}>Selecciona una nacionalidad</option>
+            <optgroup label="América">
+              <option value="Argentina" {% if data is defined and data.nacionalidad == 'Argentina' %}selected{% endif %}>Argentina</option>
+              <option value="Bolivia" {% if data is defined and data.nacionalidad == 'Bolivia' %}selected{% endif %}>Bolivia</option>
+              <option value="Brasil" {% if data is defined and data.nacionalidad == 'Brasil' %}selected{% endif %}>Brasil</option>
+              <option value="Chile" {% if data is defined and data.nacionalidad == 'Chile' %}selected{% endif %}>Chile</option>
+              <option value="Colombia" {% if data is defined and data.nacionalidad == 'Colombia' %}selected{% endif %}>Colombia</option>
+              <option value="Ecuador" {% if data is defined and data.nacionalidad == 'Ecuador' %}selected{% endif %}>Ecuador</option>
+              <option value="Estados Unidos" {% if data is defined and data.nacionalidad == 'Estados Unidos' %}selected{% endif %}>Estados Unidos</option>
+              <option value="México" {% if data is defined and data.nacionalidad == 'México' %}selected{% endif %}>México</option>
+              <option value="Paraguay" {% if data is defined and data.nacionalidad == 'Paraguay' %}selected{% endif %}>Paraguay</option>
+              <option value="Perú" {% if data is defined and data.nacionalidad == 'Perú' %}selected{% endif %}>Perú</option>
+              <option value="Uruguay" {% if data is defined and data.nacionalidad == 'Uruguay' %}selected{% endif %}>Uruguay</option>
+              <option value="Venezuela" {% if data is defined and data.nacionalidad == 'Venezuela' %}selected{% endif %}>Venezuela</option>
+            </optgroup>
+            <optgroup label="Europa">
+              <option value="Alemania" {% if data is defined and data.nacionalidad == 'Alemania' %}selected{% endif %}>Alemania</option>
+              <option value="España" {% if data is defined and data.nacionalidad == 'España' %}selected{% endif %}>España</option>
+              <option value="Francia" {% if data is defined and data.nacionalidad == 'Francia' %}selected{% endif %}>Francia</option>
+              <option value="Italia" {% if data is defined and data.nacionalidad == 'Italia' %}selected{% endif %}>Italia</option>
+              <option value="Países Bajos" {% if data is defined and data.nacionalidad == 'Países Bajos' %}selected{% endif %}>Países Bajos</option>
+              <option value="Portugal" {% if data is defined and data.nacionalidad == 'Portugal' %}selected{% endif %}>Portugal</option>
+              <option value="Reino Unido" {% if data is defined and data.nacionalidad == 'Reino Unido' %}selected{% endif %}>Reino Unido</option>
+              <option value="Rusia" {% if data is defined and data.nacionalidad == 'Rusia' %}selected{% endif %}>Rusia</option>
+              <option value="Suiza" {% if data is defined and data.nacionalidad == 'Suiza' %}selected{% endif %}>Suiza</option>
+            </optgroup>
+            <optgroup label="Asia">
+              <option value="Arabia Saudita" {% if data is defined and data.nacionalidad == 'Arabia Saudita' %}selected{% endif %}>Arabia Saudita</option>
+              <option value="China" {% if data is defined and data.nacionalidad == 'China' %}selected{% endif %}>China</option>
+              <option value="Corea del Sur" {% if data is defined and data.nacionalidad == 'Corea del Sur' %}selected{% endif %}>Corea del Sur</option>
+              <option value="Emiratos Árabes Unidos" {% if data is defined and data.nacionalidad == 'Emiratos Árabes Unidos' %}selected{% endif %}>Emiratos Árabes Unidos</option>
+              <option value="India" {% if data is defined and data.nacionalidad == 'India' %}selected{% endif %}>India</option>
+              <option value="Israel" {% if data is defined and data.nacionalidad == 'Israel' %}selected{% endif %}>Israel</option>
+              <option value="Japón" {% if data is defined and data.nacionalidad == 'Japón' %}selected{% endif %}>Japón</option>
+              <option value="Turquía" {% if data is defined and data.nacionalidad == 'Turquía' %}selected{% endif %}>Turquía</option>
+            </optgroup>
+            <optgroup label="África">
+              <option value="Argelia" {% if data is defined and data.nacionalidad == 'Argelia' %}selected{% endif %}>Argelia</option>
+              <option value="Egipto" {% if data is defined and data.nacionalidad == 'Egipto' %}selected{% endif %}>Egipto</option>
+              <option value="Marruecos" {% if data is defined and data.nacionalidad == 'Marruecos' %}selected{% endif %}>Marruecos</option>
+              <option value="Sudáfrica" {% if data is defined and data.nacionalidad == 'Sudáfrica' %}selected{% endif %}>Sudáfrica</option>
+            </optgroup>
+            <optgroup label="Oceanía">
+              <option value="Australia" {% if data is defined and data.nacionalidad == 'Australia' %}selected{% endif %}>Australia</option>
+              <option value="Nueva Zelanda" {% if data is defined and data.nacionalidad == 'Nueva Zelanda' %}selected{% endif %}>Nueva Zelanda</option>
+            </optgroup>
+            <option value="Otro" {% if data is defined and data.nacionalidad == 'Otro' %}selected{% endif %}>Otro</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" required value="{{ data.email if data is defined else '' }}">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="contrasena" class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="contrasena" name="contrasena" required value="{{ data.contrasena if data is defined else '' }}">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="rol" class="form-label">Rol</label>
+          <select class="form-select" id="rol" name="rol" required>
+            <option value="" disabled {% if data is not defined or not data.rol %}selected{% endif %}>Selecciona un rol</option>
+            {% for rol in roles %}
+              <option value="{{ rol }}" {% if data is defined and data.rol == rol %}selected{% endif %}>{{ rol }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 mb-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Guardar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} 
