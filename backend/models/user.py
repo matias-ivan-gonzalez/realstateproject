@@ -30,7 +30,6 @@ class Usuario(db.Model):
         return f"<{self.__class__.__name__} {self.nombre} {self.apellido}>"
 
 class Cliente(Usuario):
-    direccion = db.Column(db.String(200), nullable=True)
     reservas = db.relationship("Reserva", back_populates="cliente", cascade="all, delete-orphan")
 
     favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
