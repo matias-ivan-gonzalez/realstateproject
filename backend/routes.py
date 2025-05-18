@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from werkzeug.security import generate_password_hash, check_password_hash
 from models.user import Cliente
 from database import db
 from datetime import datetime
@@ -21,6 +21,19 @@ def index():
 # Ruta de login
 @main.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user_service = UserService()
+        user = user_service.authenticate_user(email, password)
+        if user:
+            session['user_id'] = user.id
+            session['user_name'] = user.nombre
+            flash('Inicio de sesión exitoso.', 'success')
+            return redirect(url_for('main.index'))
+        else:
+            flash('Email o contraseña incorrectos.', 'danger')
+            return render_template('login.html', email=email)
     return render_template('login.html')
 
 # Ruta de registro

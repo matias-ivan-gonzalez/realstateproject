@@ -1,5 +1,5 @@
 from architectural_patterns.repository.user_repository import UserRepository
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import re
 
@@ -69,4 +69,10 @@ class UserService:
             'tarjeta': data.get('tarjeta')
         }
         self.user_repository.create_cliente(user_dict)
-        return True, 'Registro exitoso. Ahora puedes iniciar sesión.' 
+        return True, 'Registro exitoso. Ahora puedes iniciar sesión.'
+
+    def authenticate_user(self, email, password):
+        user = self.user_repository.get_by_email(email)
+        if user and check_password_hash(user.contrasena, password):
+            return user
+        return None 
