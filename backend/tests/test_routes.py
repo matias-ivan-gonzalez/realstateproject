@@ -1,5 +1,7 @@
 from unittest.mock import patch
 import pytest
+from models.user import Cliente
+from werkzeug.security import generate_password_hash
 
 # Test para la ruta '/'
 def test_index(client):
@@ -8,13 +10,39 @@ def test_index(client):
         assert response.status_code == 200
 
 # Test para la ruta '/login'
-def test_login(client):
-    with patch('flask.render_template', return_value=''):
-        response = client.get('/login')
-        assert response.status_code == 200
+def test_login(client, app):
+    # GET debe renderizar el formulario
+    response = client.get('/login')
+    assert response.status_code == 200
+    assert b'Iniciar sesi' in response.data or b'login' in response.data.lower()
 
-        response_post = client.post('/login', data={})
-        assert response_post.status_code == 200
+    # Crear un usuario válido en la base de datos
+    with app.app_context():
+        user = Cliente(
+            nombre='Test',
+            apellido='User',
+            email='testuser@mail.com',
+            contrasena=generate_password_hash('testpass123'),
+            telefono='123456',
+            nacionalidad='Argentina',
+            dni='12345678'
+        )
+        from database import db
+        db.session.add(user)
+        db.session.commit()
+
+    # Login exitoso
+    response_post = client.post('/login', data={'email': 'testuser@mail.com', 'password': 'testpass123'}, follow_redirects=True)
+    assert response_post.status_code == 200
+    assert 'Iniciar sesión'.encode("utf-8") in response_post.data
+    with client.session_transaction() as sess:
+        assert sess['user_id']
+        assert sess['user_name'] == 'Test'
+
+    # Login fallido
+    response_post_fail = client.post('/login', data={'email': 'testuser@mail.com', 'password': 'wrongpass'}, follow_redirects=True)
+    assert response_post_fail.status_code == 200
+    assert b'Email o contrase' in response_post_fail.data
 
 # Test para la ruta '/register' (GET)
 def test_register_get(client):
