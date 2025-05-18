@@ -7,6 +7,8 @@ from architectural_patterns.service.user_service import UserService
 from models.user import Administrador, Encargado, Usuario
 from models.rol import Rol
 from database import db
+from architectural_patterns.service.propiedad_service import PropiedadService
+
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -50,6 +52,26 @@ def registrarse():
 # Ruta para mostrar el formulario de nueva propiedad
 @main.route('/propiedades/nueva', methods=['GET', 'POST'])
 def nueva_propiedad():
+    if request.method == 'POST':
+        data = {
+            "nombre": request.form.get('nombre'),
+            "ubicacion": request.form.get('ubicacion'),
+            "precio": request.form.get('precio'),
+            "cantidad_habitaciones": request.form.get('cantidad_habitaciones'),
+            "limite_personas": request.form.get('limite_personas'),
+            "pet_friendly": 'pet_friendly' in request.form,
+            "cochera": 'cochera' in request.form,
+            "wifi": 'wifi' in request.form,
+            "piscina": 'piscina' in request.form,
+            "patio_trasero": 'patio_trasero' in request.form,
+            "descripcion": request.form.get('descripcion', '')
+        }
+        success, message = PropiedadService().crear_propiedad(data)
+        if success:
+            flash(message, 'success')
+        else:
+            flash(message, 'danger')
+        return render_template('nueva_propiedad.html')
     return render_template('nueva_propiedad.html')
 
 # Ruta para mostrar el formulario de modificar propiedad

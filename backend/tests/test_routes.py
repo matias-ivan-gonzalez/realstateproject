@@ -28,6 +28,7 @@ def test_register_post(client):
         response = client.post('/register', data={})
         assert response.status_code in (200, 302)
 
+
 def test_register_post_success(client):
     # Datos válidos para registro exitoso
     data = {
@@ -46,10 +47,52 @@ def test_register_post_success(client):
     assert response.status_code == 302
     assert '/login' in response.headers['Location']
 
-
+# Test para la ruta '/propiedades/nueva' (GET)
 def test_get_nueva_propiedad(client):
     response = client.get('/propiedades/nueva')
     assert response.status_code == 200
+
+# Test para la ruta '/propiedades/nueva' (POST) - éxito
+def test_post_nueva_propiedad_success(client):
+    data = {
+        "nombre": "Casa Test",
+        "ubicacion": "Calle 123",
+        "precio": "100000",
+        "cantidad_habitaciones": "3",
+        "limite_personas": "5"
+    }
+    response = client.post('/propiedades/nueva', data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'guardada exitosamente' in response.data
+
+# Test para la ruta '/propiedades/nueva' (POST) - faltan campos
+def test_post_nueva_propiedad_faltan_campos(client):
+    data = {
+        "nombre": "",
+        "ubicacion": "Calle 123",
+        "precio": "100000",
+        "cantidad_habitaciones": "3",
+        "limite_personas": "5"
+    }
+    response = client.post('/propiedades/nueva', data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'El campo nombre es obligatorio' in response.data
+
+# Test para la ruta '/propiedades/nueva' (POST) - nombre repetido
+def test_post_nueva_propiedad_nombre_repetido(client):
+    data = {
+        "nombre": "Casa Test",
+        "ubicacion": "Calle 123",
+        "precio": "100000",
+        "cantidad_habitaciones": "3",
+        "limite_personas": "5"
+    }
+    # Primer guardado
+    client.post('/propiedades/nueva', data=data, follow_redirects=True)
+    # Segundo guardado con el mismo nombre
+    response = client.post('/propiedades/nueva', data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Ya existe una propiedad con ese nombre' in response.data
 
 def test_get_modificar_propiedad(client):
     response = client.get('/propiedades/modificar')
