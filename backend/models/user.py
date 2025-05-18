@@ -3,6 +3,8 @@ from .favoritos import favoritos
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'
+    __table_args__ = {'extend_existing': True}
+
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     tipo = db.Column(db.String(50))  # STI: cliente, administrador, etc.
