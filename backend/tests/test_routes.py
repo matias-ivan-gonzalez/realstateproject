@@ -14,7 +14,7 @@ def test_login(client, app):
     # GET debe renderizar el formulario
     response = client.get('/login')
     assert response.status_code == 200
-    assert b'Iniciar sesi' in response.data or b'login' in response.data.lower()
+    assert 'Iniciar sesión'.encode("utf-8") in response.data
 
     # Crear un usuario válido en la base de datos
     with app.app_context():
@@ -34,7 +34,7 @@ def test_login(client, app):
     # Login exitoso
     response_post = client.post('/login', data={'email': 'testuser@mail.com', 'password': 'testpass123'}, follow_redirects=True)
     assert response_post.status_code == 200
-    assert 'Iniciar sesión'.encode("utf-8") in response_post.data
+    assert 'Mi Perfil'.encode("utf-8") in response_post.data
     with client.session_transaction() as sess:
         assert sess['user_id']
         assert sess['user_name'] == 'Test'
