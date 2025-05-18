@@ -28,6 +28,7 @@ def test_register_post(client):
         response = client.post('/register', data={})
         assert response.status_code in (200, 302)
 
+
 def test_register_post_success(client):
     # Datos válidos para registro exitoso
     data = {

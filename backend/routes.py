@@ -9,6 +9,7 @@ from models.rol import Rol
 from database import db
 from architectural_patterns.service.propiedad_service import PropiedadService
 
+
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
 
