@@ -15,8 +15,9 @@ class Usuario(db.Model):
     contrasena = db.Column(db.String(100), nullable=False)
     telefono = db.Column(db.String(20), nullable=False)
     nacionalidad = db.Column(db.String(50), nullable=False)
-    
-    
+    tarjeta = db.Column(db.String(50), nullable=True)
+    fecha_nacimiento = db.Column(db.Date, nullable=True)
+    direccion = db.Column(db.String(200), nullable=True)    
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
     rol = db.relationship('Rol', back_populates='usuarios')
@@ -31,9 +32,7 @@ class Usuario(db.Model):
 
 class Cliente(Usuario):
     reservas = db.relationship("models.reserva.Reserva", back_populates="cliente", cascade="all, delete-orphan")
-    tarjeta = db.Column(db.String(50), nullable=True)
-    fecha_nacimiento = db.Column(db.Date, nullable=True)
-    direccion = db.Column(db.String(200), nullable=True)
+
 
     favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
     __mapper_args__ = {
