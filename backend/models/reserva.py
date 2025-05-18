@@ -15,8 +15,8 @@ class Reserva(db.Model):
     propiedad_id = db.Column(db.Integer, db.ForeignKey('propiedad.id'), nullable=False)
 
     # Relaciones
-    propiedad = db.relationship('Propiedad', back_populates='reservas')
-    cliente = db.relationship('Cliente', back_populates='reservas')
+    propiedad = db.relationship('models.propiedad.Propiedad', back_populates='reservas')
+    cliente = db.relationship('models.user.Cliente', back_populates='reservas')
 
 
     def __repr__(self):

@@ -4,6 +4,7 @@ from .propiedad_administrador import propiedad_administrador
 
 class Propiedad(db.Model):
     __tablename__ = 'propiedad'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     nombre = db.Column(db.String(100), unique=True, nullable=False)
@@ -28,7 +29,7 @@ class Propiedad(db.Model):
     administradores = db.relationship('Administrador', secondary=propiedad_administrador, backref='propiedades_administradas')
     encargado = db.relationship('Encargado', backref='propiedades_encargadas', foreign_keys=[encargado_id])
 
-    reservas = db.relationship('Reserva', back_populates='propiedad', cascade='all, delete-orphan')
+    reservas = db.relationship('models.reserva.Reserva', back_populates='propiedad', cascade='all, delete-orphan')
     # clientes_favoritos: relación inversa de favoritos, definida en Cliente con backref
 
     def __repr__(self):

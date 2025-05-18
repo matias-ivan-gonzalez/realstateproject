@@ -30,7 +30,7 @@ class Usuario(db.Model):
         return f"<{self.__class__.__name__} {self.nombre} {self.apellido}>"
 
 class Cliente(Usuario):
-    reservas = db.relationship("Reserva", back_populates="cliente", cascade="all, delete-orphan")
+    reservas = db.relationship("models.reserva.Reserva", back_populates="cliente", cascade="all, delete-orphan")
 
     favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
     __mapper_args__ = {
