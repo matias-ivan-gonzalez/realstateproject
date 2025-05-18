@@ -2,12 +2,12 @@ from database import db
 
 class Reserva(db.Model):
     __tablename__ = 'reserva'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
     cantidad_personas = db.Column(db.Integer, nullable=False)
-    __table_args__ = {'extend_existing': True}
     #estado = db.Column(db.String(50), nullable=False)  ver si hacemos patron state # Ej: 'pendiente', 'confirmada', 'cancelada'
     
     # Claves foráneas
