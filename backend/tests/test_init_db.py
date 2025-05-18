@@ -1,5 +1,5 @@
 import pytest
-from backend.init_db import init_db
+from init_db import init_db
 from database import db
 
 def test_init_db_runs(app):
