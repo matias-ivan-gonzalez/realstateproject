@@ -1,15 +1,15 @@
-from models.user import Cliente
+from models.user import Usuario
 from database import db
 
 class UserRepository:
     def get_by_email(self, email):
-        return Cliente.query.filter_by(email=email).first()
+        return Usuario.query.filter_by(email=email).first()
 
     def get_by_dni(self, dni):
-        return Cliente.query.filter_by(dni=dni).first()
+        return Usuario.query.filter_by(dni=dni).first()
 
-    def create_cliente(self, user_dict):
-        nuevo_cliente = Cliente(**user_dict)
-        db.session.add(nuevo_cliente)
+    def create_usuario(self, user_dict):
+        nuevo_usuario = Usuario(**user_dict)
+        db.session.add(nuevo_usuario)
         db.session.commit()
-        return nuevo_cliente 
+        return nuevo_usuario 
