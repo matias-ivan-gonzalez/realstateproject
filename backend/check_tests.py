@@ -2,7 +2,7 @@ EXCLUDED_MODULES = [
     'models/__initi__.py',
     'models/__init__.py',
     '__init__.py',
-    'check_tests.py',
+    'backend/tests/test_check_tests.py',
 ]
 
 # ...lógica previa...
