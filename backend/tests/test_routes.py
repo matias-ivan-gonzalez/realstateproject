@@ -224,4 +224,18 @@ def test_agregar_empleado_rol_invalido(client, app):
     with pytest.raises(ValueError):
         client.post('/empleados/nuevo', data=data, follow_redirects=True)
 
+def test_logout(client, app):
+    # Simula un usuario logueado
+    with client.session_transaction() as sess:
+        sess['user_id'] = 1
+        sess['user_name'] = 'Test'
+    response = client.post('/logout', follow_redirects=True)
+    assert response.status_code == 200
+    # Verifica que la sesión se haya limpiado
+    with client.session_transaction() as sess:
+        assert 'user_id' not in sess
+        assert 'user_name' not in sess
+    # Verifica que el mensaje de logout esté presente
+    assert b'Sesi' in response.data and b'cerrada' in response.data
+
 # pragma: no cover
