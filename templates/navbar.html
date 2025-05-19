@@ -15,12 +15,11 @@
           <button class="btn btn-outline-light" type="submit">Buscar</button>
         </form>
         <ul class="navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item me-2">
-            <a class="btn btn-outline-light" href="/login">Iniciar sesión</a>
-          </li>
-          <li class="nav-item">
-            <a class="btn btn-outline-light" href="/register">Registrarse</a>
-          </li>
+          {% if session.user_id %}
+            {% include 'navbar_with_session.html' %}
+          {% else %}
+            {% include 'navbar_without_session.html' %}
+          {% endif %}
         </ul>
       </div>
     </div>

@@ -41,7 +41,7 @@ def test_create_and_get_by_email_and_dni(repo, app, sample_user):
         assert repo.get_by_email(sample_user['email']) is None
         assert repo.get_by_dni(sample_user['dni']) is None
         # Crear usuario
-        user = repo.create_cliente(sample_user)
+        user = repo.create_usuario(sample_user)
         assert user.id is not None
         # Buscar por email
         user_by_email = repo.get_by_email(sample_user['email'])
@@ -51,3 +51,24 @@ def test_create_and_get_by_email_and_dni(repo, app, sample_user):
         user_by_dni = repo.get_by_dni(sample_user['dni'])
         assert user_by_dni is not None
         assert user_by_dni.dni == sample_user['dni']
+
+def test_create_usuario_todos_los_tipos(repo, app, sample_user):
+    tipos = ['cliente', 'administrador', 'encargado', 'superusuario', 'desconocido']
+    for tipo in tipos:
+        user_data = sample_user.copy()
+        user_data['email'] = f'{tipo}@mail.com'
+        user_data['dni'] = f'9999{tipo}'
+        user_data['tipo'] = tipo
+
+        # Elimina campos que no corresponden según el tipo
+        if tipo != 'cliente':
+            user_data.pop('fecha_nacimiento', None)
+            user_data.pop('tarjeta', None)
+            user_data.pop('direccion', None)
+
+        with app.app_context():
+            user = repo.create_usuario(user_data)
+            assert user.id is not None
+            assert user.email == f'{tipo}@mail.com'
+            assert user.dni == f'9999{tipo}'
+            assert user.tipo == tipo

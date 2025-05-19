@@ -1,5 +1,7 @@
 from unittest.mock import patch
 import pytest
+from models.user import Cliente
+from werkzeug.security import generate_password_hash
 
 # Test para la ruta '/'
 def test_index(client):
@@ -8,13 +10,42 @@ def test_index(client):
         assert response.status_code == 200
 
 # Test para la ruta '/login'
-def test_login(client):
-    with patch('flask.render_template', return_value=''):
-        response = client.get('/login')
-        assert response.status_code == 200
+def test_login(client, app):
+    # GET debe renderizar el formulario
+    response = client.get('/login')
+    assert response.status_code == 200
+    assert 'Iniciar sesión'.encode("utf-8") in response.data
 
-        response_post = client.post('/login', data={})
-        assert response_post.status_code == 200
+    # Crear un usuario válido en la base de datos
+    with app.app_context():
+        user = Cliente(
+            nombre='Test',
+            apellido='User',
+            email='testuser@mail.com',
+            contrasena='testpass123',
+            telefono='123456',
+            nacionalidad='Argentina',
+            dni='12345678'
+        )
+        from database import db
+        db.session.add(user)
+        db.session.commit()
+
+    # Login exitoso
+    response_post = client.post('/login', data={'email': 'testuser@mail.com', 'password': 'testpass123'}, follow_redirects=True)
+    assert response_post.status_code == 200
+    print(response_post.data.decode('utf-8'))
+    assert 'Mi Perfil'.encode("utf-8") in response_post.data
+    assert 'Cerrar sesión'.encode("utf-8") in response_post.data
+
+    with client.session_transaction() as sess:
+        assert sess['user_id']
+        assert sess['user_name'] == 'Test'
+
+    # Login fallido
+    response_post_fail = client.post('/login', data={'email': 'testuser@mail.com', 'password': 'wrongpass'}, follow_redirects=True)
+    assert response_post_fail.status_code == 200
+    assert b'Email o contrase' in response_post_fail.data
 
 # Test para la ruta '/register' (GET)
 def test_register_get(client):
@@ -192,5 +223,19 @@ def test_agregar_empleado_rol_invalido(client, app):
     }
     with pytest.raises(ValueError):
         client.post('/empleados/nuevo', data=data, follow_redirects=True)
+
+def test_logout(client, app):
+    # Simula un usuario logueado
+    with client.session_transaction() as sess:
+        sess['user_id'] = 1
+        sess['user_name'] = 'Test'
+    response = client.post('/logout', follow_redirects=True)
+    assert response.status_code == 200
+    # Verifica que la sesión se haya limpiado
+    with client.session_transaction() as sess:
+        assert 'user_id' not in sess
+        assert 'user_name' not in sess
+    # Verifica que el mensaje de logout esté presente
+    assert b'Sesi' in response.data and b'cerrada' in response.data
 
 # pragma: no cover

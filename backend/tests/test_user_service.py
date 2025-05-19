@@ -1,16 +1,21 @@
 import pytest
 from architectural_patterns.service.user_service import UserService
 
+class MockUser:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
 class MockUserRepository:
     def __init__(self):
         self.users = []
     def get_by_email(self, email):
-        return next((u for u in self.users if u['email'] == email), None)
+        return next((u for u in self.users if u.email == email), None)
     def get_by_dni(self, dni):
-        return next((u for u in self.users if u['dni'] == dni), None)
-    def create_cliente(self, user_dict):
-        self.users.append(user_dict)
-        return user_dict
+        return next((u for u in self.users if u.dni == dni), None)
+    def create_usuario(self, user_dict):
+        user = MockUser(**user_dict)
+        self.users.append(user)
+        return user
 
 @pytest.fixture
 def user_service():
@@ -74,7 +79,7 @@ def test_register_nacionalidad_invalida(user_service):
     assert 'nacionalidad' in msg.lower()
 
 def test_register_email_repetido(user_service):
-    user_service.user_repository.create_cliente({
+    user_service.user_repository.create_usuario({
         'nombre': 'Juan', 'apellido': 'Perez', 'email': 'jp@mail.com', 'contrasena': 'hash',
         'telefono': '123', 'fecha_nacimiento': None, 'direccion': 'Calle', 'nacionalidad': 'Argentina', 'dni': '12345678', 'tarjeta': ''
     })
@@ -85,7 +90,7 @@ def test_register_email_repetido(user_service):
     assert 'email' in msg.lower()
 
 def test_register_dni_repetido(user_service):
-    user_service.user_repository.create_cliente({
+    user_service.user_repository.create_usuario({
         'nombre': 'Juan', 'apellido': 'Perez', 'email': 'jp2@mail.com', 'contrasena': 'hash',
         'telefono': '123', 'fecha_nacimiento': None, 'direccion': 'Calle', 'nacionalidad': 'Argentina', 'dni': '11111111', 'tarjeta': ''
     })
@@ -110,8 +115,28 @@ def test_register_exitoso(user_service):
     # Verifica que el usuario fue guardado
     user = user_service.user_repository.get_by_email(data['email'])
     assert user is not None
-    assert user['dni'] == data['dni']
+    assert user.dni == data['dni']
 
 def test_parse_fecha_nacimiento_none(user_service):
     assert user_service.parse_fecha_nacimiento(None) is None
     assert user_service.parse_fecha_nacimiento('') is None
+
+@pytest.mark.parametrize('tipo', ['cliente', 'administrador', 'encargado', 'superusuario'])
+def test_login_todos_los_tipos(user_service, tipo):
+    data = base_data()
+    data['tipo'] = tipo
+    data['email'] = f'{tipo}@mail.com'
+    data['dni'] = f'1000{tipo}'
+    user_service.user_repository.create_usuario({
+        'nombre': data['nombre'],
+        'apellido': data['apellido'],
+        'email': data['email'],
+        'contrasena': data['password'],
+        'telefono': data['telefono'],
+        'nacionalidad': data['nacionalidad'],
+        'dni': data['dni'],
+        'tipo': tipo
+    })
+    user = user_service.authenticate_user(data['email'], data['password'])
+    assert user is not None
+    assert user.tipo == tipo

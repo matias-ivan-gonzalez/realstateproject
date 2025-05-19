@@ -1,5 +1,4 @@
 from architectural_patterns.repository.user_repository import UserRepository
-from werkzeug.security import generate_password_hash
 from datetime import datetime
 import re
 
@@ -55,18 +54,25 @@ class UserService:
         fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
         if data.get('f_nac') and not fecha_nacimiento:
             return False, 'Fecha de nacimiento inválida.'
-        hashed_password = generate_password_hash(data['password'])
         user_dict = {
             'nombre': data['nombre'],
             'apellido': data['apellido'],
             'email': data['email'],
-            'contrasena': hashed_password,
+            'contrasena': data['password'],
             'telefono': data['telefono'],
             'fecha_nacimiento': fecha_nacimiento,
             'direccion': data['domicilio'],
             'nacionalidad': data['nacionalidad'],
             'dni': data['dni'],
-            'tarjeta': data.get('tarjeta')
+            'tarjeta': data.get('tarjeta'),
+            'tipo': data.get('tipo', 'cliente')
         }
-        self.user_repository.create_cliente(user_dict)
-        return True, 'Registro exitoso. Ahora puedes iniciar sesión.' 
+        print(user_dict)
+        self.user_repository.create_usuario(user_dict)
+        return True, 'Registro exitoso. Ahora puedes iniciar sesión.'
+
+    def authenticate_user(self, email, password):
+        user = self.user_repository.get_by_email(email)
+        if user and user.contrasena == password:
+            return user
+        return None 
