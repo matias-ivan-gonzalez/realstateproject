@@ -8,6 +8,7 @@ from models.user import Administrador, Encargado, Usuario
 from models.rol import Rol
 from database import db
 from architectural_patterns.service.propiedad_service import PropiedadService
+from architectural_patterns.service.empleado_service import EmpleadoService
 
 
 # Crear un Blueprint para las rutas
@@ -22,18 +23,38 @@ def index():
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        # Obtener datos del formulario o JSON
+        if request.is_json:
+            email = request.get_json().get('email')
+            password = request.get_json().get('password')
+        else:
+            email = request.form.get('email')
+            password = request.form.get('password')
+
         user_service = UserService()
         user = user_service.authenticate_user(email, password)
         if user:
             session['user_id'] = user.id
             session['user_name'] = user.nombre
-            flash('Inicio de sesión exitoso.', 'success')
-            return redirect(url_for('main.index'))
+            # Guardar el rol del usuario en la sesión
+            if isinstance(user, Administrador):
+                session['rol'] = 'administrador'
+            elif isinstance(user, Encargado):
+                session['rol'] = 'encargado'
+            else:
+                session['rol'] = 'superusuario'
+
+            if request.is_json:
+                return {'message': 'Inicio de sesión exitoso', 'rol': session['rol']}, 200
+            else:
+                flash('Inicio de sesión exitoso.', 'success')
+                return redirect(url_for('main.index'))
         else:
-            flash('Email o contraseña incorrectos.', 'danger')
-            return render_template('login.html', email=email)
+            if request.is_json:
+                return {'error': 'Email o contraseña incorrectos'}, 401
+            else:
+                flash('Email o contraseña incorrectos.', 'danger')
+                return render_template('login.html', email=email)
     return render_template('login.html')
 
 # Ruta de registro
@@ -110,80 +131,69 @@ def modificar_propiedad():
 # Ruta para agregar un nuevo empleado (administrador o encargado)
 @main.route('/empleados/nuevo', methods=['GET', 'POST'])
 def agregar_empleado():
-    roles_permitidos = ['Administrador', 'Encargado']  # Por ahora, ambos
+    # Obtener el rol del usuario actual
+    user_rol = session.get('rol')
+    
+    # Definir los roles permitidos según el rol del usuario
+    if user_rol == 'superusuario':
+        roles_permitidos = ['Administrador', 'Encargado']
+    else:
+        roles_permitidos = ['Encargado']
+    
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        apellido = request.form.get('apellido')
-        dni = request.form.get('dni')
-        telefono = request.form.get('telefono')
-        nacionalidad = request.form.get('nacionalidad')
-        email = request.form.get('email')
-        contrasena = request.form.get('contrasena')
-        rol_seleccionado = request.form.get('rol')
-        from models.rol import Rol
-        rol_db = Rol.query.filter_by(nombre=rol_seleccionado.lower()).first()
-        # Validaciones
-        errores = []
-        limpiar = {}
-        if len(contrasena) < 6:
-            errores.append('Registro fallido. La contraseña debe tener 6 caracteres como minimo')
-            limpiar['contrasena'] = True
-        existente_dni = Usuario.query.filter_by(dni=dni).first()
-        if existente_dni:
-            errores.append('Registro fallido. El dni ingresado ya se encuentra registrado')
-            limpiar['dni'] = True
-        existente_email = Usuario.query.filter_by(email=email).first()
-        if existente_email:
-            errores.append('Registro fallido. El mail ingresado ya se encuentra registrado')
-            limpiar['email'] = True
-        if errores:
-            for err in errores:
-                flash(err, 'danger')
-            # Limpiar solo los campos con error
+        # Obtener datos del formulario o JSON
+        if request.is_json:
+            data = request.get_json()
+        else:
             data = {
-                'nombre': nombre,
-                'apellido': apellido,
-                'dni': '' if limpiar.get('dni') else dni,
-                'telefono': telefono,
-                'nacionalidad': nacionalidad,
-                'email': '' if limpiar.get('email') else email,
-                'contrasena': '' if limpiar.get('contrasena') else contrasena,
-                'rol': rol_seleccionado
+                'nombre': request.form.get('nombre'),
+                'apellido': request.form.get('apellido'),
+                'dni': request.form.get('dni'),
+                'telefono': request.form.get('telefono'),
+                'nacionalidad': request.form.get('nacionalidad'),
+                'email': request.form.get('email'),
+                'contrasena': request.form.get('contrasena'),
+                'rol': request.form.get('rol')
             }
-            return render_template('agregar_empleado.html', roles=roles_permitidos, data=data)
-        # Crear y guardar el nuevo empleado según el rol
-        if rol_seleccionado == 'Administrador':
-            nuevo = Administrador(
-                nombre=nombre,
-                apellido=apellido,
-                dni=dni,
-                telefono=telefono,
-                nacionalidad=nacionalidad,
-                email=email,
-                contrasena=contrasena,
-                rol=rol_db
-            )
-        elif rol_seleccionado == 'Encargado':
-            nuevo = Encargado(
-                nombre=nombre,
-                apellido=apellido,
-                dni=dni,
-                telefono=telefono,
-                nacionalidad=nacionalidad,
-                email=email,
-                contrasena=contrasena,
-                rol=rol_db
-            )
-        else:  # pragma: no cover
-            raise ValueError("Rol inválido recibido en agregar_empleado")
-        db.session.add(nuevo)
-        db.session.commit()
-        flash('Registro exitoso', 'success')
-        return render_template('agregar_empleado.html', roles=roles_permitidos)
-    return render_template('agregar_empleado.html', roles=roles_permitidos)
+        
+        # Validar que el rol seleccionado está permitido
+        if data['rol'] not in roles_permitidos:
+            if request.is_json:
+                return {'error': 'No tienes permiso para crear un empleado con ese rol'}, 403
+            else:
+                flash('No tienes permiso para crear un empleado con ese rol', 'danger')
+                return render_template('agregar_empleado.html', roles=roles_permitidos, data=data, user_rol=user_rol)
+        
+        empleado_service = EmpleadoService()
+        success, message = empleado_service.crear_empleado(data)
+        
+        if request.is_json:
+            if success:
+                return {'message': message}, 200
+            else:
+                return {'error': message}, 400
+        
+        if success:
+            flash(message, 'success')
+            return render_template('agregar_empleado.html', roles=roles_permitidos, user_rol=user_rol)
+        else:
+            flash(message, 'danger')
+            return render_template('agregar_empleado.html', roles=roles_permitidos, data=data, user_rol=user_rol)
+            
+    return render_template('agregar_empleado.html', roles=roles_permitidos, user_rol=user_rol)
 
 @main.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     flash('Sesión cerrada correctamente.', 'success')
     return redirect(url_for('main.login'))
+
+@main.route('/check-role')
+def check_role():
+    if 'user_id' not in session:
+        return {'error': 'No hay usuario logueado'}, 401
+    return {
+        'user_id': session.get('user_id'),
+        'user_name': session.get('user_name'),
+        'rol': session.get('rol')
+    }
