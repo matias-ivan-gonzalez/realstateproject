@@ -41,7 +41,7 @@ def test_create_and_get_by_email_and_dni(repo, app, sample_user):
         assert repo.get_by_email(sample_user['email']) is None
         assert repo.get_by_dni(sample_user['dni']) is None
         # Crear usuario
-        user = repo.create_cliente(sample_user)
+        user = repo.create_usuario(sample_user)
         assert user.id is not None
         # Buscar por email
         user_by_email = repo.get_by_email(sample_user['email'])

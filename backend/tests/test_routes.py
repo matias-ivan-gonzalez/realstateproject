@@ -22,7 +22,7 @@ def test_login(client, app):
             nombre='Test',
             apellido='User',
             email='testuser@mail.com',
-            contrasena=generate_password_hash('testpass123'),
+            contrasena='testpass123',
             telefono='123456',
             nacionalidad='Argentina',
             dni='12345678'
@@ -34,7 +34,10 @@ def test_login(client, app):
     # Login exitoso
     response_post = client.post('/login', data={'email': 'testuser@mail.com', 'password': 'testpass123'}, follow_redirects=True)
     assert response_post.status_code == 200
+    print(response_post.data.decode('utf-8'))
     assert 'Mi Perfil'.encode("utf-8") in response_post.data
+    assert 'Cerrar sesión'.encode("utf-8") in response_post.data
+
     with client.session_transaction() as sess:
         assert sess['user_id']
         assert sess['user_name'] == 'Test'
