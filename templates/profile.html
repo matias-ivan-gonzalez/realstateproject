@@ -1,0 +1,95 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Mi Perfil - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Mi Perfil</h2>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('main.perfil') }}">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.nombre }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="apellido" class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.apellido }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="telefono" class="form-label">Teléfono *</label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ user.telefono }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="f_nac" class="form-label">Fecha de nacimiento *</label>
+                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ user.fecha_nacimiento.strftime('%Y-%m-%d') if user.fecha_nacimiento }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="domicilio" class="form-label">Domicilio *</label>
+                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ user.direccion }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="dni" class="form-label">DNI *</label>
+                                <input type="text" class="form-control" id="dni" name="dni" value="{{ user.dni }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nacionalidad" class="form-label">Nacionalidad *</label>
+                                <select class="form-select" id="nacionalidad" name="nacionalidad" required>
+                                    {% for pais in paises %}
+                                        <option value="{{ pais }}" {% if pais == user.nacionalidad %}selected{% endif %}>{{ pais }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="tarjeta" class="form-label">Tarjeta (opcional)</label>
+                                <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ user.tarjeta }}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <hr>
+                                <h5>Cambiar contraseña (opcional)</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Nueva contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password" minlength="8">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password_confirm" class="form-label">Confirmar contraseña</label>
+                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" minlength="8">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

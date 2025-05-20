@@ -8,10 +8,20 @@ from models.user import Administrador, Encargado, Usuario
 from models.rol import Rol
 from database import db
 from architectural_patterns.service.propiedad_service import PropiedadService
+from functools import wraps
 
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Debes iniciar sesión para acceder a esta página.', 'danger')
+            return redirect(url_for('main.login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Ruta principal
 @main.route('/')
@@ -29,8 +39,9 @@ def login():
         if user:
             session['user_id'] = user.id
             session['user_name'] = user.nombre
+            # No redirigir inmediatamente, mostrar mensaje y luego redirigir con JS
             flash('Inicio de sesión exitoso.', 'success')
-            return redirect(url_for('main.index'))
+            return render_template('login.html', email=email, login_success=True, redirect_url=url_for('main.index'))
         else:
             flash('Email o contraseña incorrectos.', 'danger')
             return render_template('login.html', email=email)
@@ -187,3 +198,34 @@ def logout():
     session.clear()
     flash('Sesión cerrada correctamente.', 'success')
     return redirect(url_for('main.login'))
+
+@main.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def perfil():
+    user_service = UserService()
+    user = user_service.get_user_by_id(session['user_id'])
+    
+    if request.method == 'POST':
+        data = {
+            'nombre': request.form.get('nombre'),
+            'apellido': request.form.get('apellido'),
+            'email': request.form.get('email'),
+            'telefono': request.form.get('telefono'),
+            'f_nac': request.form.get('f_nac'),
+            'domicilio': request.form.get('domicilio'),
+            'nacionalidad': request.form.get('nacionalidad'),
+            'dni': request.form.get('dni'),
+            'tarjeta': request.form.get('tarjeta'),
+            'password': request.form.get('password'),
+            'password_confirm': request.form.get('password_confirm')
+        }
+        
+        success, message = user_service.update_user(session['user_id'], data)
+        if success:
+            flash(message, 'success')
+            return redirect(url_for('main.perfil'))
+        else:
+            flash(message, 'danger')
+    
+    paises = user_service.get_paises()
+    return render_template('profile.html', user=user, paises=paises)

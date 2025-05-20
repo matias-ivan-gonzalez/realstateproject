@@ -16,6 +16,12 @@ class UserService:
     def __init__(self, user_repository=None):
         self.user_repository = user_repository or UserRepository()
 
+    def get_user_by_id(self, user_id):
+        return self.user_repository.get_by_id(user_id)
+
+    def get_paises(self):
+        return NACIONALIDADES_VALIDAS
+
     def email_exists(self, email):
         return self.user_repository.get_by_email(email) is not None
 
@@ -29,6 +35,74 @@ class UserService:
             return datetime.strptime(f_nac, '%Y-%m-%d').date()
         except ValueError:
             return None
+
+    def update_user(self, user_id, data):
+        # Validar campos requeridos
+        required_fields = ['nombre', 'apellido', 'email', 'telefono', 'f_nac', 'domicilio', 'nacionalidad', 'dni']
+        for field in required_fields:
+            if not data.get(field):
+                return False, f'El campo {field} es obligatorio.'
+
+        # Validar email
+        if not is_valid_email(data['email']):
+            return False, 'Email inválido.'
+
+        # Validar campos numéricos
+        if not is_numeric(data['dni']):
+            return False, 'El DNI debe ser numérico.'
+        if not is_numeric(data['telefono']):
+            return False, 'El teléfono debe ser numérico.'
+        if data.get('tarjeta') and not is_numeric(data['tarjeta']):
+            return False, 'La tarjeta debe ser numérica.'
+
+        # Validar nacionalidad
+        if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
+            return False, 'Nacionalidad inválida.'
+
+        # Validar fecha de nacimiento
+        fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
+        if not fecha_nacimiento:
+            return False, 'Fecha de nacimiento inválida.'
+
+        # Validar email y DNI duplicados
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return False, 'Usuario no encontrado.'
+
+        email_exists = self.email_exists(data['email'])
+        if email_exists and email_exists.id != user_id:
+            return False, 'El email ya está registrado por otro usuario.'
+
+        dni_exists = self.dni_exists(data['dni'])
+        if dni_exists and dni_exists.id != user_id:
+            return False, 'El DNI ya está registrado por otro usuario.'
+
+        # Preparar datos para actualización
+        user_dict = {
+            'nombre': data['nombre'],
+            'apellido': data['apellido'],
+            'email': data['email'],
+            'telefono': data['telefono'],
+            'fecha_nacimiento': fecha_nacimiento,
+            'direccion': data['domicilio'],
+            'nacionalidad': data['nacionalidad'],
+            'dni': data['dni'],
+            'tarjeta': data.get('tarjeta')
+        }
+
+        # Actualizar contraseña si se proporcionó
+        if data.get('password'):
+            if len(data['password']) < 8:
+                return False, 'La contraseña debe tener al menos 8 caracteres.'
+            if data['password'] != data.get('password_confirm'):
+                return False, 'Las contraseñas no coinciden.'
+            user_dict['contrasena'] = data['password']
+
+        try:
+            self.user_repository.update_user(user_id, user_dict)
+            return True, 'Perfil actualizado exitosamente.'
+        except Exception as e:
+            return False, f'Error al actualizar el perfil: {str(e)}'
 
     def register_user(self, data):
         required_fields = ['nombre', 'apellido', 'email', 'password', 'telefono', 'f_nac', 'domicilio', 'nacionalidad', 'dni']
