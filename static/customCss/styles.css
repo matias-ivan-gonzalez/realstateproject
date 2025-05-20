@@ -1,6 +1,6 @@
 :root {
   --bs-primary: #FF7F00;
-  --bs-secondary: #253f44;
+  --bs-secondary: #254248;
 }
 
 .hero {
@@ -21,4 +21,9 @@
 .hero .hero-content {
   position: relative;
   z-index: 2;
+}
+
+
+.bg-secondary {
+  background-color: #254248 !important;
 }
