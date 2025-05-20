@@ -23,10 +23,10 @@ class UserService:
         return NACIONALIDADES_VALIDAS
 
     def email_exists(self, email):
-        return self.user_repository.get_by_email(email) is not None
+        return self.user_repository.get_by_email(email)
 
     def dni_exists(self, dni):
-        return self.user_repository.get_by_dni(dni) is not None
+        return self.user_repository.get_by_dni(dni)
 
     def parse_fecha_nacimiento(self, f_nac):
         if not f_nac:
@@ -37,8 +37,19 @@ class UserService:
             return None
 
     def update_user(self, user_id, data):
+        # Obtener el usuario para verificar su tipo
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return False, 'Usuario no encontrado.'
+
+        # Campos requeridos base para todos los usuarios
+        required_fields = ['nombre', 'apellido', 'email', 'telefono', 'nacionalidad', 'dni']
+        
+        # Agregar campos específicos de cliente si el usuario es cliente
+        if user.tipo == 'cliente':
+            required_fields.extend(['f_nac', 'domicilio'])
+
         # Validar campos requeridos
-        required_fields = ['nombre', 'apellido', 'email', 'telefono', 'f_nac', 'domicilio', 'nacionalidad', 'dni']
         for field in required_fields:
             if not data.get(field):
                 return False, f'El campo {field} es obligatorio.'
@@ -59,23 +70,52 @@ class UserService:
         if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
             return False, 'Nacionalidad inválida.'
 
-        # Validar fecha de nacimiento
-        fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
-        if not fecha_nacimiento:
-            return False, 'Fecha de nacimiento inválida.'
+        # Validar fecha de nacimiento solo si es cliente
+        if user.tipo == 'cliente':
+            fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
+            if not fecha_nacimiento:
+                return False, 'Fecha de nacimiento inválida.'
 
-        # Validar email y DNI duplicados
-        user = self.get_user_by_id(user_id)
-        if not user:
-            return False, 'Usuario no encontrado.'
+        # Validar email y DNI duplicados solo si han cambiado
+        if data['email'] != user.email:
+            email_exists = self.email_exists(data['email'])
+            if email_exists and email_exists.id != user_id:
+                return False, 'El email ya está registrado por otro usuario.'
 
-        email_exists = self.email_exists(data['email'])
-        if email_exists and email_exists.id != user_id:
-            return False, 'El email ya está registrado por otro usuario.'
+        if data['dni'] != user.dni:
+            dni_exists = self.dni_exists(data['dni'])
+            if dni_exists and dni_exists.id != user_id:
+                return False, 'El DNI ya está registrado por otro usuario.'
 
-        dni_exists = self.dni_exists(data['dni'])
-        if dni_exists and dni_exists.id != user_id:
-            return False, 'El DNI ya está registrado por otro usuario.'
+        # Verificar si hay cambios en los datos
+        has_changes = False
+
+        # Verificar campos comunes
+        if (data['nombre'] != user.nombre or
+            data['apellido'] != user.apellido or
+            data['email'] != user.email or
+            data['telefono'] != user.telefono or
+            data['nacionalidad'] != user.nacionalidad or
+            data['dni'] != user.dni):
+            has_changes = True
+
+        # Verificar campos específicos de cliente
+        if user.tipo == 'cliente':
+            if (fecha_nacimiento != user.fecha_nacimiento or
+                data['domicilio'] != user.direccion or
+                data.get('tarjeta') != user.tarjeta):
+                has_changes = True
+
+        # Verificar si hay nueva contraseña
+        if data.get('password'):
+            has_changes = True
+            if len(data['password']) < 8:
+                return False, 'La contraseña debe tener al menos 8 caracteres.'
+            if data['password'] != data.get('password_confirm'):
+                return False, 'Las contraseñas no coinciden.'
+
+        if not has_changes:
+            return False, 'No ha realizado ningún cambio'
 
         # Preparar datos para actualización
         user_dict = {
@@ -83,19 +123,20 @@ class UserService:
             'apellido': data['apellido'],
             'email': data['email'],
             'telefono': data['telefono'],
-            'fecha_nacimiento': fecha_nacimiento,
-            'direccion': data['domicilio'],
             'nacionalidad': data['nacionalidad'],
-            'dni': data['dni'],
-            'tarjeta': data.get('tarjeta')
+            'dni': data['dni']
         }
 
-        # Actualizar contraseña si se proporcionó
+        # Agregar campos específicos de cliente si el usuario es cliente
+        if user.tipo == 'cliente':
+            user_dict.update({
+                'fecha_nacimiento': fecha_nacimiento,
+                'direccion': data['domicilio'],
+                'tarjeta': data.get('tarjeta')
+            })
+
+        # Agregar contraseña si se proporcionó
         if data.get('password'):
-            if len(data['password']) < 8:
-                return False, 'La contraseña debe tener al menos 8 caracteres.'
-            if data['password'] != data.get('password_confirm'):
-                return False, 'Las contraseñas no coinciden.'
             user_dict['contrasena'] = data['password']
 
         try:

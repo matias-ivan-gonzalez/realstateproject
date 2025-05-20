@@ -17,7 +17,7 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form method="POST" action="{{ url_for('main.perfil') }}">
+                    <form method="POST" action="{{ url_for('main.perfil') }}" id="profileForm">
                         <!-- Campos comunes para todos los usuarios -->
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -75,6 +75,10 @@
                                 <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ user.tarjeta }}">
                             </div>
                         </div>
+                        {% else %}
+                        <input type="hidden" name="f_nac" value="">
+                        <input type="hidden" name="domicilio" value="">
+                        <input type="hidden" name="tarjeta" value="">
                         {% endif %}
 
                         <!-- Sección de cambio de contraseña -->
@@ -137,35 +141,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const cerrarBtn = document.getElementById('cerrarModalEliminarCuenta');
     const backdrop = document.querySelector('.custom-modal-backdrop');
     const form = document.getElementById('formEliminarCuenta');
+    const profileForm = document.getElementById('profileForm');
 
     // Función para abrir el modal
     function abrirModal(e) {
-        e.preventDefault(); // Prevenir comportamiento por defecto
+        e.preventDefault();
         modal.style.display = 'flex';
     }
 
     // Función para cerrar el modal
     function cerrarModal(e) {
-        e.preventDefault(); // Prevenir comportamiento por defecto
+        e.preventDefault();
         modal.style.display = 'none';
-        form.reset(); // Limpiar el formulario al cerrar
+        form.reset();
     }
 
-    // Event listeners
+    // Event listeners para el modal
     abrirBtn.addEventListener('click', abrirModal);
     cerrarBtn.addEventListener('click', cerrarModal);
     backdrop.addEventListener('click', cerrarModal);
 
-    // Prevenir el envío del formulario
+    // Prevenir el envío del formulario de eliminar cuenta
     form.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevenir el envío del formulario
-        // Aquí puedes agregar la lógica para eliminar la cuenta
-        console.log('Formulario enviado');
+        e.preventDefault();
+        console.log('Formulario de eliminar cuenta enviado');
     });
 
     // Prevenir el cierre al hacer clic dentro del contenido del modal
     modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
         e.stopPropagation();
+    });
+
+    // Manejar el envío del formulario de perfil
+    profileForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Si no es cliente, remover los campos específicos de cliente
+        if ('{{ user.tipo }}' !== 'cliente') {
+            const f_nac = document.getElementById('f_nac');
+            const domicilio = document.getElementById('domicilio');
+            const tarjeta = document.getElementById('tarjeta');
+            
+            if (f_nac) f_nac.removeAttribute('required');
+            if (domicilio) domicilio.removeAttribute('required');
+            if (tarjeta) tarjeta.removeAttribute('required');
+        }
+        
+        // Enviar el formulario
+        this.submit();
     });
 });
 </script>

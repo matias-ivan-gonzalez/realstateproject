@@ -206,19 +206,25 @@ def perfil():
     user = user_service.get_user_by_id(session['user_id'])
     
     if request.method == 'POST':
+        # Campos comunes para todos los usuarios
         data = {
             'nombre': request.form.get('nombre'),
             'apellido': request.form.get('apellido'),
             'email': request.form.get('email'),
             'telefono': request.form.get('telefono'),
-            'f_nac': request.form.get('f_nac'),
-            'domicilio': request.form.get('domicilio'),
             'nacionalidad': request.form.get('nacionalidad'),
             'dni': request.form.get('dni'),
-            'tarjeta': request.form.get('tarjeta'),
             'password': request.form.get('password'),
             'password_confirm': request.form.get('password_confirm')
         }
+        
+        # Agregar campos específicos solo si el usuario es cliente
+        if user.tipo == 'cliente':
+            data.update({
+                'f_nac': request.form.get('f_nac'),
+                'domicilio': request.form.get('domicilio'),
+                'tarjeta': request.form.get('tarjeta')
+            })
         
         success, message = user_service.update_user(session['user_id'], data)
         if success:
