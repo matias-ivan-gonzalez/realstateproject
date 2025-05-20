@@ -1,6 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
-from models.user import Cliente
+from models.user import Cliente, Administrador, Encargado, SuperUsuario
 from werkzeug.security import generate_password_hash
 
 # Test para la ruta '/'
@@ -263,5 +263,41 @@ def test_logout(client, app):
         assert 'user_name' not in sess
     # Verifica que el mensaje de logout esté presente
     assert b'Sesi' in response.data and b'cerrada' in response.data
+
+def test_login_superusuario(client, app):
+    superuser = SuperUsuario(nombre='Super', apellido='User', email='super@user.com', contrasena='123', telefono='123', nacionalidad='AR', dni='100')
+    superuser.id = 99
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=superuser):
+        response = client.post('/login', data={'email': 'super@user.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'superusuario'
+            assert sess['user_name'] == 'Super'
+
+def test_login_administrador(client, app):
+    admin = Administrador(nombre='Admin', apellido='Uno', email='admin@uno.com', contrasena='123', telefono='123', nacionalidad='AR', dni='101')
+    admin.id = 101
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=admin):
+        response = client.post('/login', data={'email': 'admin@uno.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'administrador'
+            assert sess['user_name'] == 'Admin'
+
+def test_login_encargado(client, app):
+    encargado = Encargado(nombre='Enc', apellido='Uno', email='enc@uno.com', contrasena='123', telefono='123', nacionalidad='AR', dni='102')
+    encargado.id = 102
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=encargado):
+        response = client.post('/login', data={'email': 'enc@uno.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'encargado'
+            assert sess['user_name'] == 'Enc'
+
+def test_login_cliente(client, app):
+    cliente = Cliente(nombre='Cli', apellido='Uno', email='cli@uno.com', contrasena='123', telefono='123', nacionalidad='AR', dni='103')
+    cliente.id = 103
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=cliente):
+        response = client.post('/login', data={'email': 'cli@uno.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'cliente'
+            assert sess['user_name'] == 'Cli'
 
 # pragma: no cover

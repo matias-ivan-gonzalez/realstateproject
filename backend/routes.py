@@ -31,6 +31,16 @@ def login():
         if user:
             session['user_id'] = user.id
             session['user_name'] = user.nombre
+            # Asignar el rol correctamente
+            from models.user import SuperUsuario, Administrador, Encargado, Cliente
+            if isinstance(user, SuperUsuario):
+                session['rol'] = 'superusuario'
+            elif isinstance(user, Administrador):
+                session['rol'] = 'administrador'
+            elif isinstance(user, Encargado):
+                session['rol'] = 'encargado'
+            else:
+                session['rol'] = 'cliente'
             flash('Inicio de sesión exitoso.', 'success')
             return redirect(url_for('main.index'))
         else:
