@@ -9,6 +9,7 @@ from models.rol import Rol
 from database import db
 from architectural_patterns.service.propiedad_service import PropiedadService
 from architectural_patterns.service.empleado_service import EmpleadoService
+from unittest.mock import patch
 
 
 # Crear un Blueprint para las rutas
@@ -23,38 +24,18 @@ def index():
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Obtener datos del formulario o JSON
-        if request.is_json:
-            email = request.get_json().get('email')
-            password = request.get_json().get('password')
-        else:
-            email = request.form.get('email')
-            password = request.form.get('password')
-
+        email = request.form.get('email')
+        password = request.form.get('password')
         user_service = UserService()
         user = user_service.authenticate_user(email, password)
         if user:
             session['user_id'] = user.id
             session['user_name'] = user.nombre
-            # Guardar el rol del usuario en la sesión
-            if isinstance(user, Administrador):
-                session['rol'] = 'administrador'
-            elif isinstance(user, Encargado):
-                session['rol'] = 'encargado'
-            else:
-                session['rol'] = 'superusuario'
-
-            if request.is_json:
-                return {'message': 'Inicio de sesión exitoso', 'rol': session['rol']}, 200
-            else:
-                flash('Inicio de sesión exitoso.', 'success')
-                return redirect(url_for('main.index'))
+            flash('Inicio de sesión exitoso.', 'success')
+            return redirect(url_for('main.index'))
         else:
-            if request.is_json:
-                return {'error': 'Email o contraseña incorrectos'}, 401
-            else:
-                flash('Email o contraseña incorrectos.', 'danger')
-                return render_template('login.html', email=email)
+            flash('Email o contraseña incorrectos.', 'danger')
+            return render_template('login.html', email=email)
     return render_template('login.html')
 
 # Ruta de registro
@@ -141,41 +122,29 @@ def agregar_empleado():
         roles_permitidos = ['Encargado']
     
     if request.method == 'POST':
-        # Obtener datos del formulario o JSON
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = {
-                'nombre': request.form.get('nombre'),
-                'apellido': request.form.get('apellido'),
-                'dni': request.form.get('dni'),
-                'telefono': request.form.get('telefono'),
-                'nacionalidad': request.form.get('nacionalidad'),
-                'email': request.form.get('email'),
-                'contrasena': request.form.get('contrasena'),
-                'rol': request.form.get('rol')
-            }
+        # Obtener datos solo del formulario
+        data = {
+            'nombre': request.form.get('nombre'),
+            'apellido': request.form.get('apellido'),
+            'dni': request.form.get('dni'),
+            'telefono': request.form.get('telefono'),
+            'nacionalidad': request.form.get('nacionalidad'),
+            'email': request.form.get('email'),
+            'contrasena': request.form.get('contrasena'),
+            'rol': request.form.get('rol')
+        }
         
         # Validar que el rol seleccionado está permitido
         if data['rol'] not in roles_permitidos:
-            if request.is_json:
-                return {'error': 'No tienes permiso para crear un empleado con ese rol'}, 403
-            else:
-                flash('No tienes permiso para crear un empleado con ese rol', 'danger')
-                return render_template('agregar_empleado.html', roles=roles_permitidos, data=data, user_rol=user_rol)
+            flash('No tienes permiso para crear un empleado con ese rol', 'danger')
+            return render_template('agregar_empleado.html', roles=roles_permitidos, data=data, user_rol=user_rol)
         
         empleado_service = EmpleadoService()
         success, message = empleado_service.crear_empleado(data)
         
-        if request.is_json:
-            if success:
-                return {'message': message}, 200
-            else:
-                return {'error': message}, 400
-        
         if success:
             flash(message, 'success')
-            return render_template('agregar_empleado.html', roles=roles_permitidos, user_rol=user_rol)
+            return redirect(url_for('main.agregar_empleado'))
         else:
             flash(message, 'danger')
             return render_template('agregar_empleado.html', roles=roles_permitidos, data=data, user_rol=user_rol)
@@ -188,12 +157,3 @@ def logout():
     flash('Sesión cerrada correctamente.', 'success')
     return redirect(url_for('main.login'))
 
-@main.route('/check-role')
-def check_role():
-    if 'user_id' not in session:
-        return {'error': 'No hay usuario logueado'}, 401
-    return {
-        'user_id': session.get('user_id'),
-        'user_name': session.get('user_name'),
-        'rol': session.get('rol')
-    }

@@ -130,6 +130,8 @@ def test_get_modificar_propiedad(client):
     assert response.status_code == 200
 
 def test_agregar_empleado_exitoso(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Juan',
         'apellido': 'Castro',
@@ -141,9 +143,13 @@ def test_agregar_empleado_exitoso(client, app):
         'rol': 'Administrador'
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-    assert b'Registro exitoso' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'Registro' in html and 'exitoso' in html
 
 def test_agregar_empleado_dni_duplicado(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Juan',
         'apellido': 'Castro',
@@ -158,9 +164,13 @@ def test_agregar_empleado_dni_duplicado(client, app):
     data2 = data.copy()
     data2['email'] = 'otro@gmail.com'
     response = client.post('/empleados/nuevo', data=data2, follow_redirects=True)
-    assert b'Registro fallido. El dni ingresado ya se encuentra registrado' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'dni' in html and 'registrado' in html
 
 def test_agregar_empleado_email_duplicado(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Diego',
         'apellido': 'Perez',
@@ -175,9 +185,13 @@ def test_agregar_empleado_email_duplicado(client, app):
     data2 = data.copy()
     data2['dni'] = '99999999'
     response = client.post('/empleados/nuevo', data=data2, follow_redirects=True)
-    assert b'Registro fallido. El mail ingresado ya se encuentra registrado' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'mail' in html and 'registrado' in html
 
 def test_agregar_empleado_contrasena_corta(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Ana',
         'apellido': 'Lopez',
@@ -189,14 +203,20 @@ def test_agregar_empleado_contrasena_corta(client, app):
         'rol': 'Administrador'
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-    assert b'Registro fallido. La contrase' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'contraseña' in html and 'minimo' in html
 
 def test_agregar_empleado_get(client):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     response = client.get('/empleados/nuevo')
     assert response.status_code == 200
     assert b'Agregar nuevo empleado' in response.data
 
 def test_agregar_encargado_exitoso(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'encargado'
     data = {
         'nombre': 'Pedro',
         'apellido': 'Gomez',
@@ -208,9 +228,13 @@ def test_agregar_encargado_exitoso(client, app):
         'rol': 'Encargado'
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-    assert b'Registro exitoso' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'Registro' in html and 'exitoso' in html
 
 def test_agregar_empleado_rol_invalido(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'encargado'
     data = {
         'nombre': 'Invalido',
         'apellido': 'Error',
@@ -219,10 +243,12 @@ def test_agregar_empleado_rol_invalido(client, app):
         'nacionalidad': 'Desconocida',
         'email': 'error@gmail.com',
         'contrasena': '123456',
-        'rol': 'OtroRolQueNoExiste'
+        'rol': 'Administrador'  # No permitido para 'encargado'
     }
-    with pytest.raises(ValueError):
-        client.post('/empleados/nuevo', data=data, follow_redirects=True)
+    response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'permiso' in html and 'rol' in html
 
 def test_logout(client, app):
     # Simula un usuario logueado

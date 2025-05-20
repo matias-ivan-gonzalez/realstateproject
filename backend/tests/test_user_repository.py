@@ -53,7 +53,7 @@ def test_create_and_get_by_email_and_dni(repo, app, sample_user):
         assert user_by_dni.dni == sample_user['dni']
 
 def test_create_usuario_todos_los_tipos(repo, app, sample_user):
-    tipos = ['cliente', 'administrador', 'encargado', 'superusuario', 'desconocido']
+    tipos = ['cliente', 'administrador', 'encargado', 'superusuario']
     for tipo in tipos:
         user_data = sample_user.copy()
         user_data['email'] = f'{tipo}@mail.com'

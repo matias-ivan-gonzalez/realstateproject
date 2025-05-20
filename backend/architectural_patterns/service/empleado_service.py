@@ -7,6 +7,11 @@ class EmpleadoService:
         self.repository = repository or EmpleadoRepository()
 
     def crear_empleado(self, data):
+        # Mapeo de nombres visibles a nombres de la base de datos
+        MAPEO_ROLES = {
+            "Administrador": "admin",
+            "Encargado": "encargado"
+        }
         # Validación de campos obligatorios
         required_fields = [
             "nombre", "apellido", "dni", "telefono", "nacionalidad", 
@@ -18,15 +23,15 @@ class EmpleadoService:
 
         # Validación de contraseña
         if len(data["contrasena"]) < 6:
-            return False, "La contraseña debe tener al menos 6 caracteres."
+            return False, "Registro fallido. La contraseña debe tener 6 caracteres como minimo"
 
         # Validación de unicidad del DNI
         if self.repository.get_by_dni(data["dni"]):
-            return False, "Ya existe un usuario con ese DNI."
+            return False, "Registro fallido. El dni ingresado ya se encuentra registrado"
 
         # Validación de unicidad del email
         if self.repository.get_by_email(data["email"]):
-            return False, "Ya existe un usuario con ese email."
+            return False, "Registro fallido. El mail ingresado ya se encuentra registrado"
 
         # Validar permisos según el rol del usuario actual
         user_rol = session.get('rol')
@@ -34,15 +39,15 @@ class EmpleadoService:
             roles_permitidos = ['Administrador', 'Encargado']
         else:
             roles_permitidos = ['Encargado']
-            
-        if data["rol"] not in roles_permitidos:
+        
+        rol_nombre_form = data["rol"]
+        if rol_nombre_form not in roles_permitidos:
             return False, "No tienes permiso para crear un empleado con ese rol"
 
-        # Obtener el rol
-        rol_nombre = data["rol"].lower()  # Convertir a minúsculas para coincidir con la BD
-        if rol_nombre == "administrador":
-            rol_nombre = "admin"  # El rol en la BD es 'admin', no 'administrador'
-        rol_db = Rol.query.filter_by(nombre=rol_nombre).first()
+        # Mapear al nombre de la base de datos
+        rol_nombre_db = MAPEO_ROLES.get(rol_nombre_form)
+
+        rol_db = Rol.query.filter_by(nombre=rol_nombre_db).first()
         if not rol_db:
             return False, "El rol especificado no existe."
 
@@ -56,11 +61,11 @@ class EmpleadoService:
             "email": data["email"],
             "contrasena": data["contrasena"],
             "rol": rol_db,
-            "tipo": "administrador" if rol_nombre == "admin" else "encargado"
+            "tipo": "administrador" if rol_nombre_db == "admin" else "encargado"
         }
 
         try:
             self.repository.create_empleado(empleado_data)
-            return True, "Empleado registrado exitosamente."
+            return True, "Registro exitoso"
         except Exception as e:
             return False, f"Error al registrar el empleado: {str(e)}" 
