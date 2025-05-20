@@ -22,3 +22,28 @@
   position: relative;
   z-index: 2;
 }
+
+.custom-modal {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-modal-backdrop {
+  position: absolute;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.3);
+  z-index: 1;
+}
+.custom-modal-content {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
