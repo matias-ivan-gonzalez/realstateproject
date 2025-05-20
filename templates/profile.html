@@ -18,42 +18,35 @@
                     {% endwith %}
 
                     <form method="POST" action="{{ url_for('main.perfil') }}">
+                        <!-- Campos comunes para todos los usuarios -->
                         <div class="row mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="nombre" class="form-label">Nombre *</label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.nombre }}" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="apellido" class="form-label">Apellido *</label>
                                 <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.apellido }}" required>
                             </div>
-                            <div class="col-md-4">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label for="email" class="form-label">Email *</label>
                                 <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
                             </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="telefono" class="form-label">Teléfono *</label>
                                 <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ user.telefono }}" required>
                             </div>
-                            <div class="col-md-4">
-                                <label for="f_nac" class="form-label">Fecha de nacimiento *</label>
-                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ user.fecha_nacimiento.strftime('%Y-%m-%d') if user.fecha_nacimiento }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="domicilio" class="form-label">Domicilio *</label>
-                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ user.direccion }}" required>
-                            </div>
                         </div>
 
                         <div class="row mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="dni" class="form-label">DNI *</label>
                                 <input type="text" class="form-control" id="dni" name="dni" value="{{ user.dni }}" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="nacionalidad" class="form-label">Nacionalidad *</label>
                                 <select class="form-select" id="nacionalidad" name="nacionalidad" required>
                                     {% for pais in paises %}
@@ -61,12 +54,30 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                        </div>
+
+                        <!-- Campos específicos para clientes -->
+                        {% if user.tipo == 'cliente' %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="f_nac" class="form-label">Fecha de nacimiento *</label>
+                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ user.fecha_nacimiento.strftime('%Y-%m-%d') if user.fecha_nacimiento }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="domicilio" class="form-label">Domicilio *</label>
+                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ user.direccion }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
                                 <label for="tarjeta" class="form-label">Tarjeta (opcional)</label>
                                 <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ user.tarjeta }}">
                             </div>
                         </div>
+                        {% endif %}
 
+                        <!-- Sección de cambio de contraseña -->
                         <div class="row mb-3">
                             <div class="col-12">
                                 <hr>
@@ -82,6 +93,7 @@
                             </div>
                         </div>
 
+                        <!-- Botones de acción -->
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
                             <button class="btn btn-outline-danger" id="abrirModalEliminarCuenta">
@@ -100,7 +112,7 @@
 <div id="modalEliminarCuentaCustom" class="custom-modal" style="display:none;">
   <div class="custom-modal-backdrop"></div>
   <div class="custom-modal-content">
-    <form method="POST" action="">
+    <form method="POST" action="" id="formEliminarCuenta">
       <div class="mb-3">
         <h5>Eliminar cuenta</h5>
         <p class="mb-3 text-danger fw-bold">
@@ -119,11 +131,42 @@
 </div>
 
 <script>
-document.getElementById('abrirModalEliminarCuenta').onclick = function() {
-  document.getElementById('modalEliminarCuentaCustom').style.display = 'flex';
-};
-document.getElementById('cerrarModalEliminarCuenta').onclick = function() {
-  document.getElementById('modalEliminarCuentaCustom').style.display = 'none';
-};
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalEliminarCuentaCustom');
+    const abrirBtn = document.getElementById('abrirModalEliminarCuenta');
+    const cerrarBtn = document.getElementById('cerrarModalEliminarCuenta');
+    const backdrop = document.querySelector('.custom-modal-backdrop');
+    const form = document.getElementById('formEliminarCuenta');
+
+    // Función para abrir el modal
+    function abrirModal(e) {
+        e.preventDefault(); // Prevenir comportamiento por defecto
+        modal.style.display = 'flex';
+    }
+
+    // Función para cerrar el modal
+    function cerrarModal(e) {
+        e.preventDefault(); // Prevenir comportamiento por defecto
+        modal.style.display = 'none';
+        form.reset(); // Limpiar el formulario al cerrar
+    }
+
+    // Event listeners
+    abrirBtn.addEventListener('click', abrirModal);
+    cerrarBtn.addEventListener('click', cerrarModal);
+    backdrop.addEventListener('click', cerrarModal);
+
+    // Prevenir el envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevenir el envío del formulario
+        // Aquí puedes agregar la lógica para eliminar la cuenta
+        console.log('Formulario enviado');
+    });
+
+    // Prevenir el cierre al hacer clic dentro del contenido del modal
+    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
 </script>
 {% endblock %} 
