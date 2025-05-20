@@ -233,5 +233,23 @@ def perfil():
         else:
             flash(message, 'danger')
     
+    # Preparar datos para el formulario
+    form_data = {
+        'nombre': user.nombre,
+        'apellido': user.apellido,
+        'email': user.email,
+        'telefono': user.telefono,
+        'nacionalidad': user.nacionalidad,
+        'dni': user.dni
+    }
+    
+    # Agregar campos específicos de cliente si el usuario es cliente
+    if user.tipo == 'cliente':
+        form_data.update({
+            'f_nac': user.fecha_nacimiento.strftime('%Y-%m-%d') if user.fecha_nacimiento else '',
+            'domicilio': user.direccion,
+            'tarjeta': user.tarjeta
+        })
+    
     paises = user_service.get_paises()
-    return render_template('profile.html', user=user, paises=paises)
+    return render_template('profile.html', user=user, paises=paises, form_data=form_data)

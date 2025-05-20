@@ -22,35 +22,35 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="nombre" class="form-label">Nombre *</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.nombre }}" required>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ form_data.nombre }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="apellido" class="form-label">Apellido *</label>
-                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.apellido }}" required>
+                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ form_data.apellido }}" required>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="telefono" class="form-label">Teléfono *</label>
-                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ user.telefono }}" required>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ form_data.telefono }}" required>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="dni" class="form-label">DNI *</label>
-                                <input type="text" class="form-control" id="dni" name="dni" value="{{ user.dni }}" required>
+                                <input type="text" class="form-control" id="dni" name="dni" value="{{ form_data.dni }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="nacionalidad" class="form-label">Nacionalidad *</label>
                                 <select class="form-select" id="nacionalidad" name="nacionalidad" required>
                                     {% for pais in paises %}
-                                        <option value="{{ pais }}" {% if pais == user.nacionalidad %}selected{% endif %}>{{ pais }}</option>
+                                        <option value="{{ pais }}" {% if pais == form_data.nacionalidad %}selected{% endif %}>{{ pais }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -61,18 +61,18 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="f_nac" class="form-label">Fecha de nacimiento *</label>
-                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ user.fecha_nacimiento.strftime('%Y-%m-%d') if user.fecha_nacimiento }}" required>
+                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ form_data.f_nac }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="domicilio" class="form-label">Domicilio *</label>
-                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ user.direccion }}" required>
+                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ form_data.domicilio }}" required>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="tarjeta" class="form-label">Tarjeta (opcional)</label>
-                                <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ user.tarjeta }}">
+                                <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ form_data.tarjeta }}">
                             </div>
                         </div>
                         {% else %}
