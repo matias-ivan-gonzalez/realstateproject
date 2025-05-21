@@ -17,6 +17,8 @@ def create_app():
 
     # Cargar configuración desde config.py
     app.config.from_object(Config)
+    app.secret_key = 'mi_clave_super_secreta_123'  # Clave secreta para sesión y mensajes flash
+    
 
     # Inicializar SQLAlchemy
     db.init_app(app)
