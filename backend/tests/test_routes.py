@@ -289,4 +289,11 @@ def test_perfil_post_actualiza_y_error(client, app):
     print('POST /perfil error response:', response_post_fail.data.decode('utf-8'))
     assert b'obligatorio' in response_post_fail.data or b'danger' in response_post_fail.data
 
+def test_login_required_redirige_si_no_logueado(client):
+    with client.session_transaction() as sess:
+        sess.clear()
+    response = client.get('/perfil', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/login' in response.headers['Location']
+
 # pragma: no cover
