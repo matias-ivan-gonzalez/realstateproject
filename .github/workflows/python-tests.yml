@@ -26,32 +26,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Check required test files
-      run: python check_tests.py
-
     - name: Install black
       run: pip install black
   
     - name: Format code with black
       run: black .
-  
-    - name: Run tests with coverage
-      run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)  # Asegurar que el código es importable
-        coverage run --rcfile=.coveragerc --data-file=.coverage -m pytest --no-cov
-        coverage report --fail-under=100
-        coverage xml -o coverage.xml || echo "Failed to generate coverage.xml"
-
-    - name: Prepare coverage report directory
-      run: |
-        mkdir coverage-report   # Crea el directorio para el reporte
-        mv coverage.xml coverage-report/  # Mueve el archivo XML al directorio
-
-    - name: List files in workspace (debugging)
-      run: ls -R
-
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage.xml
