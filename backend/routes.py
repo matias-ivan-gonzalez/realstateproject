@@ -1,6 +1,3 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from datetime import datetime
-from architectural_patterns.service.search_service import SearchService
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.user import Cliente
@@ -12,6 +9,12 @@ from models.rol import Rol
 from database import db
 from architectural_patterns.service.propiedad_service import PropiedadService
 from functools import wraps
+
+
+from architectural_patterns.service.search_service import SearchService
+
+
+
 
 
 

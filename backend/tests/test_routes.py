@@ -129,7 +129,6 @@ def test_get_modificar_propiedad(client):
     response = client.get('/propiedades/modificar')
     assert response.status_code == 200
 
-
 def test_agregar_empleado_exitoso(client, app):
     data = {
         'nombre': 'Juan',
@@ -321,4 +320,4 @@ def test_perfil_get_y_post_admin(client, app):
     assert response_post.status_code == 200
     assert b'Perfil actualizado' in response_post.data or b'success' in response_post.data
 
-
+# pragma: no cover
