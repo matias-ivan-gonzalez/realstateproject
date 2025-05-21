@@ -35,4 +35,20 @@ class UserRepository:
             setattr(user, key, value)
         
         db.session.commit()
-        return user 
+        return user
+
+    def eliminar_usuario_logico(self, user_id):
+        user = db.session.get(Usuario, user_id)
+        if not user:
+            return False
+        user.nombre = '[eliminated]'
+        user.apellido = '[eliminated]'
+        user.email = f'eliminated_{user.id}@deleted.com'
+        user.dni = '[eliminated]'
+        user.telefono = '[eliminated]'
+        if hasattr(user, 'tarjeta'):
+            user.tarjeta = '[eliminated]'
+        if hasattr(user, 'fecha_nacimiento'):
+            user.fecha_nacimiento = None
+        db.session.commit()
+        return True 

@@ -116,7 +116,7 @@
 <div id="modalEliminarCuentaCustom" class="custom-modal" style="display:none;">
   <div class="custom-modal-backdrop"></div>
   <div class="custom-modal-content">
-    <form method="POST" action="" id="formEliminarCuenta">
+    <form method="POST" action="{{ url_for('main.eliminar_cuenta') }}" id="formEliminarCuenta">
       <div class="mb-3">
         <h5>Eliminar cuenta</h5>
         <p class="mb-3 text-danger fw-bold">
@@ -163,10 +163,11 @@ document.addEventListener('DOMContentLoaded', function() {
     backdrop.addEventListener('click', cerrarModal);
 
     // Prevenir el envío del formulario de eliminar cuenta
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log('Formulario de eliminar cuenta enviado');
-    });
+    // (eliminar e.preventDefault para permitir submit real)
+    // form.addEventListener('submit', function(e) {
+    //     e.preventDefault();
+    //     console.log('Formulario de eliminar cuenta enviado');
+    // });
 
     // Prevenir el cierre al hacer clic dentro del contenido del modal
     modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {

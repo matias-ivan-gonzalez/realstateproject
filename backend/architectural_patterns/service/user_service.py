@@ -201,4 +201,7 @@ class UserService:
         user = self.user_repository.get_by_email(email)
         if user and user.contrasena == password:
             return user
-        return None 
+        return None
+
+    def eliminar_usuario_logico(self, user_id):
+        return self.user_repository.eliminar_usuario_logico(user_id) 
