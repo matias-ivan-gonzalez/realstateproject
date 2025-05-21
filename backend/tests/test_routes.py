@@ -1,6 +1,6 @@
 from unittest.mock import patch
 import pytest
-from models.user import Cliente
+from models.user import Cliente, Administrador
 from werkzeug.security import generate_password_hash
 from database import db
 from datetime import date
@@ -295,5 +295,30 @@ def test_login_required_redirige_si_no_logueado(client):
     response = client.get('/perfil', follow_redirects=False)
     assert response.status_code == 302
     assert '/login' in response.headers['Location']
+
+def test_perfil_get_y_post_admin(client, app):
+    # Crear usuario administrador
+    with app.app_context():
+        admin = Administrador(
+            nombre='Admin', apellido='Sys', email='admin_perfil@mail.com', contrasena='12345678',
+            telefono='123', nacionalidad='Argentina', dni='12345681'
+        )
+        db.session.add(admin)
+        db.session.commit()
+        admin_id = admin.id
+    with client.session_transaction() as sess:
+        sess['user_id'] = admin_id
+    # GET: debe mostrar el perfil sin campos de cliente
+    response = client.get('/perfil')
+    assert response.status_code == 200
+    assert b'Admin' in response.data
+    # POST exitoso (cambia el teléfono)
+    data = {
+        'nombre': 'Admin', 'apellido': 'Sys', 'email': 'admin_perfil@mail.com', 'telefono': '999',
+        'nacionalidad': 'Argentina', 'dni': '12345681', 'password': '', 'password_confirm': ''
+    }
+    response_post = client.post('/perfil', data=data, follow_redirects=True)
+    assert response_post.status_code == 200
+    assert b'Perfil actualizado' in response_post.data or b'success' in response_post.data
 
 # pragma: no cover
