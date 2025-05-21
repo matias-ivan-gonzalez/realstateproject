@@ -97,9 +97,11 @@
                         <!-- Botones de acción -->
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+                            {% if user.tipo == 'cliente' %}
                             <button class="btn btn-outline-danger" id="abrirModalEliminarCuenta">
                                 Eliminar cuenta
                             </button>
+                            {% endif %}
                             <button type="submit" class="btn btn-primary">Guardar cambios</button>
                         </div>
                     </form>
@@ -110,6 +112,7 @@
 </div>
 
 <!-- Modal personalizado -->
+{% if user.tipo == 'cliente' %}
 <div id="modalEliminarCuentaCustom" class="custom-modal" style="display:none;">
   <div class="custom-modal-backdrop"></div>
   <div class="custom-modal-content">
@@ -130,6 +133,7 @@
     </form>
   </div>
 </div>
+{% endif %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
