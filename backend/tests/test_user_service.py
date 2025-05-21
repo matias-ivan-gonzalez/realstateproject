@@ -312,3 +312,136 @@ def test_update_user_exitoso(user_service):
     assert updated_user.dni == data['dni']
     assert updated_user.direccion == data['domicilio']
     assert updated_user.contrasena == data['password']
+
+# Test para get_paises
+def test_get_paises_coverage(user_service):
+    paises = user_service.get_paises()
+    assert isinstance(paises, list)
+    assert len(paises) > 0
+
+# Test para parse_fecha_nacimiento con valor inválido
+def test_parse_fecha_nacimiento_invalid_coverage(user_service):
+    fecha = user_service.parse_fecha_nacimiento('invalid-date')
+    assert fecha is None
+
+# Test para update_user con tarjeta no numérica
+def test_update_user_tarjeta_no_numerica_coverage(user_service):
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan', 'apellido': 'Perez', 'email': 'jp@mail.com', 'contrasena': 'hash',
+        'telefono': '123', 'fecha_nacimiento': '2000-01-01', 'direccion': 'Calle', 'nacionalidad': 'Argentina',
+        'dni': '12345678', 'tarjeta': '', 'tipo': 'cliente'
+    })
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle',
+        'tarjeta': 'abcd'
+    }
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'tarjeta' in msg.lower()
+
+# Test para update_user sin cambios
+def test_update_user_sin_cambios_coverage(user_service):
+    # Crear usuario inicial con los mismos campos que espera el servicio
+    fecha_nacimiento = user_service.parse_fecha_nacimiento('2000-01-01')
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': fecha_nacimiento,  # Usamos el objeto date directamente
+        'direccion': 'Calle',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'cliente'
+    })
+
+    # Forzar que el mock tenga todos los campos y tipos correctos
+    user.fecha_nacimiento = fecha_nacimiento
+    user.direccion = 'Calle'
+    user.tipo = 'cliente'
+    if not hasattr(user, 'tarjeta'):
+        user.tarjeta = ''
+
+    # Intentar actualizar con los mismos datos
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': fecha_nacimiento.strftime('%Y-%m-%d'),
+        'domicilio': 'Calle',
+        'tarjeta': ''
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+
+    assert not success
+    assert 'cambio' in msg.lower()
+
+# Test para update_user con email duplicado
+def test_update_user_email_duplicado_coverage(user_service):
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan', 'apellido': 'Perez', 'email': 'jp@mail.com', 'contrasena': 'hash',
+        'telefono': '123', 'fecha_nacimiento': '2000-01-01', 'direccion': 'Calle', 'nacionalidad': 'Argentina',
+        'dni': '12345678', 'tarjeta': '', 'tipo': 'cliente'
+    })
+    user2 = user_service.user_repository.create_usuario({
+        'nombre': 'Maria', 'apellido': 'Gomez', 'email': 'mg@mail.com', 'contrasena': 'hash',
+        'telefono': '456', 'fecha_nacimiento': '2000-01-01', 'direccion': 'Otra', 'nacionalidad': 'Argentina',
+        'dni': '87654321', 'tarjeta': '', 'tipo': 'cliente'
+    })
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'mg@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle'
+    }
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'email' in msg.lower()
+
+# Test para update_user con dni duplicado
+def test_update_user_dni_duplicado_coverage(user_service):
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan', 'apellido': 'Perez', 'email': 'jp@mail.com', 'contrasena': 'hash',
+        'telefono': '123', 'fecha_nacimiento': '2000-01-01', 'direccion': 'Calle', 'nacionalidad': 'Argentina',
+        'dni': '12345678', 'tarjeta': '', 'tipo': 'cliente'
+    })
+    user2 = user_service.user_repository.create_usuario({
+        'nombre': 'Maria', 'apellido': 'Gomez', 'email': 'mg@mail.com', 'contrasena': 'hash',
+        'telefono': '456', 'fecha_nacimiento': '2000-01-01', 'direccion': 'Otra', 'nacionalidad': 'Argentina',
+        'dni': '87654321', 'tarjeta': '', 'tipo': 'cliente'
+    })
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '87654321',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle'
+    }
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'dni' in msg.lower()
+
+# Test para authenticate_user con usuario inexistente
+def test_authenticate_user_no_existe_coverage(user_service):
+    user = user_service.authenticate_user('noexiste@mail.com', 'password')
+    assert user is None
