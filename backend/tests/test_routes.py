@@ -1,7 +1,6 @@
 from unittest.mock import patch
 import pytest
 from models.user import Cliente, Administrador
-from werkzeug.security import generate_password_hash
 from database import db
 from datetime import date
 
