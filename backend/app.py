@@ -13,6 +13,7 @@ flask_params = {
 
 def create_app():
     app = Flask(__name__, **flask_params)
+    app.secret_key = "superclaveultrasecreta_2024_!@#random"
 
     # Cargar configuración desde config.py
     app.config.from_object(Config)
@@ -30,6 +31,7 @@ def create_app():
         from models.imagen import Imagen
         from models.propiedad_administrador import propiedad_administrador
         from models.favoritos import favoritos
+        from models.reserva import Reserva
         # Crear tablas
         db.create_all()
 

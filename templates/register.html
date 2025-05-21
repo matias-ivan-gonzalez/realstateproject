@@ -8,13 +8,7 @@
 
     <h2 class="text-center text-secondary mb-4">Crea tu cuenta</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} py-2">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+
 
     <form method="post">
       <!-- FILA 1: Nombre, Apellido, Email, Contraseña -->

@@ -1,18 +1,18 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="/static/img/logo_alquiloando.png" alt="Logo" width="30" height="30" class="me-2">
+      Alquilando
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+      aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="/">
-        <img src="/static/img/logo_alquiloando.png" alt="Logo" width="30" height="30" class="me-2">
-        Alquilando
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
-        aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-  
       <div class="collapse navbar-collapse" id="navContent">
         <form class="d-flex ms-auto me-3" action="/search" method="get">
-          <input class="form-control me-2" type="search" name="ubicacion" placeholder="Ubicación" aria-label="Ubicación">
-          <button class="btn btn-outline-light" type="submit">Buscar</button>
+          <input class="form-control me-2" type="search" name="ubicacion" id="navbar-ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion if ubicacion is defined else request.args.get('ubicacion', '') }}" {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>
+          <button class="btn btn-outline-light" type="submit" id="buscar-btn" disabled {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>Buscar</button>
         </form>
         <ul class="navbar-nav mb-2 mb-lg-0">
           {% if session.user_id %}
@@ -23,5 +23,19 @@
         </ul>
       </div>
     </div>
-  </nav>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ubicacionInput = document.getElementById('navbar-ubicacion');
+    const buscarBtn = document.getElementById('buscar-btn');
+    function toggleButton() {
+      buscarBtn.disabled = ubicacionInput.value.trim() === '';
+    }
+    ubicacionInput.addEventListener('input', toggleButton);
+    toggleButton(); // Initial state
+  });
+</script>
+
   

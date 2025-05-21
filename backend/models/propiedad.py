@@ -17,6 +17,8 @@ class Propiedad(db.Model):
     piscina = db.Column(db.Boolean, default=False, nullable=False)
     patio_trasero = db.Column(db.Boolean, default=False, nullable=False)
     descripcion = db.Column(db.String(500), nullable=True)
+    latitud = db.Column(db.Float, nullable=True)
+    longitud = db.Column(db.Float, nullable=True)
     superusuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     encargado_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     
@@ -26,7 +28,8 @@ class Propiedad(db.Model):
     administradores = db.relationship('Administrador', secondary=propiedad_administrador, backref='propiedades_administradas')
     encargado = db.relationship('Encargado', backref='propiedades_encargadas', foreign_keys=[encargado_id])
 
+    reservas = db.relationship('Reserva', back_populates='propiedad', cascade='all, delete-orphan')
     # clientes_favoritos: relación inversa de favoritos, definida en Cliente con backref
 
     def __repr__(self):
-        return f"<Propiedad {self.nombre} - {self.ubicacion}>" 
+        return f"<Propiedad {self.nombre} - {self.ubicacion}>"

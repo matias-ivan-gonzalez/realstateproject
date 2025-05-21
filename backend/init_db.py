@@ -6,6 +6,9 @@ from models.propiedad import Propiedad
 from models.imagen import Imagen
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
+from models.reserva import Reserva
+from datetime import datetime
+
 
 def init_db():
     # Roles
@@ -169,12 +172,50 @@ def init_db():
     # Propiedades
     prop1 = Propiedad.query.filter_by(nombre='Casa Centro').first()
     if not prop1:
-        prop1 = Propiedad(nombre='Casa Centro', ubicacion='Calle Falsa 123', precio=100000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=True, descripcion='Linda casa', superusuario=superuser, encargado=encargado)
+        prop1 = Propiedad(nombre='Casa Centro', ubicacion='Calle Falsa 123', precio=100000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=True, descripcion='Linda casa', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
         db.session.add(prop1)
+    else:
+        prop1.latitud = -34.6037
+        prop1.longitud = -58.3816
     prop2 = Propiedad.query.filter_by(nombre='Depto Norte').first()
     if not prop2:
-        prop2 = Propiedad(nombre='Depto Norte', ubicacion='Avenida Siempreviva 742', precio=80000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento moderno', superusuario=superuser, encargado=encargado)
+        prop2 = Propiedad(nombre='Depto Norte', ubicacion='Avenida Siempreviva 742', precio=80000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento moderno', superusuario=superuser, encargado=encargado, latitud=-34.5955, longitud=-58.3932)
         db.session.add(prop2)
+    else:
+        prop2.latitud = -34.5955
+        prop2.longitud = -58.3932
+    prop3 = Propiedad.query.filter_by(nombre='Casa Sur').first()
+    if not prop3:
+        prop3 = Propiedad(nombre='Casa Sur', ubicacion='Calle Falsa 456', precio=120000, cantidad_habitaciones=4, limite_personas=6, pet_friendly=True, cochera=True, wifi=False, piscina=True, patio_trasero=True, descripcion='Casa amplia', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop3)
+    prop4 = Propiedad.query.filter_by(nombre='Depto Sur').first()
+    if not prop4:
+        prop4 = Propiedad(nombre='Depto Sur', ubicacion='Avenida Siempreviva 123', precio=90000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=True, descripcion='Departamento acogedor', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop4)
+    prop5 = Propiedad.query.filter_by(nombre='Casa Este').first()
+    if not prop5:
+        prop5 = Propiedad(nombre='Casa Este', ubicacion='Calle Falsa 789', precio=110000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=False, descripcion='Casa con jardín', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop5)
+    prop6 = Propiedad.query.filter_by(nombre='Depto Oeste').first()
+    if not prop6:
+        prop6 = Propiedad(nombre='Depto Oeste', ubicacion='Avenida Siempreviva 456', precio=95000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento luminoso', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop6)
+    prop7 = Propiedad.query.filter_by(nombre='Casa Oeste').first()
+    if not prop7:
+        prop7 = Propiedad(nombre='Casa Oeste', ubicacion='Calle Falsa 321', precio=130000, cantidad_habitaciones=5, limite_personas=7, pet_friendly=True, cochera=True, wifi=False, piscina=True, patio_trasero=True, descripcion='Casa con pileta', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop7)
+    prop8 = Propiedad.query.filter_by(nombre='Depto Este').first()
+    if not prop8:
+        prop8 = Propiedad(nombre='Depto Este', ubicacion='Avenida Siempreviva 789', precio=85000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=True, descripcion='Departamento pequeño', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop8)
+    prop9 = Propiedad.query.filter_by(nombre='Casa Norte').first()
+    if not prop9:
+        prop9 = Propiedad(nombre='Casa Norte', ubicacion='Calle Falsa 654', precio=140000, cantidad_habitaciones=6, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=False, descripcion='Casa moderna', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop9)
+    prop10 = Propiedad.query.filter_by(nombre='Depto Centro').first()
+    if not prop10:
+        prop10 = Propiedad(nombre='Depto Centro', ubicacion='Avenida Siempreviva 321', precio=105000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento céntrico', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        db.session.add(prop10)
     db.session.commit()
 
     # Relación muchos-a-muchos administradores-propiedades
@@ -182,6 +223,34 @@ def init_db():
         prop1.administradores.append(admin)
     if admin not in prop2.administradores:
         prop2.administradores.append(admin)
+    if admin not in prop3.administradores:
+        prop3.administradores.append(admin)
+    if admin not in prop4.administradores:
+        prop4.administradores.append(admin)
+    if admin not in prop5.administradores:
+        prop5.administradores.append(admin)
+    if admin not in prop6.administradores:
+        prop6.administradores.append(admin)
+    if admin not in prop7.administradores:
+        prop7.administradores.append(admin)
+    if admin not in prop8.administradores:
+        prop8.administradores.append(admin)
+    if admin not in prop9.administradores:
+        prop9.administradores.append(admin)
+    if admin not in prop10.administradores:
+        prop10.administradores.append(admin)
+        
+    # Reservas
+    fecha_inicio = '2025-5-20'	
+    fecha_fin = '2025-5-25'
+    fecha_inicio_convertida = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+    fecha_fin_convertida = datetime.strptime(fecha_fin, '%Y-%m-%d')
+    reserva1 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida).first()
+    if not reserva1:
+        reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3)
+        db.session.add(reserva1)
+        
+    
     db.session.commit()
 
     # Favoritos

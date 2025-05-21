@@ -18,6 +18,10 @@ def app():
         from models.imagen import Imagen
         from models.propiedad_administrador import propiedad_administrador
         from models.favoritos import favoritos
+        from models.rol_permiso import rol_permiso
+        from models.reserva import Reserva
+        
+        
 
         db.create_all()  # Ahora sí se crean todas las tablas, incluidas las de asociación
 

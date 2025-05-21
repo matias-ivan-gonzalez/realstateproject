@@ -2,6 +2,18 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div style="position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:2000; min-width:300px; max-width:90vw; text-align:center;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show mb-2" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 <main class="hero flex-grow-1 d-flex align-items-center justify-content-center">
   <!-- SVG de fondo -->
   <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">

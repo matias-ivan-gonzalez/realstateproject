@@ -14,6 +14,7 @@ class Usuario(db.Model):
     telefono = db.Column(db.String(20), nullable=False)
     nacionalidad = db.Column(db.String(50), nullable=False)
     
+    
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
     rol = db.relationship('Rol', back_populates='usuarios')
@@ -31,6 +32,8 @@ class Cliente(Usuario):
     tarjeta = db.Column(db.String(100), nullable=True)
     fecha_nacimiento = db.Column(db.Date, nullable=True)
     direccion = db.Column(db.String(200), nullable=True)
+    reservas = db.relationship("Reserva", back_populates="cliente", cascade="all, delete-orphan")
+
     favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
     __mapper_args__ = {
         'polymorphic_identity': 'cliente',
