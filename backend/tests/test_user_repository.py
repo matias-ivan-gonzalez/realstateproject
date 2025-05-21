@@ -72,3 +72,97 @@ def test_create_usuario_todos_los_tipos(repo, app, sample_user):
             assert user.email == f'{tipo}@mail.com'
             assert user.dni == f'9999{tipo}'
             assert user.tipo == tipo
+
+def test_update_user(repo, app, sample_user):
+    with app.app_context():
+        # Crear un usuario inicial
+        user = repo.create_usuario(sample_user)
+        user_id = user.id
+        
+        # Datos de actualización
+        update_data = {
+            'nombre': 'Pedro',
+            'apellido': 'Gomez',
+            'email': 'pedro@mail.com',
+            'telefono': '987654'
+        }
+        
+        # Actualizar usuario
+        updated_user = repo.update_user(user_id, update_data)
+        
+        # Verificar que los campos se actualizaron correctamente
+        assert updated_user.nombre == 'Pedro'
+        assert updated_user.apellido == 'Gomez'
+        assert updated_user.email == 'pedro@mail.com'
+        assert updated_user.telefono == '987654'
+        
+        # Verificar que los campos no actualizados mantienen su valor original
+        assert updated_user.dni == sample_user['dni']
+        assert updated_user.direccion == sample_user['direccion']
+        
+        # Verificar que se lanza error cuando el usuario no existe
+        with pytest.raises(ValueError, match="Usuario no encontrado"):
+            repo.update_user(99999, update_data)
+
+def test_get_by_id(repo, app, sample_user):
+    with app.app_context():
+        # Verificar que no existe un usuario con ID 1
+        assert repo.get_by_id(1) is None
+        
+        # Crear un usuario
+        user = repo.create_usuario(sample_user)
+        user_id = user.id
+        
+        # Verificar que podemos obtener el usuario por su ID
+        retrieved_user = repo.get_by_id(user_id)
+        assert retrieved_user is not None
+        assert retrieved_user.id == user_id
+        assert retrieved_user.nombre == sample_user['nombre']
+        assert retrieved_user.email == sample_user['email']
+        assert retrieved_user.dni == sample_user['dni']
+
+def test_create_superusuario_y_default(repo, app, sample_user):
+    with app.app_context():
+        # Test SuperUsuario
+        super_user_data = sample_user.copy()
+        super_user_data['email'] = 'super@mail.com'
+        super_user_data['dni'] = '9999super'
+        super_user_data['tipo'] = 'superusuario'
+        # Eliminar campos específicos de cliente
+        super_user_data.pop('fecha_nacimiento', None)
+        super_user_data.pop('tarjeta', None)
+        super_user_data.pop('direccion', None)
+        
+        super_user = repo.create_usuario(super_user_data)
+        assert super_user.id is not None
+        assert super_user.email == 'super@mail.com'
+        assert super_user.dni == '9999super'
+        assert super_user.tipo == 'superusuario'
+        
+        # Test caso por defecto (tipo no especificado)
+        default_user_data = sample_user.copy()
+        default_user_data['email'] = 'default@mail.com'
+        default_user_data['dni'] = '9999default'
+        # No especificamos tipo, debería usar el default 'cliente'
+        
+        default_user = repo.create_usuario(default_user_data)
+        assert default_user.id is not None
+        assert default_user.email == 'default@mail.com'
+        assert default_user.dni == '9999default'
+        assert default_user.tipo == 'cliente'  # Debería ser cliente por defecto
+
+        # Test caso else (tipo no reconocido)
+        unknown_user_data = sample_user.copy()
+        unknown_user_data['email'] = 'unknown@mail.com'
+        unknown_user_data['dni'] = '9999unknown'
+        unknown_user_data['tipo'] = 'tipodesconocido'
+        # Eliminar campos específicos de cliente
+        unknown_user_data.pop('fecha_nacimiento', None)
+        unknown_user_data.pop('tarjeta', None)
+        unknown_user_data.pop('direccion', None)
+        
+        unknown_user = repo.create_usuario(unknown_user_data)
+        assert unknown_user.id is not None
+        assert unknown_user.email == 'unknown@mail.com'
+        assert unknown_user.dni == '9999unknown'
+        assert unknown_user.tipo == 'tipodesconocido'  # Debería mantener el tipo especificado

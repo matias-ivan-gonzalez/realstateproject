@@ -2,6 +2,9 @@ from models.user import Usuario, Cliente, Administrador, Encargado, SuperUsuario
 from database import db
 
 class UserRepository:
+    def get_by_id(self, user_id):
+        return db.session.get(Usuario, user_id)
+
     def get_by_email(self, email):
         return Usuario.query.filter_by(email=email).first()
 
@@ -20,4 +23,16 @@ class UserRepository:
             nuevo_usuario = SuperUsuario(**user_dict)
         db.session.add(nuevo_usuario)
         db.session.commit()
-        return nuevo_usuario 
+        return nuevo_usuario
+
+    def update_user(self, user_id, user_dict):
+        user = db.session.get(Usuario, user_id)
+        if not user:
+            raise ValueError("Usuario no encontrado")
+        
+        # Actualizar los campos del usuario
+        for key, value in user_dict.items():
+            setattr(user, key, value)
+        
+        db.session.commit()
+        return user 

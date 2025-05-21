@@ -10,10 +10,19 @@ from database import db
 from architectural_patterns.service.propiedad_service import PropiedadService
 from architectural_patterns.service.empleado_service import EmpleadoService
 from unittest.mock import patch
-
+from functools import wraps
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Debes iniciar sesión para acceder a esta página.', 'danger')
+            return redirect(url_for('main.login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Ruta principal
 @main.route('/')
@@ -41,8 +50,9 @@ def login():
                 session['rol'] = 'encargado'
             else:
                 session['rol'] = 'cliente'
+            # No redirigir inmediatamente, mostrar mensaje y luego redirigir con JS
             flash('Inicio de sesión exitoso.', 'success')
-            return redirect(url_for('main.index'))
+            return render_template('login.html', email=email, login_success=True, redirect_url=url_for('main.index'))
         else:
             flash('Email o contraseña incorrectos.', 'danger')
             return render_template('login.html', email=email)
@@ -167,3 +177,57 @@ def logout():
     flash('Sesión cerrada correctamente.', 'success')
     return redirect(url_for('main.login'))
 
+@main.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def perfil():
+    user_service = UserService()
+    user = user_service.get_user_by_id(session['user_id'])
+    
+    if request.method == 'POST':
+        # Campos comunes para todos los usuarios
+        data = {
+            'nombre': request.form.get('nombre'),
+            'apellido': request.form.get('apellido'),
+            'email': request.form.get('email'),
+            'telefono': request.form.get('telefono'),
+            'nacionalidad': request.form.get('nacionalidad'),
+            'dni': request.form.get('dni'),
+            'password': request.form.get('password'),
+            'password_confirm': request.form.get('password_confirm')
+        }
+        
+        # Agregar campos específicos solo si el usuario es cliente
+        if user.tipo == 'cliente':
+            data.update({
+                'f_nac': request.form.get('f_nac'),
+                'domicilio': request.form.get('domicilio'),
+                'tarjeta': request.form.get('tarjeta')
+            })
+        
+        success, message = user_service.update_user(session['user_id'], data)
+        if success:
+            flash(message, 'success')
+            return redirect(url_for('main.perfil'))
+        else:
+            flash(message, 'danger')
+    
+    # Preparar datos para el formulario
+    form_data = {
+        'nombre': user.nombre,
+        'apellido': user.apellido,
+        'email': user.email,
+        'telefono': user.telefono,
+        'nacionalidad': user.nacionalidad,
+        'dni': user.dni
+    }
+    
+    # Agregar campos específicos de cliente si el usuario es cliente
+    if user.tipo == 'cliente':
+        form_data.update({
+            'f_nac': user.fecha_nacimiento.strftime('%Y-%m-%d') if user.fecha_nacimiento else '',
+            'domicilio': user.direccion,
+            'tarjeta': user.tarjeta
+        })
+    
+    paises = user_service.get_paises()
+    return render_template('profile.html', user=user, paises=paises, form_data=form_data)
