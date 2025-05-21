@@ -306,3 +306,13 @@ def perfil():
         })
     paises = user_service.get_paises()
     return render_template('profile.html', user=user, paises=paises, form_data=form_data)
+
+@main.route('/perfil/eliminar', methods=['POST'])
+@login_required
+def eliminar_cuenta():
+    user_service = UserService()
+    user_id = session['user_id']
+    user_service.eliminar_usuario_logico(user_id)
+    session.clear()
+    flash('Cuenta eliminada correctamente.', 'success')
+    return redirect(url_for('main.login'))
