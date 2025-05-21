@@ -1,5 +1,5 @@
 from architectural_patterns.repository.user_repository import UserRepository
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import re
 
 NACIONALIDADES_VALIDAS = [
@@ -35,6 +35,13 @@ class UserService:
             return datetime.strptime(f_nac, '%Y-%m-%d').date()
         except ValueError:
             return None
+
+    def es_mayor_de_edad(self, fecha_nacimiento):
+        if not fecha_nacimiento:
+            return False
+        hoy = date.today()
+        edad = hoy.year - fecha_nacimiento.year - ((hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
+        return edad >= 18
 
     def update_user(self, user_id, data):
         # Obtener el usuario para verificar su tipo
@@ -75,6 +82,8 @@ class UserService:
             fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
             if not fecha_nacimiento:
                 return False, 'Fecha de nacimiento inválida.'
+            if not self.es_mayor_de_edad(fecha_nacimiento):
+                return False, 'Debes ser mayor de 18 años para editar tu perfil.'
 
         # Validar email y DNI duplicados solo si han cambiado
         if data['email'] != user.email:
@@ -169,6 +178,8 @@ class UserService:
         fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
         if data.get('f_nac') and not fecha_nacimiento:
             return False, 'Fecha de nacimiento inválida.'
+        if not self.es_mayor_de_edad(fecha_nacimiento):
+            return False, 'Debes ser mayor de 18 años para registrarte.'
         user_dict = {
             'nombre': data['nombre'],
             'apellido': data['apellido'],
