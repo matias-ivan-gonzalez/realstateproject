@@ -3,7 +3,7 @@ from database import db
 
 class UserRepository:
     def get_by_id(self, user_id):
-        return Usuario.query.get(user_id)
+        return db.session.get(Usuario, user_id)
 
     def get_by_email(self, email):
         return Usuario.query.filter_by(email=email).first()
@@ -28,7 +28,7 @@ class UserRepository:
         return nuevo_usuario
 
     def update_user(self, user_id, user_dict):
-        user = Usuario.query.get(user_id)
+        user = db.session.get(Usuario, user_id)
         if not user:
             raise ValueError("Usuario no encontrado")
         
