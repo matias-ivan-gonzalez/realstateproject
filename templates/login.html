@@ -1,0 +1,52 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Iniciar sesión - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5" style="z-index: 2;">
+  <div class="card p-4 shadow text-start" style="max-width: 400px; width: 100%; background-color: white;">
+    <h2 class="text-center text-secondary mb-4">¡Hola, de nuevo!</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if login_success and redirect_url %}
+      <div class="d-flex justify-content-center my-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+      <script>
+        setTimeout(function() {
+          window.location.href = "{{ redirect_url }}";
+        }, 1000);
+      </script>
+    {% else %}
+      <form method="post">
+        <div class="mb-3">
+          <label for="email" class="form-label text-secondary">Email</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="ejemplo@correo.com" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label text-secondary">Contraseña</label>
+          <input type="password" class="form-control" id="password" name="password" placeholder="********" required>
+        </div>
+
+        <div class="d-grid mb-3">
+          <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+        </div>
+
+        <div class="text-end">
+          <a href="/recuperar" class="text-decoration-none text-secondary small">Recuperar contraseña</a>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1 @@
+# Esta capa sirve para alojar toda la lógica de negocio de nuestra aplicacion, tiene que ser llamada desde el controller (routes.py en este caso), y desde aca se generan llamadas a los clients (apis externas que debamos consultar) y al repository(acciones de impacto para la base de datos)

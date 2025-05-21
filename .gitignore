@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# Caches de backend específicos
+backend/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+
+.coverage
+backend/mydatabase.db
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Mypy
+.mypy_cache/
+
+# pytest
+.cache/
+.pytest_cache/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# Entornos virtuales
+venv/
+.env/
+ENV/
+
+# Archivos de logs
+*.log

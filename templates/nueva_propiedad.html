@@ -1,0 +1,106 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Nueva Propiedad - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: auto;">
+    <div class="card p-3 shadow text-start" style="max-width: 800px; width: 100%;">
+        <h2 class="text-center text-secondary mb-3">Ingresar Nueva Propiedad</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('main.nueva_propiedad') }}" class="needs-validation" novalidate>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label for="nombre" class="form-label text-secondary">Nombre de la Propiedad*</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="ubicacion" class="form-label text-secondary">Ubicación*</label>
+                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <label for="precio" class="form-label text-secondary">Precio*</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="cantidad_habitaciones" class="form-label text-secondary">Cantidad de Habitaciones*</label>
+                    <input type="number" class="form-control" id="cantidad_habitaciones" name="cantidad_habitaciones" min="1" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="limite_personas" class="form-label text-secondary">Límite de Personas*</label>
+                    <input type="number" class="form-control" id="limite_personas" name="limite_personas" min="1" required>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <label class="form-label text-secondary mb-1">Características</label>
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="pet_friendly" name="pet_friendly">
+                            <label class="form-check-label text-secondary" for="pet_friendly">Pet Friendly</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="cochera" name="cochera">
+                            <label class="form-check-label text-secondary" for="cochera">Cochera</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="wifi" name="wifi">
+                            <label class="form-check-label text-secondary" for="wifi">WiFi</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="piscina" name="piscina">
+                            <label class="form-check-label text-secondary" for="piscina">Piscina</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="patio_trasero" name="patio_trasero">
+                            <label class="form-check-label text-secondary" for="patio_trasero">Patio Trasero</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="descripcion" class="form-label text-secondary">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Descripción de la propiedad..."></textarea>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Guardar Propiedad</button>
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Validación del formulario
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
+{% endblock %} 

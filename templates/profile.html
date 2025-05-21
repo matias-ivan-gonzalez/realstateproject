@@ -1,0 +1,206 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Mi Perfil - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Mi Perfil</h2>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('main.perfil') }}" id="profileForm">
+                        <!-- Campos comunes para todos los usuarios -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ form_data.nombre or '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="apellido" class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ form_data.apellido or '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email or '' }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="telefono" class="form-label">Teléfono *</label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ form_data.telefono or '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="dni" class="form-label">DNI *</label>
+                                <input type="text" class="form-control" id="dni" name="dni" value="{{ form_data.dni or '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="nacionalidad" class="form-label">Nacionalidad *</label>
+                                <select class="form-select" id="nacionalidad" name="nacionalidad" required>
+                                    {% for pais in paises %}
+                                        <option value="{{ pais }}" {% if pais == form_data.nacionalidad %}selected{% endif %}>{{ pais }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Campos específicos para clientes -->
+                        {% if user.tipo == 'cliente' %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="f_nac" class="form-label">Fecha de nacimiento *</label>
+                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ form_data.f_nac or '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="domicilio" class="form-label">Domicilio *</label>
+                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ form_data.domicilio or '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="tarjeta" class="form-label">Tarjeta (opcional)</label>
+                                <input type="text" class="form-control" id="tarjeta" name="tarjeta"
+                                       value="{{ form_data.tarjeta or '' }}"
+                                       pattern="\d{13,19}" minlength="13" maxlength="19"
+                                       title="La tarjeta debe tener entre 13 y 19 dígitos numéricos">
+                            </div>
+                        </div>
+                        {% else %}
+                        <input type="hidden" name="f_nac" value="">
+                        <input type="hidden" name="domicilio" value="">
+                        <input type="hidden" name="tarjeta" value="">
+                        {% endif %}
+
+                        <!-- Sección de cambio de contraseña -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <hr>
+                                <h5>Cambiar contraseña (opcional)</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Nueva contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password" minlength="8">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password_confirm" class="form-label">Confirmar contraseña</label>
+                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" minlength="8">
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+                            <button class="btn btn-outline-danger" id="abrirModalEliminarCuenta">
+                                Eliminar cuenta
+                            </button>
+                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal personalizado -->
+<div id="modalEliminarCuentaCustom" class="custom-modal" style="display:none;">
+  <div class="custom-modal-backdrop"></div>
+  <div class="custom-modal-content">
+    <form method="POST" action="" id="formEliminarCuenta">
+      <div class="mb-3">
+        <h5>Eliminar cuenta</h5>
+        <p class="mb-3 text-danger fw-bold">
+          ¿Estás seguro de que deseas eliminar tu cuenta?<br>
+          <span class="fw-normal text-dark">Esta acción no se puede deshacer.</span>
+        </p>
+        <label for="confirm_password" class="form-label">Confirma tu contraseña</label>
+        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Contraseña" required>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" id="cerrarModalEliminarCuenta">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Eliminar cuenta</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalEliminarCuentaCustom');
+    const abrirBtn = document.getElementById('abrirModalEliminarCuenta');
+    const cerrarBtn = document.getElementById('cerrarModalEliminarCuenta');
+    const backdrop = document.querySelector('.custom-modal-backdrop');
+    const form = document.getElementById('formEliminarCuenta');
+    const profileForm = document.getElementById('profileForm');
+
+    // Función para abrir el modal
+    function abrirModal(e) {
+        e.preventDefault();
+        modal.style.display = 'flex';
+    }
+
+    // Función para cerrar el modal
+    function cerrarModal(e) {
+        e.preventDefault();
+        modal.style.display = 'none';
+        form.reset();
+    }
+
+    // Event listeners para el modal
+    abrirBtn.addEventListener('click', abrirModal);
+    cerrarBtn.addEventListener('click', cerrarModal);
+    backdrop.addEventListener('click', cerrarModal);
+
+    // Prevenir el envío del formulario de eliminar cuenta
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('Formulario de eliminar cuenta enviado');
+    });
+
+    // Prevenir el cierre al hacer clic dentro del contenido del modal
+    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Manejar el envío del formulario de perfil
+    profileForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Si no es cliente, remover los campos específicos de cliente
+        if ('{{ user.tipo }}' !== 'cliente') {
+            const f_nac = document.getElementById('f_nac');
+            const domicilio = document.getElementById('domicilio');
+            const tarjeta = document.getElementById('tarjeta');
+            
+            if (f_nac) f_nac.removeAttribute('required');
+            if (domicilio) domicilio.removeAttribute('required');
+            if (tarjeta) tarjeta.removeAttribute('required');
+        }
+        
+        // Enviar el formulario
+        this.submit();
+    });
+
+    // Validación de mayoría de edad para fecha de nacimiento
+    var fNac = document.getElementById('f_nac');
+    if (fNac) {
+        var today = new Date();
+        var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        fNac.max = maxDate.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %} 

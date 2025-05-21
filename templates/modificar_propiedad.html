@@ -1,0 +1,75 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Modificar Propiedad - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: auto;">
+    <div class="card p-3 shadow text-start" style="max-width: 800px; width: 100%;">
+        <h2 class="text-center text-secondary mb-3">Modificar Propiedad</h2>
+        <form method="POST" action="{{ action_url }}">
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label for="nombre" class="form-label text-secondary">Nombre de la Propiedad*</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ propiedad.nombre }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="ubicacion" class="form-label text-secondary">Ubicación*</label>
+                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ propiedad.ubicacion }}">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <label for="precio" class="form-label text-secondary">Precio*</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="precio" name="precio" step="0.01" value="{{ propiedad.precio }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="cantidad_habitaciones" class="form-label text-secondary">Cantidad de Habitaciones*</label>
+                    <input type="number" class="form-control" id="cantidad_habitaciones" name="cantidad_habitaciones" value="{{ propiedad.cantidad_habitaciones }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="limite_personas" class="form-label text-secondary">Límite de Personas*</label>
+                    <input type="number" class="form-control" id="limite_personas" name="limite_personas" value="{{ propiedad.limite_personas }}">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <label class="form-label text-secondary mb-1">Características</label>
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="pet_friendly" name="pet_friendly" {% if propiedad.pet_friendly %}checked{% endif %}>
+                            <label class="form-check-label text-secondary" for="pet_friendly">Pet Friendly</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="cochera" name="cochera" {% if propiedad.cochera %}checked{% endif %}>
+                            <label class="form-check-label text-secondary" for="cochera">Cochera</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="wifi" name="wifi" {% if propiedad.wifi %}checked{% endif %}>
+                            <label class="form-check-label text-secondary" for="wifi">WiFi</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="piscina" name="piscina" {% if propiedad.piscina %}checked{% endif %}>
+                            <label class="form-check-label text-secondary" for="piscina">Piscina</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="patio_trasero" name="patio_trasero" {% if propiedad.patio_trasero %}checked{% endif %}>
+                            <label class="form-check-label text-secondary" for="patio_trasero">Patio Trasero</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="descripcion" class="form-label text-secondary">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="2">{{ propiedad.descripcion }}</textarea>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

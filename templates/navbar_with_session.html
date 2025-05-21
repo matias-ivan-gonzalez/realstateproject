@@ -1,0 +1,8 @@
+<li class="nav-item">
+    <a class="btn btn-outline-light" href="{{ url_for('main.perfil') }}">Mi Perfil</a>
+</li>
+<li class="nav-item">
+    <form action="{{ url_for('main.logout') }}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light">Cerrar sesión</button>
+    </form>
+</li> 
