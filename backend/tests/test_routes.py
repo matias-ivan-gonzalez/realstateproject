@@ -1,7 +1,8 @@
 from unittest.mock import patch
 import pytest
-from models.user import Cliente
-from werkzeug.security import generate_password_hash
+from models.user import Cliente, Administrador
+from database import db
+from datetime import date
 
 # Test para la ruta '/'
 def test_index(client):
@@ -27,7 +28,6 @@ def test_login(client, app):
             nacionalidad='Argentina',
             dni='12345678'
         )
-        from database import db
         db.session.add(user)
         db.session.commit()
 
@@ -237,5 +237,87 @@ def test_logout(client, app):
         assert 'user_name' not in sess
     # Verifica que el mensaje de logout esté presente
     assert b'Sesi' in response.data and b'cerrada' in response.data
+
+def test_perfil_get_renderiza_profile(client, app):
+    # Crear usuario cliente
+    with app.app_context():
+        cliente = Cliente(
+            nombre='Ana', apellido='Lopez', email='ana_perfil1@mail.com', contrasena='12345678',
+            telefono='123', nacionalidad='Argentina', dni='12345679', fecha_nacimiento=date(2000, 1, 1),
+            direccion='Calle', tarjeta='1111'
+        )
+        db.session.add(cliente)
+        db.session.commit()
+        cliente_id = cliente.id
+    with client.session_transaction() as sess:
+        sess['user_id'] = cliente_id
+    response = client.get('/perfil')
+    print('GET /perfil response:', response.data.decode('utf-8'))
+    assert response.status_code == 200
+    # Verifica que se muestra el formulario de perfil
+    assert b'profile' in response.data or b'Perfil' in response.data or b'perfil' in response.data
+
+def test_perfil_post_actualiza_y_error(client, app):
+    # Crear usuario cliente
+    with app.app_context():
+        cliente = Cliente(
+            nombre='Ana', apellido='Lopez', email='ana_perfil2@mail.com', contrasena='12345678',
+            telefono='123', nacionalidad='Argentina', dni='12345680', fecha_nacimiento=date(2000, 1, 1),
+            direccion='Calle', tarjeta='1111'
+        )
+        db.session.add(cliente)
+        db.session.commit()
+        cliente_id = cliente.id
+    with client.session_transaction() as sess:
+        sess['user_id'] = cliente_id
+    # POST exitoso
+    data = {
+        'nombre': 'Ana', 'apellido': 'Lopez', 'email': 'ana_perfil2@mail.com', 'telefono': '999',
+        'nacionalidad': 'Argentina', 'dni': '12345680', 'password': '', 'password_confirm': '',
+        'f_nac': '2000-01-01', 'domicilio': 'Calle', 'tarjeta': '1111'
+    }
+    print('POST /perfil data:', data)
+    response_post = client.post('/perfil', data=data, follow_redirects=True)
+    print('POST /perfil response:', response_post.data.decode('utf-8'))
+    assert response_post.status_code == 200
+    assert b'Perfil actualizado' in response_post.data or b'success' in response_post.data
+    # POST error (campo obligatorio vacío)
+    data['nombre'] = ''
+    print('POST /perfil error data:', data)
+    response_post_fail = client.post('/perfil', data=data, follow_redirects=True)
+    print('POST /perfil error response:', response_post_fail.data.decode('utf-8'))
+    assert b'obligatorio' in response_post_fail.data or b'danger' in response_post_fail.data
+
+def test_login_required_redirige_si_no_logueado(client):
+    with client.session_transaction() as sess:
+        sess.clear()
+    response = client.get('/perfil', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/login' in response.headers['Location']
+
+def test_perfil_get_y_post_admin(client, app):
+    # Crear usuario administrador
+    with app.app_context():
+        admin = Administrador(
+            nombre='Admin', apellido='Sys', email='admin_perfil@mail.com', contrasena='12345678',
+            telefono='123', nacionalidad='Argentina', dni='12345681'
+        )
+        db.session.add(admin)
+        db.session.commit()
+        admin_id = admin.id
+    with client.session_transaction() as sess:
+        sess['user_id'] = admin_id
+    # GET: debe mostrar el perfil sin campos de cliente
+    response = client.get('/perfil')
+    assert response.status_code == 200
+    assert b'Admin' in response.data
+    # POST exitoso (cambia el teléfono)
+    data = {
+        'nombre': 'Admin', 'apellido': 'Sys', 'email': 'admin_perfil@mail.com', 'telefono': '999',
+        'nacionalidad': 'Argentina', 'dni': '12345681', 'password': '', 'password_confirm': ''
+    }
+    response_post = client.post('/perfil', data=data, follow_redirects=True)
+    assert response_post.status_code == 200
+    assert b'Perfil actualizado' in response_post.data or b'success' in response_post.data
 
 # pragma: no cover
