@@ -7,13 +7,7 @@
   <div class="card p-4 shadow text-start" style="max-width: 400px; width: 100%; background-color: white;">
     <h2 class="text-center text-secondary mb-4">¡Hola, de nuevo!</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} py-2">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+  
 
     {% if login_success and redirect_url %}
       <div class="d-flex justify-content-center my-3">

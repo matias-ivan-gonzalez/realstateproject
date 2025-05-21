@@ -9,13 +9,7 @@
             <div class="card">
                 <div class="card-body">
                     <h2 class="text-center mb-4">Mi Perfil</h2>
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">{{ message }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+
 
                     <form method="POST" action="{{ url_for('main.perfil') }}" id="profileForm">
                         <!-- Campos comunes para todos los usuarios -->
