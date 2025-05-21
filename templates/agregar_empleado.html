@@ -39,52 +39,200 @@
           <label for="nacionalidad" class="form-label">Nacionalidad</label>
           <select class="form-select" id="nacionalidad" name="nacionalidad" required>
             <option value="" disabled {% if data is not defined or not data.nacionalidad %}selected{% endif %}>Selecciona una nacionalidad</option>
-            <optgroup label="América">
-              <option value="Argentina" {% if data is defined and data.nacionalidad == 'Argentina' %}selected{% endif %}>Argentina</option>
-              <option value="Bolivia" {% if data is defined and data.nacionalidad == 'Bolivia' %}selected{% endif %}>Bolivia</option>
-              <option value="Brasil" {% if data is defined and data.nacionalidad == 'Brasil' %}selected{% endif %}>Brasil</option>
-              <option value="Chile" {% if data is defined and data.nacionalidad == 'Chile' %}selected{% endif %}>Chile</option>
-              <option value="Colombia" {% if data is defined and data.nacionalidad == 'Colombia' %}selected{% endif %}>Colombia</option>
-              <option value="Ecuador" {% if data is defined and data.nacionalidad == 'Ecuador' %}selected{% endif %}>Ecuador</option>
-              <option value="Estados Unidos" {% if data is defined and data.nacionalidad == 'Estados Unidos' %}selected{% endif %}>Estados Unidos</option>
-              <option value="México" {% if data is defined and data.nacionalidad == 'México' %}selected{% endif %}>México</option>
-              <option value="Paraguay" {% if data is defined and data.nacionalidad == 'Paraguay' %}selected{% endif %}>Paraguay</option>
-              <option value="Perú" {% if data is defined and data.nacionalidad == 'Perú' %}selected{% endif %}>Perú</option>
-              <option value="Uruguay" {% if data is defined and data.nacionalidad == 'Uruguay' %}selected{% endif %}>Uruguay</option>
-              <option value="Venezuela" {% if data is defined and data.nacionalidad == 'Venezuela' %}selected{% endif %}>Venezuela</option>
-            </optgroup>
-            <optgroup label="Europa">
-              <option value="Alemania" {% if data is defined and data.nacionalidad == 'Alemania' %}selected{% endif %}>Alemania</option>
-              <option value="España" {% if data is defined and data.nacionalidad == 'España' %}selected{% endif %}>España</option>
-              <option value="Francia" {% if data is defined and data.nacionalidad == 'Francia' %}selected{% endif %}>Francia</option>
-              <option value="Italia" {% if data is defined and data.nacionalidad == 'Italia' %}selected{% endif %}>Italia</option>
-              <option value="Países Bajos" {% if data is defined and data.nacionalidad == 'Países Bajos' %}selected{% endif %}>Países Bajos</option>
-              <option value="Portugal" {% if data is defined and data.nacionalidad == 'Portugal' %}selected{% endif %}>Portugal</option>
-              <option value="Reino Unido" {% if data is defined and data.nacionalidad == 'Reino Unido' %}selected{% endif %}>Reino Unido</option>
-              <option value="Rusia" {% if data is defined and data.nacionalidad == 'Rusia' %}selected{% endif %}>Rusia</option>
-              <option value="Suiza" {% if data is defined and data.nacionalidad == 'Suiza' %}selected{% endif %}>Suiza</option>
-            </optgroup>
-            <optgroup label="Asia">
-              <option value="Arabia Saudita" {% if data is defined and data.nacionalidad == 'Arabia Saudita' %}selected{% endif %}>Arabia Saudita</option>
-              <option value="China" {% if data is defined and data.nacionalidad == 'China' %}selected{% endif %}>China</option>
-              <option value="Corea del Sur" {% if data is defined and data.nacionalidad == 'Corea del Sur' %}selected{% endif %}>Corea del Sur</option>
-              <option value="Emiratos Árabes Unidos" {% if data is defined and data.nacionalidad == 'Emiratos Árabes Unidos' %}selected{% endif %}>Emiratos Árabes Unidos</option>
-              <option value="India" {% if data is defined and data.nacionalidad == 'India' %}selected{% endif %}>India</option>
-              <option value="Israel" {% if data is defined and data.nacionalidad == 'Israel' %}selected{% endif %}>Israel</option>
-              <option value="Japón" {% if data is defined and data.nacionalidad == 'Japón' %}selected{% endif %}>Japón</option>
-              <option value="Turquía" {% if data is defined and data.nacionalidad == 'Turquía' %}selected{% endif %}>Turquía</option>
-            </optgroup>
-            <optgroup label="África">
-              <option value="Argelia" {% if data is defined and data.nacionalidad == 'Argelia' %}selected{% endif %}>Argelia</option>
-              <option value="Egipto" {% if data is defined and data.nacionalidad == 'Egipto' %}selected{% endif %}>Egipto</option>
-              <option value="Marruecos" {% if data is defined and data.nacionalidad == 'Marruecos' %}selected{% endif %}>Marruecos</option>
-              <option value="Sudáfrica" {% if data is defined and data.nacionalidad == 'Sudáfrica' %}selected{% endif %}>Sudáfrica</option>
-            </optgroup>
-            <optgroup label="Oceanía">
-              <option value="Australia" {% if data is defined and data.nacionalidad == 'Australia' %}selected{% endif %}>Australia</option>
-              <option value="Nueva Zelanda" {% if data is defined and data.nacionalidad == 'Nueva Zelanda' %}selected{% endif %}>Nueva Zelanda</option>
-            </optgroup>
-            <option value="Otro" {% if data is defined and data.nacionalidad == 'Otro' %}selected{% endif %}>Otro</option>
+            <option value="Afganistán" {% if data is defined and data.nacionalidad == 'Afganistán' %}selected{% endif %}>Afganistán</option>
+            <option value="Albania" {% if data is defined and data.nacionalidad == 'Albania' %}selected{% endif %}>Albania</option>
+            <option value="Alemania" {% if data is defined and data.nacionalidad == 'Alemania' %}selected{% endif %}>Alemania</option>
+            <option value="Andorra" {% if data is defined and data.nacionalidad == 'Andorra' %}selected{% endif %}>Andorra</option>
+            <option value="Angola" {% if data is defined and data.nacionalidad == 'Angola' %}selected{% endif %}>Angola</option>
+            <option value="Antigua y Barbuda" {% if data is defined and data.nacionalidad == 'Antigua y Barbuda' %}selected{% endif %}>Antigua y Barbuda</option>
+            <option value="Arabia Saudita" {% if data is defined and data.nacionalidad == 'Arabia Saudita' %}selected{% endif %}>Arabia Saudita</option>
+            <option value="Argelia" {% if data is defined and data.nacionalidad == 'Argelia' %}selected{% endif %}>Argelia</option>
+            <option value="Argentina" {% if data is defined and data.nacionalidad == 'Argentina' %}selected{% endif %}>Argentina</option>
+            <option value="Armenia" {% if data is defined and data.nacionalidad == 'Armenia' %}selected{% endif %}>Armenia</option>
+            <option value="Australia" {% if data is defined and data.nacionalidad == 'Australia' %}selected{% endif %}>Australia</option>
+            <option value="Austria" {% if data is defined and data.nacionalidad == 'Austria' %}selected{% endif %}>Austria</option>
+            <option value="Azerbaiyán" {% if data is defined and data.nacionalidad == 'Azerbaiyán' %}selected{% endif %}>Azerbaiyán</option>
+            <option value="Bahamas" {% if data is defined and data.nacionalidad == 'Bahamas' %}selected{% endif %}>Bahamas</option>
+            <option value="Bangladés" {% if data is defined and data.nacionalidad == 'Bangladés' %}selected{% endif %}>Bangladés</option>
+            <option value="Barbados" {% if data is defined and data.nacionalidad == 'Barbados' %}selected{% endif %}>Barbados</option>
+            <option value="Baréin" {% if data is defined and data.nacionalidad == 'Baréin' %}selected{% endif %}>Baréin</option>
+            <option value="Bélgica" {% if data is defined and data.nacionalidad == 'Bélgica' %}selected{% endif %}>Bélgica</option>
+            <option value="Belice" {% if data is defined and data.nacionalidad == 'Belice' %}selected{% endif %}>Belice</option>
+            <option value="Benín" {% if data is defined and data.nacionalidad == 'Benín' %}selected{% endif %}>Benín</option>
+            <option value="Bielorrusia" {% if data is defined and data.nacionalidad == 'Bielorrusia' %}selected{% endif %}>Bielorrusia</option>
+            <option value="Birmania" {% if data is defined and data.nacionalidad == 'Birmania' %}selected{% endif %}>Birmania</option>
+            <option value="Bolivia" {% if data is defined and data.nacionalidad == 'Bolivia' %}selected{% endif %}>Bolivia</option>
+            <option value="Bosnia y Herzegovina" {% if data is defined and data.nacionalidad == 'Bosnia y Herzegovina' %}selected{% endif %}>Bosnia y Herzegovina</option>
+            <option value="Botsuana" {% if data is defined and data.nacionalidad == 'Botsuana' %}selected{% endif %}>Botsuana</option>
+            <option value="Brasil" {% if data is defined and data.nacionalidad == 'Brasil' %}selected{% endif %}>Brasil</option>
+            <option value="Brunéi" {% if data is defined and data.nacionalidad == 'Brunéi' %}selected{% endif %}>Brunéi</option>
+            <option value="Bulgaria" {% if data is defined and data.nacionalidad == 'Bulgaria' %}selected{% endif %}>Bulgaria</option>
+            <option value="Burkina Faso" {% if data is defined and data.nacionalidad == 'Burkina Faso' %}selected{% endif %}>Burkina Faso</option>
+            <option value="Burundi" {% if data is defined and data.nacionalidad == 'Burundi' %}selected{% endif %}>Burundi</option>
+            <option value="Bután" {% if data is defined and data.nacionalidad == 'Bután' %}selected{% endif %}>Bután</option>
+            <option value="Cabo Verde" {% if data is defined and data.nacionalidad == 'Cabo Verde' %}selected{% endif %}>Cabo Verde</option>
+            <option value="Camboya" {% if data is defined and data.nacionalidad == 'Camboya' %}selected{% endif %}>Camboya</option>
+            <option value="Camerún" {% if data is defined and data.nacionalidad == 'Camerún' %}selected{% endif %}>Camerún</option>
+            <option value="Canadá" {% if data is defined and data.nacionalidad == 'Canadá' %}selected{% endif %}>Canadá</option>
+            <option value="Catar" {% if data is defined and data.nacionalidad == 'Catar' %}selected{% endif %}>Catar</option>
+            <option value="Chad" {% if data is defined and data.nacionalidad == 'Chad' %}selected{% endif %}>Chad</option>
+            <option value="Chile" {% if data is defined and data.nacionalidad == 'Chile' %}selected{% endif %}>Chile</option>
+            <option value="China" {% if data is defined and data.nacionalidad == 'China' %}selected{% endif %}>China</option>
+            <option value="Chipre" {% if data is defined and data.nacionalidad == 'Chipre' %}selected{% endif %}>Chipre</option>
+            <option value="Ciudad del Vaticano" {% if data is defined and data.nacionalidad == 'Ciudad del Vaticano' %}selected{% endif %}>Ciudad del Vaticano</option>
+            <option value="Colombia" {% if data is defined and data.nacionalidad == 'Colombia' %}selected{% endif %}>Colombia</option>
+            <option value="Comoras" {% if data is defined and data.nacionalidad == 'Comoras' %}selected{% endif %}>Comoras</option>
+            <option value="Corea del Norte" {% if data is defined and data.nacionalidad == 'Corea del Norte' %}selected{% endif %}>Corea del Norte</option>
+            <option value="Corea del Sur" {% if data is defined and data.nacionalidad == 'Corea del Sur' %}selected{% endif %}>Corea del Sur</option>
+            <option value="Costa de Marfil" {% if data is defined and data.nacionalidad == 'Costa de Marfil' %}selected{% endif %}>Costa de Marfil</option>
+            <option value="Costa Rica" {% if data is defined and data.nacionalidad == 'Costa Rica' %}selected{% endif %}>Costa Rica</option>
+            <option value="Croacia" {% if data is defined and data.nacionalidad == 'Croacia' %}selected{% endif %}>Croacia</option>
+            <option value="Cuba" {% if data is defined and data.nacionalidad == 'Cuba' %}selected{% endif %}>Cuba</option>
+            <option value="Dinamarca" {% if data is defined and data.nacionalidad == 'Dinamarca' %}selected{% endif %}>Dinamarca</option>
+            <option value="Dominica" {% if data is defined and data.nacionalidad == 'Dominica' %}selected{% endif %}>Dominica</option>
+            <option value="Ecuador" {% if data is defined and data.nacionalidad == 'Ecuador' %}selected{% endif %}>Ecuador</option>
+            <option value="Egipto" {% if data is defined and data.nacionalidad == 'Egipto' %}selected{% endif %}>Egipto</option>
+            <option value="El Salvador" {% if data is defined and data.nacionalidad == 'El Salvador' %}selected{% endif %}>El Salvador</option>
+            <option value="Emiratos Árabes Unidos" {% if data is defined and data.nacionalidad == 'Emiratos Árabes Unidos' %}selected{% endif %}>Emiratos Árabes Unidos</option>
+            <option value="Eritrea" {% if data is defined and data.nacionalidad == 'Eritrea' %}selected{% endif %}>Eritrea</option>
+            <option value="Eslovaquia" {% if data is defined and data.nacionalidad == 'Eslovaquia' %}selected{% endif %}>Eslovaquia</option>
+            <option value="Eslovenia" {% if data is defined and data.nacionalidad == 'Eslovenia' %}selected{% endif %}>Eslovenia</option>
+            <option value="España" {% if data is defined and data.nacionalidad == 'España' %}selected{% endif %}>España</option>
+            <option value="Estados Unidos" {% if data is defined and data.nacionalidad == 'Estados Unidos' %}selected{% endif %}>Estados Unidos</option>
+            <option value="Estonia" {% if data is defined and data.nacionalidad == 'Estonia' %}selected{% endif %}>Estonia</option>
+            <option value="Etiopía" {% if data is defined and data.nacionalidad == 'Etiopía' %}selected{% endif %}>Etiopía</option>
+            <option value="Filipinas" {% if data is defined and data.nacionalidad == 'Filipinas' %}selected{% endif %}>Filipinas</option>
+            <option value="Finlandia" {% if data is defined and data.nacionalidad == 'Finlandia' %}selected{% endif %}>Finlandia</option>
+            <option value="Fiyi" {% if data is defined and data.nacionalidad == 'Fiyi' %}selected{% endif %}>Fiyi</option>
+            <option value="Francia" {% if data is defined and data.nacionalidad == 'Francia' %}selected{% endif %}>Francia</option>
+            <option value="Gabón" {% if data is defined and data.nacionalidad == 'Gabón' %}selected{% endif %}>Gabón</option>
+            <option value="Gambia" {% if data is defined and data.nacionalidad == 'Gambia' %}selected{% endif %}>Gambia</option>
+            <option value="Georgia" {% if data is defined and data.nacionalidad == 'Georgia' %}selected{% endif %}>Georgia</option>
+            <option value="Ghana" {% if data is defined and data.nacionalidad == 'Ghana' %}selected{% endif %}>Ghana</option>
+            <option value="Granada" {% if data is defined and data.nacionalidad == 'Granada' %}selected{% endif %}>Granada</option>
+            <option value="Grecia" {% if data is defined and data.nacionalidad == 'Grecia' %}selected{% endif %}>Grecia</option>
+            <option value="Guatemala" {% if data is defined and data.nacionalidad == 'Guatemala' %}selected{% endif %}>Guatemala</option>
+            <option value="Guyana" {% if data is defined and data.nacionalidad == 'Guyana' %}selected{% endif %}>Guyana</option>
+            <option value="Guinea" {% if data is defined and data.nacionalidad == 'Guinea' %}selected{% endif %}>Guinea</option>
+            <option value="Guinea ecuatorial" {% if data is defined and data.nacionalidad == 'Guinea ecuatorial' %}selected{% endif %}>Guinea ecuatorial</option>
+            <option value="Guinea-Bisáu" {% if data is defined and data.nacionalidad == 'Guinea-Bisáu' %}selected{% endif %}>Guinea-Bisáu</option>
+            <option value="Haití" {% if data is defined and data.nacionalidad == 'Haití' %}selected{% endif %}>Haití</option>
+            <option value="Honduras" {% if data is defined and data.nacionalidad == 'Honduras' %}selected{% endif %}>Honduras</option>
+            <option value="Hungría" {% if data is defined and data.nacionalidad == 'Hungría' %}selected{% endif %}>Hungría</option>
+            <option value="India" {% if data is defined and data.nacionalidad == 'India' %}selected{% endif %}>India</option>
+            <option value="Indonesia" {% if data is defined and data.nacionalidad == 'Indonesia' %}selected{% endif %}>Indonesia</option>
+            <option value="Irak" {% if data is defined and data.nacionalidad == 'Irak' %}selected{% endif %}>Irak</option>
+            <option value="Irán" {% if data is defined and data.nacionalidad == 'Irán' %}selected{% endif %}>Irán</option>
+            <option value="Irlanda" {% if data is defined and data.nacionalidad == 'Irlanda' %}selected{% endif %}>Irlanda</option>
+            <option value="Islandia" {% if data is defined and data.nacionalidad == 'Islandia' %}selected{% endif %}>Islandia</option>
+            <option value="Islas Marshall" {% if data is defined and data.nacionalidad == 'Islas Marshall' %}selected{% endif %}>Islas Marshall</option>
+            <option value="Islas Salomón" {% if data is defined and data.nacionalidad == 'Islas Salomón' %}selected{% endif %}>Islas Salomón</option>
+            <option value="Israel" {% if data is defined and data.nacionalidad == 'Israel' %}selected{% endif %}>Israel</option>
+            <option value="Italia" {% if data is defined and data.nacionalidad == 'Italia' %}selected{% endif %}>Italia</option>
+            <option value="Jamaica" {% if data is defined and data.nacionalidad == 'Jamaica' %}selected{% endif %}>Jamaica</option>
+            <option value="Japón" {% if data is defined and data.nacionalidad == 'Japón' %}selected{% endif %}>Japón</option>
+            <option value="Jordania" {% if data is defined and data.nacionalidad == 'Jordania' %}selected{% endif %}>Jordania</option>
+            <option value="Kazajistán" {% if data is defined and data.nacionalidad == 'Kazajistán' %}selected{% endif %}>Kazajistán</option>
+            <option value="Kenia" {% if data is defined and data.nacionalidad == 'Kenia' %}selected{% endif %}>Kenia</option>
+            <option value="Kirguistán" {% if data is defined and data.nacionalidad == 'Kirguistán' %}selected{% endif %}>Kirguistán</option>
+            <option value="Kiribati" {% if data is defined and data.nacionalidad == 'Kiribati' %}selected{% endif %}>Kiribati</option>
+            <option value="Kuwait" {% if data is defined and data.nacionalidad == 'Kuwait' %}selected{% endif %}>Kuwait</option>
+            <option value="Laos" {% if data is defined and data.nacionalidad == 'Laos' %}selected{% endif %}>Laos</option>
+            <option value="Lesoto" {% if data is defined and data.nacionalidad == 'Lesoto' %}selected{% endif %}>Lesoto</option>
+            <option value="Letonia" {% if data is defined and data.nacionalidad == 'Letonia' %}selected{% endif %}>Letonia</option>
+            <option value="Líbano" {% if data is defined and data.nacionalidad == 'Líbano' %}selected{% endif %}>Líbano</option>
+            <option value="Liberia" {% if data is defined and data.nacionalidad == 'Liberia' %}selected{% endif %}>Liberia</option>
+            <option value="Libia" {% if data is defined and data.nacionalidad == 'Libia' %}selected{% endif %}>Libia</option>
+            <option value="Liechtenstein" {% if data is defined and data.nacionalidad == 'Liechtenstein' %}selected{% endif %}>Liechtenstein</option>
+            <option value="Lituania" {% if data is defined and data.nacionalidad == 'Lituania' %}selected{% endif %}>Lituania</option>
+            <option value="Luxemburgo" {% if data is defined and data.nacionalidad == 'Luxemburgo' %}selected{% endif %}>Luxemburgo</option>
+            <option value="Macedonia del Norte" {% if data is defined and data.nacionalidad == 'Macedonia del Norte' %}selected{% endif %}>Macedonia del Norte</option>
+            <option value="Madagascar" {% if data is defined and data.nacionalidad == 'Madagascar' %}selected{% endif %}>Madagascar</option>
+            <option value="Malasia" {% if data is defined and data.nacionalidad == 'Malasia' %}selected{% endif %}>Malasia</option>
+            <option value="Malaui" {% if data is defined and data.nacionalidad == 'Malaui' %}selected{% endif %}>Malaui</option>
+            <option value="Maldivas" {% if data is defined and data.nacionalidad == 'Maldivas' %}selected{% endif %}>Maldivas</option>
+            <option value="Malí" {% if data is defined and data.nacionalidad == 'Malí' %}selected{% endif %}>Malí</option>
+            <option value="Malta" {% if data is defined and data.nacionalidad == 'Malta' %}selected{% endif %}>Malta</option>
+            <option value="Marruecos" {% if data is defined and data.nacionalidad == 'Marruecos' %}selected{% endif %}>Marruecos</option>
+            <option value="Mauricio" {% if data is defined and data.nacionalidad == 'Mauricio' %}selected{% endif %}>Mauricio</option>
+            <option value="Mauritania" {% if data is defined and data.nacionalidad == 'Mauritania' %}selected{% endif %}>Mauritania</option>
+            <option value="México" {% if data is defined and data.nacionalidad == 'México' %}selected{% endif %}>México</option>
+            <option value="Micronesia" {% if data is defined and data.nacionalidad == 'Micronesia' %}selected{% endif %}>Micronesia</option>
+            <option value="Moldavia" {% if data is defined and data.nacionalidad == 'Moldavia' %}selected{% endif %}>Moldavia</option>
+            <option value="Mónaco" {% if data is defined and data.nacionalidad == 'Mónaco' %}selected{% endif %}>Mónaco</option>
+            <option value="Mongolia" {% if data is defined and data.nacionalidad == 'Mongolia' %}selected{% endif %}>Mongolia</option>
+            <option value="Montenegro" {% if data is defined and data.nacionalidad == 'Montenegro' %}selected{% endif %}>Montenegro</option>
+            <option value="Mozambique" {% if data is defined and data.nacionalidad == 'Mozambique' %}selected{% endif %}>Mozambique</option>
+            <option value="Namibia" {% if data is defined and data.nacionalidad == 'Namibia' %}selected{% endif %}>Namibia</option>
+            <option value="Nauru" {% if data is defined and data.nacionalidad == 'Nauru' %}selected{% endif %}>Nauru</option>
+            <option value="Nepal" {% if data is defined and data.nacionalidad == 'Nepal' %}selected{% endif %}>Nepal</option>
+            <option value="Nicaragua" {% if data is defined and data.nacionalidad == 'Nicaragua' %}selected{% endif %}>Nicaragua</option>
+            <option value="Níger" {% if data is defined and data.nacionalidad == 'Níger' %}selected{% endif %}>Níger</option>
+            <option value="Nigeria" {% if data is defined and data.nacionalidad == 'Nigeria' %}selected{% endif %}>Nigeria</option>
+            <option value="Noruega" {% if data is defined and data.nacionalidad == 'Noruega' %}selected{% endif %}>Noruega</option>
+            <option value="Nueva Zelanda" {% if data is defined and data.nacionalidad == 'Nueva Zelanda' %}selected{% endif %}>Nueva Zelanda</option>
+            <option value="Omán" {% if data is defined and data.nacionalidad == 'Omán' %}selected{% endif %}>Omán</option>
+            <option value="Países Bajos" {% if data is defined and data.nacionalidad == 'Países Bajos' %}selected{% endif %}>Países Bajos</option>
+            <option value="Pakistán" {% if data is defined and data.nacionalidad == 'Pakistán' %}selected{% endif %}>Pakistán</option>
+            <option value="Palaos" {% if data is defined and data.nacionalidad == 'Palaos' %}selected{% endif %}>Palaos</option>
+            <option value="Panamá" {% if data is defined and data.nacionalidad == 'Panamá' %}selected{% endif %}>Panamá</option>
+            <option value="Papúa Nueva Guinea" {% if data is defined and data.nacionalidad == 'Papúa Nueva Guinea' %}selected{% endif %}>Papúa Nueva Guinea</option>
+            <option value="Paraguay" {% if data is defined and data.nacionalidad == 'Paraguay' %}selected{% endif %}>Paraguay</option>
+            <option value="Perú" {% if data is defined and data.nacionalidad == 'Perú' %}selected{% endif %}>Perú</option>
+            <option value="Polonia" {% if data is defined and data.nacionalidad == 'Polonia' %}selected{% endif %}>Polonia</option>
+            <option value="Portugal" {% if data is defined and data.nacionalidad == 'Portugal' %}selected{% endif %}>Portugal</option>
+            <option value="Reino Unido" {% if data is defined and data.nacionalidad == 'Reino Unido' %}selected{% endif %}>Reino Unido</option>
+            <option value="República Centroafricana" {% if data is defined and data.nacionalidad == 'República Centroafricana' %}selected{% endif %}>República Centroafricana</option>
+            <option value="República Checa" {% if data is defined and data.nacionalidad == 'República Checa' %}selected{% endif %}>República Checa</option>
+            <option value="República del Congo" {% if data is defined and data.nacionalidad == 'República del Congo' %}selected{% endif %}>República del Congo</option>
+            <option value="República Democrática del Congo" {% if data is defined and data.nacionalidad == 'República Democrática del Congo' %}selected{% endif %}>República Democrática del Congo</option>
+            <option value="República Dominicana" {% if data is defined and data.nacionalidad == 'República Dominicana' %}selected{% endif %}>República Dominicana</option>
+            <option value="Ruanda" {% if data is defined and data.nacionalidad == 'Ruanda' %}selected{% endif %}>Ruanda</option>
+            <option value="Rumanía" {% if data is defined and data.nacionalidad == 'Rumanía' %}selected{% endif %}>Rumanía</option>
+            <option value="Rusia" {% if data is defined and data.nacionalidad == 'Rusia' %}selected{% endif %}>Rusia</option>
+            <option value="Samoa" {% if data is defined and data.nacionalidad == 'Samoa' %}selected{% endif %}>Samoa</option>
+            <option value="San Cristóbal y Nieves" {% if data is defined and data.nacionalidad == 'San Cristóbal y Nieves' %}selected{% endif %}>San Cristóbal y Nieves</option>
+            <option value="San Marino" {% if data is defined and data.nacionalidad == 'San Marino' %}selected{% endif %}>San Marino</option>
+            <option value="San Vicente y las Granadinas" {% if data is defined and data.nacionalidad == 'San Vicente y las Granadinas' %}selected{% endif %}>San Vicente y las Granadinas</option>
+            <option value="Santa Lucía" {% if data is defined and data.nacionalidad == 'Santa Lucía' %}selected{% endif %}>Santa Lucía</option>
+            <option value="Santo Tomé y Príncipe" {% if data is defined and data.nacionalidad == 'Santo Tomé y Príncipe' %}selected{% endif %}>Santo Tomé y Príncipe</option>
+            <option value="Senegal" {% if data is defined and data.nacionalidad == 'Senegal' %}selected{% endif %}>Senegal</option>
+            <option value="Serbia" {% if data is defined and data.nacionalidad == 'Serbia' %}selected{% endif %}>Serbia</option>
+            <option value="Seychelles" {% if data is defined and data.nacionalidad == 'Seychelles' %}selected{% endif %}>Seychelles</option>
+            <option value="Sierra Leona" {% if data is defined and data.nacionalidad == 'Sierra Leona' %}selected{% endif %}>Sierra Leona</option>
+            <option value="Singapur" {% if data is defined and data.nacionalidad == 'Singapur' %}selected{% endif %}>Singapur</option>
+            <option value="Siria" {% if data is defined and data.nacionalidad == 'Siria' %}selected{% endif %}>Siria</option>
+            <option value="Somalia" {% if data is defined and data.nacionalidad == 'Somalia' %}selected{% endif %}>Somalia</option>
+            <option value="Sri Lanka" {% if data is defined and data.nacionalidad == 'Sri Lanka' %}selected{% endif %}>Sri Lanka</option>
+            <option value="Suazilandia" {% if data is defined and data.nacionalidad == 'Suazilandia' %}selected{% endif %}>Suazilandia</option>
+            <option value="Sudáfrica" {% if data is defined and data.nacionalidad == 'Sudáfrica' %}selected{% endif %}>Sudáfrica</option>
+            <option value="Sudán" {% if data is defined and data.nacionalidad == 'Sudán' %}selected{% endif %}>Sudán</option>
+            <option value="Sudán del Sur" {% if data is defined and data.nacionalidad == 'Sudán del Sur' %}selected{% endif %}>Sudán del Sur</option>
+            <option value="Suecia" {% if data is defined and data.nacionalidad == 'Suecia' %}selected{% endif %}>Suecia</option>
+            <option value="Suiza" {% if data is defined and data.nacionalidad == 'Suiza' %}selected{% endif %}>Suiza</option>
+            <option value="Surinam" {% if data is defined and data.nacionalidad == 'Surinam' %}selected{% endif %}>Surinam</option>
+            <option value="Tailandia" {% if data is defined and data.nacionalidad == 'Tailandia' %}selected{% endif %}>Tailandia</option>
+            <option value="Tanzania" {% if data is defined and data.nacionalidad == 'Tanzania' %}selected{% endif %}>Tanzania</option>
+            <option value="Tayikistán" {% if data is defined and data.nacionalidad == 'Tayikistán' %}selected{% endif %}>Tayikistán</option>
+            <option value="Timor Oriental" {% if data is defined and data.nacionalidad == 'Timor Oriental' %}selected{% endif %}>Timor Oriental</option>
+            <option value="Togo" {% if data is defined and data.nacionalidad == 'Togo' %}selected{% endif %}>Togo</option>
+            <option value="Tonga" {% if data is defined and data.nacionalidad == 'Tonga' %}selected{% endif %}>Tonga</option>
+            <option value="Trinidad y Tobago" {% if data is defined and data.nacionalidad == 'Trinidad y Tobago' %}selected{% endif %}>Trinidad y Tobago</option>
+            <option value="Túnez" {% if data is defined and data.nacionalidad == 'Túnez' %}selected{% endif %}>Túnez</option>
+            <option value="Turkmenistán" {% if data is defined and data.nacionalidad == 'Turkmenistán' %}selected{% endif %}>Turkmenistán</option>
+            <option value="Turquía" {% if data is defined and data.nacionalidad == 'Turquía' %}selected{% endif %}>Turquía</option>
+            <option value="Tuvalu" {% if data is defined and data.nacionalidad == 'Tuvalu' %}selected{% endif %}>Tuvalu</option>
+            <option value="Ucrania" {% if data is defined and data.nacionalidad == 'Ucrania' %}selected{% endif %}>Ucrania</option>
+            <option value="Uganda" {% if data is defined and data.nacionalidad == 'Uganda' %}selected{% endif %}>Uganda</option>
+            <option value="Uruguay" {% if data is defined and data.nacionalidad == 'Uruguay' %}selected{% endif %}>Uruguay</option>
+            <option value="Uzbekistán" {% if data is defined and data.nacionalidad == 'Uzbekistán' %}selected{% endif %}>Uzbekistán</option>
+            <option value="Vanuatu" {% if data is defined and data.nacionalidad == 'Vanuatu' %}selected{% endif %}>Vanuatu</option>
+            <option value="Venezuela" {% if data is defined and data.nacionalidad == 'Venezuela' %}selected{% endif %}>Venezuela</option>
+            <option value="Vietnam" {% if data is defined and data.nacionalidad == 'Vietnam' %}selected{% endif %}>Vietnam</option>
+            <option value="Yemen" {% if data is defined and data.nacionalidad == 'Yemen' %}selected{% endif %}>Yemen</option>
+            <option value="Yibuti" {% if data is defined and data.nacionalidad == 'Yibuti' %}selected{% endif %}>Yibuti</option>
+            <option value="Zambia" {% if data is defined and data.nacionalidad == 'Zambia' %}selected{% endif %}>Zambia</option>
+            <option value="Zimbabue" {% if data is defined and data.nacionalidad == 'Zimbabue' %}selected{% endif %}>Zimbabue</option>
           </select>
         </div>
         <div class="col-md-6 mb-3">
@@ -98,13 +246,19 @@
           <input type="password" class="form-control" id="contrasena" name="contrasena" required value="{{ data.contrasena if data is defined else '' }}">
         </div>
         <div class="col-md-6 mb-3">
-          <label for="rol" class="form-label">Rol</label>
-          <select class="form-select" id="rol" name="rol" required>
-            <option value="" disabled {% if data is not defined or not data.rol %}selected{% endif %}>Selecciona un rol</option>
-            {% for rol in roles %}
-              <option value="{{ rol }}" {% if data is defined and data.rol == rol %}selected{% endif %}>{{ rol }}</option>
-            {% endfor %}
-          </select>
+          {% if user_rol == 'superusuario' %}
+            <label for="rol" class="form-label">Rol</label>
+            <select class="form-select" id="rol" name="rol" required>
+              <option value="" disabled {% if data is not defined or not data.rol %}selected{% endif %}>Selecciona un rol</option>
+              {% for rol in roles %}
+                <option value="{{ rol }}" {% if data is defined and data.rol == rol %}selected{% endif %}>{{ rol }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="hidden" name="rol" value="Encargado">
+            <label class="form-label">Rol</label>
+            <input type="text" class="form-control" value="Encargado" disabled>
+          {% endif %}
         </div>
       </div>
       <div class="row">

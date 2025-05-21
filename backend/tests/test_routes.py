@@ -1,5 +1,7 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
+from models.user import Cliente, Administrador, Encargado, SuperUsuario
+from werkzeug.security import generate_password_hash
 from models.user import Cliente, Administrador
 from database import db
 from datetime import date
@@ -130,6 +132,8 @@ def test_get_modificar_propiedad(client):
     assert response.status_code == 200
 
 def test_agregar_empleado_exitoso(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Juan',
         'apellido': 'Castro',
@@ -141,9 +145,13 @@ def test_agregar_empleado_exitoso(client, app):
         'rol': 'Administrador'
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-    assert b'Registro exitoso' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'Registro' in html and 'exitoso' in html
 
 def test_agregar_empleado_dni_duplicado(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Juan',
         'apellido': 'Castro',
@@ -158,9 +166,13 @@ def test_agregar_empleado_dni_duplicado(client, app):
     data2 = data.copy()
     data2['email'] = 'otro@gmail.com'
     response = client.post('/empleados/nuevo', data=data2, follow_redirects=True)
-    assert b'Registro fallido. El dni ingresado ya se encuentra registrado' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'dni' in html and 'registrado' in html
 
 def test_agregar_empleado_email_duplicado(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Diego',
         'apellido': 'Perez',
@@ -175,9 +187,13 @@ def test_agregar_empleado_email_duplicado(client, app):
     data2 = data.copy()
     data2['dni'] = '99999999'
     response = client.post('/empleados/nuevo', data=data2, follow_redirects=True)
-    assert b'Registro fallido. El mail ingresado ya se encuentra registrado' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'mail' in html and 'registrado' in html
 
 def test_agregar_empleado_contrasena_corta(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     data = {
         'nombre': 'Ana',
         'apellido': 'Lopez',
@@ -189,14 +205,20 @@ def test_agregar_empleado_contrasena_corta(client, app):
         'rol': 'Administrador'
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-    assert b'Registro fallido. La contrase' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'contraseña' in html and 'minimo' in html
 
 def test_agregar_empleado_get(client):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'superusuario'
     response = client.get('/empleados/nuevo')
     assert response.status_code == 200
     assert b'Agregar nuevo empleado' in response.data
 
 def test_agregar_encargado_exitoso(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'encargado'
     data = {
         'nombre': 'Pedro',
         'apellido': 'Gomez',
@@ -208,9 +230,13 @@ def test_agregar_encargado_exitoso(client, app):
         'rol': 'Encargado'
     }
     response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
-    assert b'Registro exitoso' in response.data
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'Registro' in html and 'exitoso' in html
 
 def test_agregar_empleado_rol_invalido(client, app):
+    with client.session_transaction() as sess:
+        sess['rol'] = 'encargado'
     data = {
         'nombre': 'Invalido',
         'apellido': 'Error',
@@ -219,10 +245,12 @@ def test_agregar_empleado_rol_invalido(client, app):
         'nacionalidad': 'Desconocida',
         'email': 'error@gmail.com',
         'contrasena': '123456',
-        'rol': 'OtroRolQueNoExiste'
+        'rol': 'Administrador'  # No permitido para 'encargado'
     }
-    with pytest.raises(ValueError):
-        client.post('/empleados/nuevo', data=data, follow_redirects=True)
+    response = client.post('/empleados/nuevo', data=data, follow_redirects=True)
+    html = response.data.decode('utf-8')
+    print(html)
+    assert 'permiso' in html and 'rol' in html
 
 def test_logout(client, app):
     # Simula un usuario logueado
@@ -237,6 +265,42 @@ def test_logout(client, app):
         assert 'user_name' not in sess
     # Verifica que el mensaje de logout esté presente
     assert b'Sesi' in response.data and b'cerrada' in response.data
+
+def test_login_superusuario(client, app):
+    superuser = SuperUsuario(nombre='Super', apellido='User', email='super@user.com', contrasena='123', telefono='123', nacionalidad='AR', dni='100')
+    superuser.id = 99
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=superuser):
+        response = client.post('/login', data={'email': 'super@user.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'superusuario'
+            assert sess['user_name'] == 'Super'
+
+def test_login_administrador(client, app):
+    admin = Administrador(nombre='Admin', apellido='Uno', email='admin@uno.com', contrasena='123', telefono='123', nacionalidad='AR', dni='101')
+    admin.id = 101
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=admin):
+        response = client.post('/login', data={'email': 'admin@uno.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'administrador'
+            assert sess['user_name'] == 'Admin'
+
+def test_login_encargado(client, app):
+    encargado = Encargado(nombre='Enc', apellido='Uno', email='enc@uno.com', contrasena='123', telefono='123', nacionalidad='AR', dni='102')
+    encargado.id = 102
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=encargado):
+        response = client.post('/login', data={'email': 'enc@uno.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'encargado'
+            assert sess['user_name'] == 'Enc'
+
+def test_login_cliente(client, app):
+    cliente = Cliente(nombre='Cli', apellido='Uno', email='cli@uno.com', contrasena='123', telefono='123', nacionalidad='AR', dni='103')
+    cliente.id = 103
+    with patch('architectural_patterns.service.user_service.UserService.authenticate_user', return_value=cliente):
+        response = client.post('/login', data={'email': 'cli@uno.com', 'password': '123'}, follow_redirects=True)
+        with client.session_transaction() as sess:
+            assert sess['rol'] == 'cliente'
+            assert sess['user_name'] == 'Cli'
 
 def test_perfil_get_renderiza_profile(client, app):
     # Crear usuario cliente

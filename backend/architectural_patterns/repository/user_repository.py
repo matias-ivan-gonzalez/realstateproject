@@ -19,10 +19,8 @@ class UserRepository:
             nuevo_usuario = Administrador(**user_dict)
         elif tipo == 'encargado':
             nuevo_usuario = Encargado(**user_dict)
-        elif tipo == 'superusuario':
+        else:  # superusuario
             nuevo_usuario = SuperUsuario(**user_dict)
-        else:
-            nuevo_usuario = Usuario(**user_dict)
         db.session.add(nuevo_usuario)
         db.session.commit()
         return nuevo_usuario

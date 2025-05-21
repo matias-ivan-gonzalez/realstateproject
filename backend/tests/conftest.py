@@ -7,6 +7,7 @@ def app():
     app = create_app()
     app.config["TESTING"] = True
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"  # Base de datos en memoria para pruebas
+    app.config["SECRET_KEY"] = "test_secret"
 
     with app.app_context():
         # IMPORTA TODOS LOS MODELOS antes de crear las tablas
