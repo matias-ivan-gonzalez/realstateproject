@@ -445,3 +445,384 @@ def test_update_user_dni_duplicado_coverage(user_service):
 def test_authenticate_user_no_existe_coverage(user_service):
     user = user_service.authenticate_user('noexiste@mail.com', 'password')
     assert user is None
+
+# Test para parse_fecha_nacimiento con string vacío
+def test_parse_fecha_nacimiento_empty_coverage(user_service):
+    fecha = user_service.parse_fecha_nacimiento('')
+    assert fecha is None
+
+# Test para update_user con error en el repositorio
+def test_update_user_repository_error_coverage(user_service):
+    # Crear usuario inicial
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': '2000-01-01',
+        'direccion': 'Calle',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'cliente'
+    })
+
+    # Modificar el mock para que lance una excepción
+    def mock_update_error(user_id, user_dict):
+        raise Exception("Error simulado en el repositorio")
+    
+    user_service.user_repository.update_user = mock_update_error
+
+    # Intentar actualizar
+    data = {
+        'nombre': 'Juan Modificado',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'error' in msg.lower()
+
+# Test para update_user con contraseña
+def test_update_user_with_password_coverage(user_service):
+    # Crear usuario inicial
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': '2000-01-01',
+        'direccion': 'Calle',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'cliente'
+    })
+
+    # Intentar actualizar con nueva contraseña
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle',
+        'password': 'nuevapass123',
+        'password_confirm': 'nuevapass123'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert success
+    assert 'exitosamente' in msg.lower()
+
+# Test para update_user con contraseña corta
+def test_update_user_short_password_coverage(user_service):
+    # Crear usuario inicial
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': '2000-01-01',
+        'direccion': 'Calle',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'cliente'
+    })
+
+    # Intentar actualizar con contraseña corta
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle',
+        'password': '123',
+        'password_confirm': '123'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'contraseña' in msg.lower()
+
+# Test para update_user con contraseñas que no coinciden
+def test_update_user_password_mismatch_coverage(user_service):
+    # Crear usuario inicial
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': '2000-01-01',
+        'direccion': 'Calle',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'cliente'
+    })
+
+    # Intentar actualizar con contraseñas diferentes
+    data = {
+        'nombre': 'Juan',
+        'apellido': 'Perez',
+        'email': 'jp@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle',
+        'password': 'nuevapass123',
+        'password_confirm': 'otrapass123'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'coinciden' in msg.lower()
+
+# Test para update_user con administrador
+def test_update_user_administrador_coverage(user_service):
+    # Crear usuario administrador
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Admin',
+        'apellido': 'Sistema',
+        'email': 'admin@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': None,
+        'direccion': 'Oficina',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'administrador'
+    })
+
+    # Intentar actualizar
+    data = {
+        'nombre': 'Admin',
+        'apellido': 'Sistema',
+        'email': 'admin@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'cambio' in msg.lower()
+
+# Test para update_user con encargado
+def test_update_user_encargado_coverage(user_service):
+    # Crear usuario encargado
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Encargado',
+        'apellido': 'Sistema',
+        'email': 'encargado@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': None,
+        'direccion': 'Oficina',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'encargado'
+    })
+
+    # Intentar actualizar
+    data = {
+        'nombre': 'Encargado',
+        'apellido': 'Sistema',
+        'email': 'encargado@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'cambio' in msg.lower()
+
+# Test para update_user con superusuario
+def test_update_user_superusuario_coverage(user_service):
+    # Crear usuario superusuario
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Super',
+        'apellido': 'Admin',
+        'email': 'super@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': None,
+        'direccion': 'Oficina',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'superusuario'
+    })
+
+    # Intentar actualizar
+    data = {
+        'nombre': 'Super',
+        'apellido': 'Admin',
+        'email': 'super@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'cambio' in msg.lower()
+
+# Test para update_user con tipo inválido
+def test_update_user_tipo_invalido_coverage(user_service):
+    # Crear usuario con tipo inválido
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Usuario',
+        'apellido': 'Invalido',
+        'email': 'invalido@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': None,
+        'direccion': 'Calle',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'tipo_invalido'
+    })
+
+    # Intentar actualizar
+    data = {
+        'nombre': 'Usuario',
+        'apellido': 'Invalido',
+        'email': 'invalido@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert not success
+    assert 'cambio' in msg.lower()
+
+# Test para update_user con cliente y datos diferentes
+def test_update_user_cliente_con_cambios_coverage(user_service):
+    # Crear usuario cliente
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Cliente',
+        'apellido': 'Test',
+        'email': 'cliente@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': '2000-01-01',
+        'direccion': 'Calle Original',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '',
+        'tipo': 'cliente'
+    })
+
+    # Intentar actualizar con datos diferentes
+    data = {
+        'nombre': 'Cliente',
+        'apellido': 'Test',
+        'email': 'cliente@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-02',  # Cambiamos la fecha
+        'domicilio': 'Calle Nueva',  # Cambiamos la dirección
+        'tarjeta': '1234'  # Agregamos tarjeta
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert success
+    assert 'exitosamente' in msg.lower()
+
+    # Verificar que los cambios se aplicaron
+    updated_user = user_service.user_repository.get_by_id(user.id)
+    assert updated_user.fecha_nacimiento == user_service.parse_fecha_nacimiento('2000-01-02')
+    assert updated_user.direccion == 'Calle Nueva'
+    assert updated_user.tarjeta == '1234'
+
+def test_update_user_cliente_tarjeta_solo_coverage(user_service):
+    # Crear usuario cliente
+    fecha_nac = user_service.parse_fecha_nacimiento('2000-01-01')
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Cliente',
+        'apellido': 'Test',
+        'email': 'cliente@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': fecha_nac,
+        'direccion': 'Calle Original',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'tarjeta': '1111',
+        'tipo': 'cliente'
+    })
+
+    # Actualizar solo la tarjeta
+    data = {
+        'nombre': 'Cliente',
+        'apellido': 'Test',
+        'email': 'cliente@mail.com',
+        'telefono': '123',
+        'nacionalidad': 'Argentina',
+        'dni': '12345678',
+        'f_nac': '2000-01-01',
+        'domicilio': 'Calle Original',
+        'tarjeta': '2222'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert success
+    assert 'exitosamente' in msg.lower()
+    updated_user = user_service.user_repository.get_by_id(user.id)
+    assert updated_user.tarjeta == '2222'
+
+def test_update_user_no_cliente_coverage(user_service):
+    # Crear usuario administrador
+    user = user_service.user_repository.create_usuario({
+        'nombre': 'Admin',
+        'apellido': 'Test',
+        'email': 'admin@mail.com',
+        'contrasena': 'hash',
+        'telefono': '123',
+        'fecha_nacimiento': None,
+        'direccion': 'Oficina',
+        'nacionalidad': 'Argentina',
+        'dni': '99999999',
+        'tarjeta': '',
+        'tipo': 'administrador'
+    })
+
+    # Actualizar un campo común
+    data = {
+        'nombre': 'Admin',
+        'apellido': 'Test',
+        'email': 'admin@mail.com',
+        'telefono': '456',  # Cambiamos el teléfono
+        'nacionalidad': 'Argentina',
+        'dni': '99999999'
+    }
+
+    success, msg = user_service.update_user(user.id, data)
+    assert success
+    assert 'exitosamente' in msg.lower()
+    updated_user = user_service.user_repository.get_by_id(user.id)
+    assert updated_user.telefono == '456'
