@@ -22,29 +22,29 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="nombre" class="form-label">Nombre *</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ form_data.nombre }}" required>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ form_data.nombre or '' }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="apellido" class="form-label">Apellido *</label>
-                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ form_data.apellido }}" required>
+                                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ form_data.apellido or '' }}" required>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" required>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email or '' }}" readonly>
                             </div>
                             <div class="col-md-6">
                                 <label for="telefono" class="form-label">Teléfono *</label>
-                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ form_data.telefono }}" required>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ form_data.telefono or '' }}" required>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="dni" class="form-label">DNI *</label>
-                                <input type="text" class="form-control" id="dni" name="dni" value="{{ form_data.dni }}" required>
+                                <input type="text" class="form-control" id="dni" name="dni" value="{{ form_data.dni or '' }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="nacionalidad" class="form-label">Nacionalidad *</label>
@@ -61,18 +61,21 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="f_nac" class="form-label">Fecha de nacimiento *</label>
-                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ form_data.f_nac }}" required>
+                                <input type="date" class="form-control" id="f_nac" name="f_nac" value="{{ form_data.f_nac or '' }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="domicilio" class="form-label">Domicilio *</label>
-                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ form_data.domicilio }}" required>
+                                <input type="text" class="form-control" id="domicilio" name="domicilio" value="{{ form_data.domicilio or '' }}" required>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="tarjeta" class="form-label">Tarjeta (opcional)</label>
-                                <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ form_data.tarjeta }}">
+                                <input type="text" class="form-control" id="tarjeta" name="tarjeta"
+                                       value="{{ form_data.tarjeta or '' }}"
+                                       pattern="\d{13,19}" minlength="13" maxlength="19"
+                                       title="La tarjeta debe tener entre 13 y 19 dígitos numéricos">
                             </div>
                         </div>
                         {% else %}
@@ -190,6 +193,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Enviar el formulario
         this.submit();
     });
+
+    // Validación de mayoría de edad para fecha de nacimiento
+    var fNac = document.getElementById('f_nac');
+    if (fNac) {
+        var today = new Date();
+        var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        fNac.max = maxDate.toISOString().split('T')[0];
+    }
 });
 </script>
 {% endblock %} 

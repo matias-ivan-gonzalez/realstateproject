@@ -217,7 +217,6 @@ def perfil():
             'password': request.form.get('password'),
             'password_confirm': request.form.get('password_confirm')
         }
-        
         # Agregar campos específicos solo si el usuario es cliente
         if user.tipo == 'cliente':
             data.update({
@@ -225,14 +224,19 @@ def perfil():
                 'domicilio': request.form.get('domicilio'),
                 'tarjeta': request.form.get('tarjeta')
             })
-        
         success, message = user_service.update_user(session['user_id'], data)
         if success:
             flash(message, 'success')
             return redirect(url_for('main.perfil'))
         else:
             flash(message, 'danger')
-    
+            # Mantener los datos ingresados por el usuario en el formulario
+            form_data = data.copy()
+            if user.tipo == 'cliente':
+                form_data['f_nac'] = data.get('f_nac', '')
+                form_data['domicilio'] = data.get('domicilio', '')
+                form_data['tarjeta'] = data.get('tarjeta', '')
+            return render_template('profile.html', user=user, paises=user_service.get_paises(), form_data=form_data)
     # Preparar datos para el formulario
     form_data = {
         'nombre': user.nombre,
@@ -242,7 +246,6 @@ def perfil():
         'nacionalidad': user.nacionalidad,
         'dni': user.dni
     }
-    
     # Agregar campos específicos de cliente si el usuario es cliente
     if user.tipo == 'cliente':
         form_data.update({
@@ -250,6 +253,5 @@ def perfil():
             'domicilio': user.direccion,
             'tarjeta': user.tarjeta
         })
-    
     paises = user_service.get_paises()
     return render_template('profile.html', user=user, paises=paises, form_data=form_data)
