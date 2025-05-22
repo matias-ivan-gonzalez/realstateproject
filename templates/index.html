@@ -9,7 +9,7 @@
   <div class="row">
     {% for propiedad in propiedades_random %}
       <div class="col-md-4 mb-3">
-        <div class="card h-100">
+        <div class="card h-100 card-appear-3d" style="animation-delay: {{ loop.index0 * 0.12 }}s;">
           <div class="card-body">
             <h5 class="card-title">{{ propiedad.nombre }}</h5>
             <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
