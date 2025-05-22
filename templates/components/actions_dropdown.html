@@ -1,0 +1,13 @@
+{% from "components/admin_actions.html" import admin_actions %}
+{% from "components/encargado_actions.html" import encargado_actions %}
+{% from "components/cliente_actions.html" import cliente_actions %}
+
+{% macro actions_dropdown() %}
+{% if session.rol in ['superusuario', 'administrador'] %}
+  {{ admin_actions() }}
+{% elif session.rol == 'encargado' %}
+  {{ encargado_actions() }}
+{% elif session.rol == 'cliente' %}
+  {{ cliente_actions() }}
+{% endif %}
+{% endmacro %} 

@@ -158,3 +158,23 @@
     font-weight: 600;
     margin-right: 0.2rem;
 }
+
+@keyframes card-appear-3d {
+  0% {
+    opacity: 0;
+    transform: perspective(600px) rotateY(40deg) scale(0.8) translateY(40px);
+  }
+  80% {
+    opacity: 1;
+    transform: perspective(600px) rotateY(-5deg) scale(1.03) translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(600px) rotateY(0deg) scale(1) translateY(0);
+  }
+}
+
+.card-appear-3d {
+  animation: card-appear-3d 0.6s cubic-bezier(.23,1.01,.32,1) both;
+  will-change: transform, opacity;
+}
