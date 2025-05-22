@@ -1,0 +1,87 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Detalle de Propiedad - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ propiedad.nombre }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
+                            <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+                            <p><strong>Precio:</strong> ${{ propiedad.precio }}</p>
+                            <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
+                            <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
+                            <p><strong>Pet Friendly:</strong> {{ 'Sí' if propiedad.pet_friendly else 'No' }}</p>
+                            <p><strong>Cochera:</strong> {{ 'Sí' if propiedad.cochera else 'No' }}</p>
+                            <p><strong>WiFi:</strong> {{ 'Sí' if propiedad.wifi else 'No' }}</p>
+                            <p><strong>Piscina:</strong> {{ 'Sí' if propiedad.piscina else 'No' }}</p>
+                            <p><strong>Patio trasero:</strong> {{ 'Sí' if propiedad.patio_trasero else 'No' }}</p>
+                            <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
+                            <p><strong>Latitud:</strong> {{ propiedad.latitud }}</p>
+                            <p><strong>Longitud:</strong> {{ propiedad.longitud }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Descripción:</strong></p>
+                            <p>{{ propiedad.descripcion or 'Sin descripción.' }}</p>
+                            {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-inner">
+                                        {% for imagen in propiedad.imagenes %}
+                                            <div class="carousel-item {% if loop.first %}active{% endif %}" style="position:relative;">
+                                                <img src="{{ url_for('static', filename='img/propiedades/' ~ imagen.nombre_archivo) }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
+                                                {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                                                    <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="position:absolute; top:10px; right:10px; z-index:10;">
+                                                        <button type="submit" class="btn btn-danger btn-sm" style="background:rgba(255,0,0,0.8); border:none;" onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Anterior</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Siguiente</span>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded" alt="Sin imagen">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    {% if session.rol == 'cliente' %}
+                        <form method="POST" style="display:inline;">
+                            {% if propiedad in user_favoritos %}
+                                <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-warning">Quitar de favoritos</button>
+                            {% else %}
+                                <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-outline-primary">Agregar a favoritos</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                    {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                        <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" style="display:inline;">
+                            <input type="file" name="imagenes" accept="image/*" multiple required style="display:inline-block; max-width:200px;">
+                            <button type="submit" class="btn btn-success">Agregar imagen</button>
+                        </form>
+                        <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+                    {% endif %}
+                    {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+                        <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

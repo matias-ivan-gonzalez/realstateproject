@@ -1,0 +1,37 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Lista de Administradores - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Lista de Administradores</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>DNI</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for admin in administradores %}
+                <tr>
+                    <td>{{ admin.nombre }}</td>
+                    <td>{{ admin.apellido }}</td>
+                    <td>{{ admin.email }}</td>
+                    <td>{{ admin.telefono }}</td>
+                    <td>{{ admin.dni }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay administradores registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

@@ -1,6 +1,7 @@
 from flask import  render_template,  redirect, url_for, flash
 from architectural_patterns.service.user_service import UserService
 from flask_mail import Message
+from models.user import Administrador, Encargado
 
 class UserController:
 
@@ -158,3 +159,68 @@ class UserController:
             flash('Contraseña modificada', 'success')
             return redirect(url_for('main.login'))
         return render_template('cambiar_contraseña.html')
+
+    def ver_administradores(self, session):
+        user_rol = session.get('rol')
+        if user_rol not in ['superusuario', 'administrador']:
+            flash('No tienes permiso para ver los administradores.', 'danger')
+            return redirect(url_for('main.index'))
+        administradores = Administrador.query.all()
+        return render_template('ver_administradores.html', administradores=administradores)
+
+    def ver_encargados(self, session):
+        user_rol = session.get('rol')
+        if user_rol not in ['superusuario', 'administrador']:
+            flash('No tienes permiso para ver los encargados.', 'danger')
+            return redirect(url_for('main.index'))
+        encargados = Encargado.query.all()
+        return render_template('ver_encargados.html', encargados=encargados)
+
+    def agregar_favorito(self, session, propiedad_id):
+        from models.user import Cliente
+        from models.propiedad import Propiedad
+        from database import db
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo != 'cliente':
+            flash('Solo los clientes pueden agregar favoritos.', 'danger')
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        cliente = Cliente.query.get(user_id)
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        if propiedad not in cliente.favoritos:
+            cliente.favoritos.append(propiedad)
+            db.session.commit()
+            flash('Propiedad agregada a favoritos.', 'success')
+        else:
+            flash('La propiedad ya está en tus favoritos.', 'info')
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+
+    def quitar_favorito(self, session, propiedad_id):
+        from models.user import Cliente
+        from models.propiedad import Propiedad
+        from database import db
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo != 'cliente':
+            flash('Solo los clientes pueden quitar favoritos.', 'danger')
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        cliente = Cliente.query.get(user_id)
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        if propiedad in cliente.favoritos:
+            cliente.favoritos.remove(propiedad)
+            db.session.commit()
+            flash('Propiedad quitada de favoritos.', 'success')
+        else:
+            flash('La propiedad no estaba en tus favoritos.', 'info')
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+
+    def ver_favoritos(self, session):
+        from models.user import Cliente
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo != 'cliente':
+            flash('Solo los clientes pueden ver favoritos.', 'danger')
+            return redirect(url_for('main.index'))
+        cliente = Cliente.query.get(user_id)
+        favoritos = cliente.favoritos
+        return render_template('favoritos.html', favoritos=favoritos)

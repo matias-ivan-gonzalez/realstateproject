@@ -1,0 +1,37 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Lista de Encargados - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Lista de Encargados</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>DNI</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for encargado in encargados %}
+                <tr>
+                    <td>{{ encargado.nombre }}</td>
+                    <td>{{ encargado.apellido }}</td>
+                    <td>{{ encargado.email }}</td>
+                    <td>{{ encargado.telefono }}</td>
+                    <td>{{ encargado.dni }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay encargados registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

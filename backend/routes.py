@@ -109,3 +109,48 @@ def recuperar_contraseña():
 def cambiar_contraseña(token):
     user_controller = UserController()
     return user_controller.change_password(request,token)
+
+@main.route('/propiedad/eliminar/<int:id>', methods=['POST'])
+def eliminar_propiedad(id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.eliminar_propiedad(id)
+
+@main.route('/ver-administradores')
+def ver_administradores():
+    user_controller = UserController()
+    return user_controller.ver_administradores(session)
+
+@main.route('/ver-encargados')
+def ver_encargados():
+    user_controller = UserController()
+    return user_controller.ver_encargados(session)
+
+@main.route('/favoritos/agregar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def agregar_favorito(propiedad_id):
+    user_controller = UserController()
+    return user_controller.agregar_favorito(session, propiedad_id)
+
+@main.route('/favoritos/quitar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def quitar_favorito(propiedad_id):
+    user_controller = UserController()
+    return user_controller.quitar_favorito(session, propiedad_id)
+
+@main.route('/ver-favoritos')
+@login_required
+def ver_favoritos():
+    user_controller = UserController()
+    return user_controller.ver_favoritos(session)
+
+@main.route('/propiedad/<int:id>/agregar-imagen', methods=['POST'])
+@login_required
+def agregar_imagen(id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.agregar_imagen(request, id)
+
+@main.route('/imagen/eliminar/<int:imagen_id>', methods=['POST'])
+@login_required
+def eliminar_imagen(imagen_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.eliminar_imagen(imagen_id)

@@ -85,7 +85,11 @@
                 <div class="col-md-4 mb-3">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title">{{ propiedad.nombre }}</h5>
+                            <h5 class="card-title">
+                                <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="text-decoration-none text-primary">
+                                    {{ propiedad.nombre }}
+                                </a>
+                            </h5>
                             <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
                             {% if cantidad_noches %}
                                 <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
@@ -129,8 +133,9 @@
           </ul>
         </nav>
         <script>
-        window.addEventListener("load", function() {
-            var mapas = {{ mapas|tojson|safe }};
+        document.addEventListener("DOMContentLoaded", function() {
+            var mapas = JSON.parse('{{ mapas|tojson|safe }}');
+            if (!Array.isArray(mapas)) return;
             mapas.forEach(function(m) {
                 var map = L.map('mapa-' + m.id).setView([m.lat, m.lng], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

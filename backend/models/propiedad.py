@@ -19,8 +19,11 @@ class Propiedad(db.Model):
     descripcion = db.Column(db.String(500), nullable=True)
     latitud = db.Column(db.Float, nullable=True)
     longitud = db.Column(db.Float, nullable=True)
+    direccion = db.Column(db.String(255), nullable=True)
     superusuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     encargado_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    reembolsable = db.Column(db.Boolean, default=False, nullable=False)
+    eliminado = db.Column(db.Boolean, default=False, nullable=False)
     
     # Relación con las imágenes
     imagenes = db.relationship('Imagen', back_populates='propiedad', cascade='all, delete-orphan')
