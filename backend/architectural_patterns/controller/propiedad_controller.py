@@ -125,5 +125,20 @@ class PropiedadController:
             return redirect(url_for('main.detalle_propiedad', id=id))
         return redirect(url_for('main.detalle_propiedad', id=id))
     
+    def eliminar_imagen(self, imagen_id):
+        from models.imagen import Imagen
+        from database import db
+        imagen = Imagen.query.get_or_404(imagen_id)
+        propiedad_id = imagen.propiedad_id
+        # Eliminar archivo físico
+        if imagen.url:
+            ruta_archivo = os.path.join(os.getcwd(), imagen.url.lstrip('/').replace('/', os.sep))
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+        db.session.delete(imagen)
+        db.session.commit()
+        flash('Imagen eliminada correctamente.', 'success')
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+    
     
     

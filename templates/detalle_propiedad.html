@@ -33,8 +33,13 @@
                                 <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
                                     <div class="carousel-inner">
                                         {% for imagen in propiedad.imagenes %}
-                                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                            <div class="carousel-item {% if loop.first %}active{% endif %}" style="position:relative;">
                                                 <img src="{{ url_for('static', filename='img/propiedades/' ~ imagen.nombre_archivo) }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
+                                                {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                                                    <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="position:absolute; top:10px; right:10px; z-index:10;">
+                                                        <button type="submit" class="btn btn-danger btn-sm" style="background:rgba(255,0,0,0.8); border:none;" onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</button>
+                                                    </form>
+                                                {% endif %}
                                             </div>
                                         {% endfor %}
                                     </div>
