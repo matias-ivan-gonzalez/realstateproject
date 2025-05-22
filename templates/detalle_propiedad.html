@@ -1,1 +1,63 @@
- 
+{% extends "base_hero.html" %}
+
+{% block title %}Detalle de Propiedad - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ propiedad.nombre }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
+                            <p><strong>Precio:</strong> ${{ propiedad.precio }}</p>
+                            <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
+                            <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
+                            <p><strong>Pet Friendly:</strong> {{ 'Sí' if propiedad.pet_friendly else 'No' }}</p>
+                            <p><strong>Cochera:</strong> {{ 'Sí' if propiedad.cochera else 'No' }}</p>
+                            <p><strong>WiFi:</strong> {{ 'Sí' if propiedad.wifi else 'No' }}</p>
+                            <p><strong>Piscina:</strong> {{ 'Sí' if propiedad.piscina else 'No' }}</p>
+                            <p><strong>Patio trasero:</strong> {{ 'Sí' if propiedad.patio_trasero else 'No' }}</p>
+                            <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
+                            <p><strong>Latitud:</strong> {{ propiedad.latitud }}</p>
+                            <p><strong>Longitud:</strong> {{ propiedad.longitud }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Descripción:</strong></p>
+                            <p>{{ propiedad.descripcion or 'Sin descripción.' }}</p>
+                            {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-inner">
+                                        {% for imagen in propiedad.imagenes %}
+                                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                                <img src="{{ imagen.url }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Anterior</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Siguiente</span>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded" alt="Sin imagen">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
