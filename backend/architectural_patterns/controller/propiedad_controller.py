@@ -2,6 +2,8 @@ from architectural_patterns.service.propiedad_service import PropiedadService
 from models.propiedad import Propiedad
 from flask import render_template, redirect, url_for, flash
 from datetime import datetime
+from flask import session
+from models.user import Cliente
 
 class PropiedadController:
     
@@ -80,9 +82,14 @@ class PropiedadController:
                          tipo=tipo)
         
         
-    def get_propiedad(self,id):
+    def get_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
-        return render_template('detalle_propiedad.html', propiedad=propiedad)
+        user_favoritos = []
+        if session.get('rol') == 'cliente':
+            cliente = Cliente.query.get(session.get('user_id'))
+            if cliente:
+                user_favoritos = cliente.favoritos
+        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
