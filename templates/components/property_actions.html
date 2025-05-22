@@ -7,12 +7,5 @@
         <button type="submit" class="btn btn-danger" onclick="return confirm('¿Deseas eliminar esta propiedad?')">Eliminar</button>
     </form>
     {% endif %}
-    {% if session.rol == 'cliente' %}
-        {% if propiedad not in session.get('favoritos', []) and (not propiedad.clientes_favoritos or session['user_id'] not in [c.id for c in propiedad.clientes_favoritos]) %}
-        <form method="POST" action="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" style="display:inline;">
-            <button type="submit" class="btn btn-outline-danger">Favorito</button>
-        </form>
-        {% endif %}
-    {% endif %}
 </div>
 {% endmacro %} 
