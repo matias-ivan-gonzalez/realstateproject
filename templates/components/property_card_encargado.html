@@ -1,0 +1,28 @@
+{% macro property_card_encargado(propiedad) %}
+<div class="col-12">
+    <div class="card compact-propiedad">
+        <div class="row g-0 align-items-center flex-nowrap">
+            <div class="col-3 col-md-2">
+                {% if propiedad.imagenes %}
+                <img src="{{ propiedad.imagenes[0].url }}" class="img-fluid rounded-start" alt="{{ propiedad.nombre }}">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded-start" alt="Sin imagen">
+                {% endif %}
+            </div>
+            <div class="col-9 col-md-10">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h5 class="card-title mb-0">{{ propiedad.nombre }}</h5>
+                    </div>
+                    <div class="atributos-botones-row">
+                        {% from "components/property_attributes.html" import property_attributes %}
+                        {% from "components/property_actions_encargado.html" import property_actions_encargado %}
+                        {{ property_attributes(propiedad) }}
+                        {{ property_actions_encargado(propiedad) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %} 
