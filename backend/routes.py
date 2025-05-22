@@ -436,3 +436,24 @@ def ver_administradores():
     from models.user import Administrador
     administradores = Administrador.query.all()
     return render_template('ver_administradores.html', administradores=administradores)
+
+@main.route('/favoritos/agregar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def agregar_favorito(propiedad_id):
+    from models.user import Cliente
+    from models.propiedad import Propiedad
+    user_id = session.get('user_id')
+    user_rol = session.get('rol')
+    if user_rol != 'cliente':
+        flash('Solo los clientes pueden agregar favoritos.', 'danger')
+        return redirect(request.referrer or url_for('main.index'))
+    cliente = Cliente.query.get(user_id)
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    if propiedad in cliente.favoritos:
+        flash('La propiedad ya está en tus favoritos.', 'info')
+    else:
+        cliente.favoritos.append(propiedad)
+        from database import db
+        db.session.commit()
+        flash('Propiedad guardada en favoritos', 'success')
+    return redirect(request.referrer or url_for('main.index'))
