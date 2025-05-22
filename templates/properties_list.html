@@ -154,7 +154,7 @@
                 <ul class="pagination justify-content-center mb-2">
                     {% if propiedades.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.ver_propiedades', page=propiedades.prev_num, **request.args) }}">Anterior</a>
+                        <a class="page-link" href="{{ url_for('main.ver_propiedades', page=propiedades.prev_num, ubicacion=request.args.get('ubicacion', ''), tipo=request.args.get('tipo', '')) }}">Anterior</a>
                     </li>
                     {% else %}
                     <li class="page-item disabled">
@@ -169,7 +169,7 @@
                             </li>
                             {% else %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('main.ver_propiedades', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('main.ver_propiedades', page=page_num, ubicacion=request.args.get('ubicacion', ''), tipo=request.args.get('tipo', '')) }}">{{ page_num }}</a>
                             </li>
                             {% endif %}
                         {% else %}
@@ -180,7 +180,7 @@
                     {% endfor %}
                     {% if propiedades.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.ver_propiedades', page=propiedades.next_num, **request.args) }}">Siguiente</a>
+                        <a class="page-link" href="{{ url_for('main.ver_propiedades', page=propiedades.next_num, ubicacion=request.args.get('ubicacion', ''), tipo=request.args.get('tipo', '')) }}">Siguiente</a>
                     </li>
                     {% else %}
                     <li class="page-item disabled">
