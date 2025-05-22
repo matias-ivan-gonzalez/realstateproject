@@ -1,6 +1,7 @@
 from architectural_patterns.service.propiedad_service import PropiedadService
 from models.propiedad import Propiedad
 from flask import render_template, redirect, url_for, flash
+from datetime import datetime
 
 class PropiedadController:
     
@@ -86,6 +87,7 @@ class PropiedadController:
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
         propiedad.eliminado = True
+        propiedad.nombre = f'eliminated_{propiedad.id}'
         from database import db
         db.session.commit()
         flash('Propiedad eliminada correctamente.', 'success')

@@ -37,7 +37,7 @@ class PropiedadRepository:
 
     @staticmethod
     def get_by_nombre(nombre):
-        return Propiedad.query.filter_by(nombre=nombre).first()
+        return Propiedad.query.filter_by(nombre=nombre, eliminado=False).first()
     @staticmethod
     def crear_propiedad(data):
         propiedad = Propiedad(**data)
