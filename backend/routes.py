@@ -13,6 +13,7 @@ from unittest.mock import patch
 from functools import wraps
 from models.propiedad import Propiedad
 from sqlalchemy.sql.expression import func
+from flask_mail import Message
 
 from architectural_patterns.service.search_service import SearchService
 
@@ -356,3 +357,38 @@ def ver_propiedades():
 def detalle_propiedad(id):
     propiedad = Propiedad.query.get_or_404(id)
     return render_template('detalle_propiedad.html', propiedad=propiedad)
+
+@main.route('/recuperar-contraseña', methods=['GET', 'POST'])
+def recuperar_contraseña():
+    if request.method == 'POST':
+        from app import mail
+        email = request.form.get('email')
+        user_service = UserService()
+        user = user_service.email_exists(email)
+        if user:
+            # Generar token seguro (esto debe implementarse en UserService)
+            token = user_service.generar_token_recuperacion(user)
+            enlace = url_for('main.cambiar_contraseña', token=token, _external=True)
+            msg = Message('Recuperar contraseña', sender='TU_CORREO@outlook.com', recipients=[email])
+            msg.body = f'Para cambiar tu contraseña, haz clic en el siguiente enlace: {enlace}\n\nEste enlace caduca en 1 hora.'
+            mail.send(msg)
+            flash('Mail enviado', 'success')
+        else:
+            flash('No existe una cuenta con ese email', 'danger')
+        return render_template('recuperar_contraseña.html')
+    return render_template('recuperar_contraseña.html')
+
+@main.route('/cambiar-contraseña/<token>', methods=['GET', 'POST'])
+def cambiar_contraseña(token):
+    user_service = UserService()
+    user = user_service.verificar_token_recuperacion(token)
+    if not user:
+        return render_template('cambiar_contraseña.html', error="Enlace caducado")
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if len(password) < 6:
+            return render_template('cambiar_contraseña.html', error="Contraseña invalida, no cumple con el minimo de 6 caracteres")
+        user_service.actualizar_password(user, password)
+        flash('Contraseña modificada', 'success')
+        return redirect(url_for('main.login'))
+    return render_template('cambiar_contraseña.html')

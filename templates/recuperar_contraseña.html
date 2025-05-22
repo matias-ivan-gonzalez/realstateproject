@@ -1,0 +1,18 @@
+{% extends "base_hero.html" %}
+{% block title %}Recuperar contraseña - Alquilando{% endblock %}
+{% block hero_content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5" style="z-index: 2;">
+  <div class="card p-4 shadow text-start" style="max-width: 400px; width: 100%; background-color: white;">
+    <h2 class="text-center text-secondary mb-4">Recuperar contraseña</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="email" class="form-label text-secondary">Correo electrónico:</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-primary">Confirmar</button>
+        </div>
+    </form>
+  </div>
+</div>
+{% endblock %} 
