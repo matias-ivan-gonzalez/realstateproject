@@ -1,5 +1,5 @@
 {% extends "base_hero.html" %}
-{% from "components/property_card_encargado.html" import property_card_encargado %}
+{% from "components/property_card.html" import property_card %}
 {% from "components/search_filter.html" import search_filter %}
 {% from "components/pagination.html" import pagination %}
 
@@ -17,7 +17,7 @@
             <!-- Lista de propiedades -->
             <div class="row g-2">
                 {% for propiedad in propiedades.items %}
-                    {{ property_card_encargado(propiedad) }}
+                    {{ property_card(propiedad) }}
                 {% else %}
                 <div class="col-12 text-center">
                     <p class="lead">No tienes propiedades asignadas.</p>
