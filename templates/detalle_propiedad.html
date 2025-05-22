@@ -34,7 +34,7 @@
                                     <div class="carousel-inner">
                                         {% for imagen in propiedad.imagenes %}
                                             <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                                <img src="{{ imagen.url }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
+                                                <img src="{{ url_for('static', filename='img/propiedades/' ~ imagen.nombre_archivo) }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
                                             </div>
                                         {% endfor %}
                                     </div>
@@ -64,6 +64,10 @@
                         </form>
                     {% endif %}
                     {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                        <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" style="display:inline;">
+                            <input type="file" name="imagenes" accept="image/*" multiple required style="display:inline-block; max-width:200px;">
+                            <button type="submit" class="btn btn-success">Agregar imagen</button>
+                        </form>
                         <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
                     {% endif %}
                 </div>

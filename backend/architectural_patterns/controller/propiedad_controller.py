@@ -4,6 +4,7 @@ from flask import render_template, redirect, url_for, flash
 from datetime import datetime
 from flask import session
 from models.user import Cliente
+import os
 
 class PropiedadController:
     
@@ -99,6 +100,30 @@ class PropiedadController:
         db.session.commit()
         flash('Propiedad eliminada correctamente.', 'success')
         return redirect(url_for('main.ver_propiedades'))
+    
+    def agregar_imagen(self, request, id):
+        from models.imagen import Imagen
+        from database import db
+        propiedad = Propiedad.query.get_or_404(id)
+        if request.method == 'POST':
+            files = request.files.getlist('imagenes')
+            if not files or files[0].filename == '':
+                flash('Debes seleccionar al menos una imagen.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=id))
+            if len(propiedad.imagenes) + len(files) > 10:
+                flash('No puedes tener más de 10 imágenes por propiedad.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=id))
+            carpeta_destino = 'static/img/propiedades/'
+            for file in files:
+                filename = file.filename
+                ruta = os.path.join(carpeta_destino, filename)
+                file.save(ruta)
+                imagen = Imagen(url='/' + ruta.replace('\\', '/'), nombre_archivo=filename, propiedad=propiedad)
+                db.session.add(imagen)
+            db.session.commit()
+            flash('Imágenes agregadas correctamente.', 'success')
+            return redirect(url_for('main.detalle_propiedad', id=id))
+        return redirect(url_for('main.detalle_propiedad', id=id))
     
     
     

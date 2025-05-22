@@ -142,3 +142,9 @@ def quitar_favorito(propiedad_id):
 def ver_favoritos():
     user_controller = UserController()
     return user_controller.ver_favoritos(session)
+
+@main.route('/propiedad/<int:id>/agregar-imagen', methods=['POST'])
+@login_required
+def agregar_imagen(id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.agregar_imagen(request, id)
