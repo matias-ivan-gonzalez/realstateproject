@@ -366,7 +366,7 @@ def ver_propiedades():
     tipo = request.args.get('tipo', '')
     
     # Obtener las propiedades paginadas
-    propiedades = Propiedad.query
+    propiedades = Propiedad.query.filter_by(eliminado=False)
     
     # Aplicar filtros si existen
     if ubicacion:
@@ -410,3 +410,18 @@ def ver_encargados():
     from models.user import Encargado
     encargados = Encargado.query.all()
     return render_template('ver_encargados.html', encargados=encargados)
+
+@main.route('/propiedad/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_propiedad(id):
+    user_rol = session.get('rol')
+    if user_rol not in ['superusuario', 'administrador']:
+        flash('No tienes permiso para eliminar propiedades.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(id)
+    propiedad.eliminado = True
+    from database import db
+    db.session.commit()
+    flash('Propiedad eliminada correctamente.', 'success')
+    return redirect(request.referrer or url_for('main.ver_propiedades'))

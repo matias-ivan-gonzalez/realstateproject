@@ -22,6 +22,7 @@ class Propiedad(db.Model):
     superusuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     encargado_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     reembolsable = db.Column(db.Boolean, default=False, nullable=False)
+    eliminado = db.Column(db.Boolean, default=False, nullable=False)
     
     # Relación con las imágenes
     imagenes = db.relationship('Imagen', back_populates='propiedad', cascade='all, delete-orphan')
