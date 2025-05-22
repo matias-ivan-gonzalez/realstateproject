@@ -162,6 +162,10 @@ def search_properties():
 # Ruta para mostrar el formulario de nueva propiedad
 @main.route('/propiedades/nueva', methods=['GET', 'POST'])
 def nueva_propiedad():
+    user_rol = session.get('rol')
+    if user_rol not in ['superusuario', 'administrador']:
+        flash('No tienes permiso para ingresar nuevas propiedades.', 'danger')
+        return redirect(url_for('main.index'))
     if request.method == 'POST':
         data = {
             "nombre": request.form.get('nombre'),
@@ -356,3 +360,7 @@ def ver_propiedades():
 def detalle_propiedad(id):
     propiedad = Propiedad.query.get_or_404(id)
     return render_template('detalle_propiedad.html', propiedad=propiedad)
+
+@main.route('/agregar-propiedad')
+def agregar_propiedad_redirect():
+    return redirect(url_for('main.nueva_propiedad'))
