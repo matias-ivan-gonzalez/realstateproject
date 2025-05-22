@@ -7,13 +7,6 @@
 <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: auto;">
   <div class="card p-4 shadow text-start" style="max-width: 600px; width: 100%;">
     <h2 class="text-center text-secondary mb-4">Agregar nuevo empleado</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} py-2">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
     <form method="post">
       <div class="row">
         <div class="col-md-6 mb-3">
