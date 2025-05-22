@@ -1,3 +1,5 @@
+{% from "components/actions_dropdown.html" import actions_dropdown %}
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="/">
@@ -16,37 +18,7 @@
         </form>
         <ul class="navbar-nav mb-2 mb-lg-0">
           {% if session.user_id %}
-            {% if session.rol in ['superusuario', 'administrador'] %}
-            <li class="nav-item dropdown me-2">
-              <button class="btn btn-outline-light dropdown-toggle" type="button" id="accionesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                Acciones
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="accionesDropdown">
-                <li><a class="dropdown-item" href="/agregar-empleado">Agregar nuevo empleado</a></li>
-                <li><a class="dropdown-item" href="/agregar-propiedad">Agregar nueva propiedad</a></li>
-                <li><a class="dropdown-item" href="/ver-propiedades">Ver propiedades</a></li>
-                <li><a class="dropdown-item" href="/ver-encargados">Ver encargados</a></li>
-              </ul>
-            </li>
-            {% elif session.rol == 'encargado' %}
-            <li class="nav-item dropdown me-2">
-              <button class="btn btn-outline-light dropdown-toggle" type="button" id="accionesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                Acciones
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="accionesDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('main.ver_propiedades') }}">Ver mis propiedades</a></li>
-              </ul>
-            </li>
-            {% elif session.rol == 'cliente' %}
-            <li class="nav-item dropdown me-2">
-              <button class="btn btn-outline-light dropdown-toggle" type="button" id="accionesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                Acciones
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="accionesDropdown">
-                <li><a class="dropdown-item" href="/ver-favoritos">Ver mis favoritos</a></li>
-              </ul>
-            </li>
-            {% endif %}
+            {{ actions_dropdown() }}
             {% include 'navbar_with_session.html' %}
           {% else %}
             {% include 'navbar_without_session.html' %}
