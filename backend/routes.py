@@ -1,10 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models.user import Cliente
-from database import db
-from datetime import datetime
-from architectural_patterns.service.user_service import UserService
-from models.user import Administrador, Encargado, Usuario
-from models.rol import Rol
 from functools import wraps
 from architectural_patterns.controller.user_controller import UserController
 from architectural_patterns.controller.empleado_controller import EmpleadoController
@@ -63,21 +57,7 @@ def nueva_propiedad():
 def modificar_propiedad():
     # Diccionario de ejemplo con datos de una propiedad
     propiedad_controller = PropiedadController()
-    propiedad = {
-        "nombre": "Casa de Prueba",
-        "ubicacion": "Calle Falsa 123",
-        "precio": 150000,
-        "cantidad_habitaciones": 3,
-        "limite_personas": 5,
-        "pet_friendly": True,
-        "cochera": False,
-        "wifi": True,
-        "piscina": False,
-        "patio_trasero": True,
-        "descripcion": "Una casa de prueba para modificar."
-    }
-    action_url = "/propiedades/modificar"
-    return propiedad_controller.update_propiedad(propiedad,action_url)
+    return propiedad_controller.update_propiedad()
 
 # Ruta para agregar un nuevo empleado (administrador o encargado)
 @main.route('/empleados/nuevo', methods=['GET', 'POST'])

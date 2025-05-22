@@ -1,4 +1,4 @@
-import architectural_patterns.service.propiedad_service as PropiedadService
+from architectural_patterns.service.propiedad_service import PropiedadService
 
 from flask import render_template, redirect, url_for, flash
 
@@ -27,7 +27,21 @@ class PropiedadController:
             return render_template('nueva_propiedad.html')
         return render_template('nueva_propiedad.html')
     
-    def update_propiedad(self, propiedad, action_url):
+    def update_propiedad(self):
+        propiedad = {
+            "nombre": "Casa de Prueba",
+            "ubicacion": "Calle Falsa 123",
+            "precio": 150000,
+            "cantidad_habitaciones": 3,
+            "limite_personas": 5,
+            "pet_friendly": True,
+            "cochera": False,
+            "wifi": True,
+            "piscina": False,
+            "patio_trasero": True,
+            "descripcion": "Una casa de prueba para modificar."
+        }
+        action_url = "/propiedades/modificar"
         return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
     
     

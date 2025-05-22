@@ -33,18 +33,6 @@ class PropiedadRepository:
     def get_properties_by_date_and_price_and_features(self, start_date, end_date, min_price, max_price, features):
         return db.session.query(Propiedad).filter(Propiedad.fecha_inicio >= start_date, Propiedad.fecha_fin <= end_date, Propiedad.precio >= min_price, Propiedad.precio <= max_price, Propiedad.caracteristicas.contains(features)).all()
     
-    
-    
-
-    @staticmethod
-    def get_by_nombre(nombre):
-        return Propiedad.query.filter_by(nombre=nombre).first()
-    @staticmethod
-    def crear_propiedad(data):
-        propiedad = Propiedad(**data)
-        db.session.add(propiedad)
-        db.session.commit()
-        return propiedad
 
 
     @staticmethod
