@@ -1,0 +1,20 @@
+{% macro property_attributes(propiedad) %}
+<div class="atributos-propiedad flex-nowrap">
+    <div class="card-text text-center">
+        <span class="atributo-label">Ubicación:</span><br>
+        <span>{{ propiedad.ubicacion }}</span>
+    </div>
+    <div class="card-text text-center">
+        <span class="atributo-label">Precio:</span><br>
+        <span>${{ propiedad.precio }}</span>
+    </div>
+    <div class="card-text text-center">
+        <span class="atributo-label">Habitaciones:</span><br>
+        <span>{{ propiedad.cantidad_habitaciones }} hab.</span>
+    </div>
+    <div class="card-text text-center">
+        <span class="atributo-label">Capacidad:</span><br>
+        <span>{{ propiedad.limite_personas }} pers.</span>
+    </div>
+</div>
+{% endmacro %} 
