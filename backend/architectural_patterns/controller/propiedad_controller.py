@@ -12,6 +12,7 @@ class PropiedadController:
         if request.method == 'POST':
             data = {
                 "nombre": request.form.get('nombre'),
+                "direccion": request.form.get('direccion'),
                 "ubicacion": request.form.get('ubicacion'),
                 "precio": request.form.get('precio'),
                 "cantidad_habitaciones": request.form.get('cantidad_habitaciones'),

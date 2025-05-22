@@ -38,6 +38,10 @@
                     <input type="number" class="form-control" id="limite_personas" name="limite_personas" min="1" required>
                 </div>
             </div>
+            <div class="mb-2">
+                <label for="direccion" class="form-label text-secondary">Dirección</label>
+                <input type="text" class="form-control" id="direccion" name="direccion" required>
+            </div>
             <div class="row mb-2">
                 <div class="col-md-4">
                     <label for="latitud" class="form-label text-secondary">Latitud</label>
@@ -47,15 +51,8 @@
                     <label for="longitud" class="form-label text-secondary">Longitud</label>
                     <input type="number" class="form-control" id="longitud" name="longitud" step="any" required>
                 </div>
-                <div class="col-md-4 d-flex align-items-center">
-                    <div class="form-check mt-4">
-                        <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable">
-                        <label class="form-check-label text-secondary" for="reembolsable">Reembolsable</label>
-                    </div>
-                </div>
             </div>
-
-            <div class="row mb-2">
+            <div class="row mb-2 align-items-end">
                 <div class="col-md-12">
                     <label class="form-label text-secondary mb-1">Características</label>
                     <div class="d-flex flex-wrap gap-3">
@@ -78,6 +75,10 @@
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" id="patio_trasero" name="patio_trasero">
                             <label class="form-check-label text-secondary" for="patio_trasero">Patio Trasero</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable">
+                            <label class="form-check-label text-secondary" for="reembolsable">Reembolsable</label>
                         </div>
                     </div>
                 </div>
