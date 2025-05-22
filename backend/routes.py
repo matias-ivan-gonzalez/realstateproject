@@ -178,8 +178,24 @@ def nueva_propiedad():
             "wifi": 'wifi' in request.form,
             "piscina": 'piscina' in request.form,
             "patio_trasero": 'patio_trasero' in request.form,
-            "descripcion": request.form.get('descripcion', '')
+            "descripcion": request.form.get('descripcion', ''),
+            "reembolsable": 'reembolsable' in request.form,
+            "latitud": request.form.get('latitud') or None,
+            "longitud": request.form.get('longitud') or None
         }
+        if data["latitud"] is not None and data["latitud"] != "":
+            try:
+                data["latitud"] = float(data["latitud"])
+            except ValueError:
+                data["latitud"] = None
+        if data["longitud"] is not None and data["longitud"] != "":
+            try:
+                data["longitud"] = float(data["longitud"])
+            except ValueError:
+                data["longitud"] = None
+        if not data["latitud"] or not data["longitud"]:
+            flash("Latitud y longitud son obligatorios.", "danger")
+            return render_template('nueva_propiedad.html')
         success, message = PropiedadService().crear_propiedad(data)
         if success:
             flash(message, 'success')
