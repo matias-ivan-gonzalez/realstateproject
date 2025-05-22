@@ -34,7 +34,7 @@
                 Acciones
               </button>
               <ul class="dropdown-menu" aria-labelledby="accionesDropdown">
-                <li><a class="dropdown-item" href="/ver-mis-propiedades">Ver mis propiedades</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('main.ver_propiedades') }}">Ver mis propiedades</a></li>
               </ul>
             </li>
             {% elif session.rol == 'cliente' %}
