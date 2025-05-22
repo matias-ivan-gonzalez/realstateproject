@@ -11,7 +11,7 @@ from architectural_patterns.service.propiedad_service import PropiedadService
 from architectural_patterns.service.empleado_service import EmpleadoService
 from unittest.mock import patch
 from functools import wraps
-
+from models.propiedad import Propiedad
 
 from architectural_patterns.service.search_service import SearchService
 
@@ -316,3 +316,41 @@ def eliminar_cuenta():
     session.clear()
     flash('Cuenta eliminada correctamente.', 'success')
     return redirect(url_for('main.login'))
+
+@main.route('/ver-propiedades')
+@login_required
+def ver_propiedades():
+    page = request.args.get('page', 1, type=int)
+    ubicacion = request.args.get('ubicacion', '')
+    tipo = request.args.get('tipo', '')
+    
+    # Obtener las propiedades paginadas
+    propiedades = Propiedad.query
+    
+    # Aplicar filtros si existen
+    if ubicacion:
+        propiedades = propiedades.filter(Propiedad.ubicacion.ilike(f'%{ubicacion}%'))
+    
+    # Si el usuario es encargado, mostrar solo sus propiedades
+    if session.get('rol') == 'encargado':
+        propiedades = propiedades.filter(Propiedad.encargado_id == session['user_id'])
+    # Si el usuario es administrador, mostrar las propiedades que administra
+    elif session.get('rol') == 'administrador':
+        propiedades = propiedades.filter(Propiedad.administradores.any(id=session['user_id']))
+    
+    # Ordenar por nombre
+    propiedades = propiedades.order_by(Propiedad.nombre)
+    
+    # Paginar resultados (5 por página)
+    propiedades = propiedades.paginate(page=page, per_page=5, error_out=False)
+    
+    return render_template('properties_list.html', 
+                         propiedades=propiedades,
+                         ubicacion=ubicacion,
+                         tipo=tipo)
+
+@main.route('/propiedad/<int:id>')
+@login_required
+def detalle_propiedad(id):
+    propiedad = Propiedad.query.get_or_404(id)
+    return render_template('detalle_propiedad.html', propiedad=propiedad)

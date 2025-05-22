@@ -1,0 +1,212 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Propiedades - Alquilando{% endblock %}
+
+{% block hero_content %}
+<style>
+.card.compact-propiedad {
+    min-height: 100px;
+    margin-bottom: 8px;
+    padding: 8px 0;
+}
+.card.compact-propiedad .card-body {
+    padding: 10px 18px 10px 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    gap: 1.5rem;
+    flex-wrap: nowrap;
+}
+.card.compact-propiedad .img-fluid {
+    max-height: 80px;
+    min-height: 80px;
+    width: 100%;
+    object-fit: cover;
+}
+.card.compact-propiedad .card-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+}
+.card.compact-propiedad .atributos-botones-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+.card.compact-propiedad .atributos-propiedad {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2.5rem;
+    flex: 1 1 0;
+    width: 100%;
+    min-width: 0;
+}
+.card.compact-propiedad .card-text {
+    font-size: 0.97rem;
+    margin-bottom: 0.08rem;
+    margin-right: 0;
+    flex: 1 1 0;
+    min-width: 0;
+}
+.card.compact-propiedad .botones-columna {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    max-width: 420px;
+}
+.card.compact-propiedad .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.97rem;
+    min-width: 120px;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.card.compact-propiedad .atributo-label {
+    font-weight: 600;
+    margin-right: 0.2rem;
+}
+</style>
+<div class="container-fluid px-0">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <h2 class="text-center mb-3">Propiedades Disponibles</h2>
+            <!-- Filtros y búsqueda -->
+            <div class="row mb-3">
+                <div class="col-md-8 mx-auto">
+                    <form action="{{ url_for('main.ver_propiedades') }}" method="get" class="d-flex gap-2">
+                        <input type="text" class="form-control" name="ubicacion" placeholder="Buscar por ubicación" value="{{ request.args.get('ubicacion', '') }}">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Lista de propiedades -->
+            <div class="row g-2">
+                {% for propiedad in propiedades.items %}
+                <div class="col-12">
+                    <div class="card compact-propiedad">
+                        <div class="row g-0 align-items-center flex-nowrap">
+                            <div class="col-3 col-md-2">
+                                {% if propiedad.imagenes %}
+                                <img src="{{ propiedad.imagenes[0].url }}" class="img-fluid rounded-start" alt="{{ propiedad.nombre }}">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded-start" alt="Sin imagen">
+                                {% endif %}
+                            </div>
+                            <div class="col-9 col-md-10">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h5 class="card-title mb-0">{{ propiedad.nombre }}</h5>
+                                        {% if session.user_id and session.rol == 'cliente' %}
+                                        <button class="btn btn-outline-danger btn-favorito" data-propiedad-id="{{ propiedad.id }}">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    <div class="atributos-botones-row">
+                                        <div class="atributos-propiedad flex-nowrap">
+                                            <div class="card-text"><span class="atributo-label">Ubicación:</span> <i class="fas fa-map-marker-alt"></i> {{ propiedad.ubicacion }}</div>
+                                            <div class="card-text"><span class="atributo-label">Precio:</span> <i class="fas fa-dollar-sign"></i> ${{ propiedad.precio }}</div>
+                                            <div class="card-text"><span class="atributo-label">Habitaciones:</span> <i class="fas fa-bed"></i> {{ propiedad.cantidad_habitaciones }} hab.</div>
+                                            <div class="card-text"><span class="atributo-label">Capacidad:</span> <i class="fas fa-users"></i> {{ propiedad.limite_personas }} pers.</div>
+                                        </div>
+                                        <div class="botones-columna">
+                                            <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-primary">Ver detalles</a>
+                                            <a href="#" class="btn btn-warning">Modificar propiedad</a>
+                                            <a href="#" class="btn btn-danger">Eliminar propiedad</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center">
+                    <p class="lead">No se encontraron propiedades que coincidan con los criterios de búsqueda.</p>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- Paginación -->
+            {% if propiedades.pages > 1 %}
+            <nav aria-label="Navegación de páginas" class="mt-3">
+                <ul class="pagination justify-content-center mb-2">
+                    {% if propiedades.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.ver_propiedades', page=propiedades.prev_num, **request.args) }}">Anterior</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+                    {% for page_num in propiedades.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                        {% if page_num %}
+                            {% if page_num == propiedades.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.ver_propiedades', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if propiedades.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.ver_propiedades', page=propiedades.next_num, **request.args) }}">Siguiente</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Siguiente</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% if session.user_id and session.rol == 'cliente' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const favoritosButtons = document.querySelectorAll('.btn-favorito');
+    favoritosButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const propiedadId = this.dataset.propiedadId;
+            try {
+                const response = await fetch(`/toggle-favorito/${propiedadId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.is_favorite) {
+                        this.classList.add('active');
+                    } else {
+                        this.classList.remove('active');
+                    }
+                }
+            } catch (error) {
+                console.error('Error al actualizar favorito:', error);
+            }
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
