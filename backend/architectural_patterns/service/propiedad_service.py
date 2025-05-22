@@ -31,3 +31,23 @@ class PropiedadService:
             return True, "Propiedad guardada exitosamente."
         except Exception as e:
             return False, f"Error al guardar la propiedad: {str(e)}"
+
+    def update_propiedad(self, propiedad_id, data):
+        # Validar campos obligatorios
+        required_fields = [
+            "nombre", "ubicacion", "precio", "cantidad_habitaciones", "limite_personas", "latitud", "longitud"
+        ]
+        for field in required_fields:
+            if not data.get(field):
+                return False, f"El campo {field} es obligatorio."
+        # Validar tipos
+        try:
+            data["precio"] = float(data["precio"])
+            data["cantidad_habitaciones"] = int(data["cantidad_habitaciones"])
+            data["limite_personas"] = int(data["limite_personas"])
+            data["latitud"] = float(data["latitud"])
+            data["longitud"] = float(data["longitud"])
+        except ValueError:
+            return False, "Precio, cantidad de habitaciones, límite de personas, latitud y longitud deben ser numéricos."
+        # Llama al repository
+        return self.repository.update_propiedad(propiedad_id, data)

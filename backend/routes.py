@@ -205,23 +205,42 @@ def nueva_propiedad():
     return render_template('nueva_propiedad.html')
 
 # Ruta para mostrar el formulario de modificar propiedad
-@main.route('/propiedades/modificar', methods=['GET', 'POST'])
-def modificar_propiedad():
-    # Diccionario de ejemplo con datos de una propiedad
-    propiedad = {
-        "nombre": "Casa de Prueba",
-        "ubicacion": "Calle Falsa 123",
-        "precio": 150000,
-        "cantidad_habitaciones": 3,
-        "limite_personas": 5,
-        "pet_friendly": True,
-        "cochera": False,
-        "wifi": True,
-        "piscina": False,
-        "patio_trasero": True,
-        "descripcion": "Una casa de prueba para modificar."
-    }
-    action_url = "/propiedades/modificar"
+@main.route('/propiedades/modificar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def modificar_propiedad(id):
+    user_rol = session.get('rol')
+    if user_rol not in ['superusuario', 'administrador']:
+        flash('No tienes permiso para modificar propiedades.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(id)
+    if request.method == 'POST':
+        data = {
+            "nombre": request.form.get('nombre'),
+            "ubicacion": request.form.get('ubicacion'),
+            "precio": request.form.get('precio'),
+            "cantidad_habitaciones": request.form.get('cantidad_habitaciones'),
+            "limite_personas": request.form.get('limite_personas'),
+            "pet_friendly": 'pet_friendly' in request.form,
+            "cochera": 'cochera' in request.form,
+            "wifi": 'wifi' in request.form,
+            "piscina": 'piscina' in request.form,
+            "patio_trasero": 'patio_trasero' in request.form,
+            "descripcion": request.form.get('descripcion', ''),
+            "reembolsable": 'reembolsable' in request.form,
+            "latitud": request.form.get('latitud'),
+            "longitud": request.form.get('longitud')
+        }
+        service = PropiedadService()
+        success, message = service.update_propiedad(id, data)
+        if success:
+            flash(message, 'success')
+            return redirect(url_for('main.modificar_propiedad', id=id))
+        else:
+            flash(message, 'danger')
+            # Mantener los datos ingresados en el formulario
+            propiedad.__dict__.update(data)
+    action_url = url_for('main.modificar_propiedad', id=id)
     return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
 
 # Ruta para agregar un nuevo empleado (administrador o encargado)

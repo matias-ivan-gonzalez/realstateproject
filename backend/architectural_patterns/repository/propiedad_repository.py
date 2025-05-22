@@ -56,3 +56,18 @@ class PropiedadRepository:
         db.session.add(propiedad)
         db.session.commit()
         return propiedad
+
+    @staticmethod
+    def update_propiedad(propiedad_id, data):
+        propiedad = Propiedad.query.get(propiedad_id)
+        if not propiedad:
+            return False, "Propiedad no encontrada"
+        # Validar nombre único (excepto para sí misma)
+        if 'nombre' in data and data['nombre']:
+            existente = Propiedad.query.filter(Propiedad.nombre == data['nombre'], Propiedad.id != propiedad_id).first()
+            if existente:
+                return False, "Nombre de la propiedad existente"
+        for key, value in data.items():
+            setattr(propiedad, key, value)
+        db.session.commit()
+        return True, "modificación exitosa"
