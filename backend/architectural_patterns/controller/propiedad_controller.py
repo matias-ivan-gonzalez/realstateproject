@@ -85,13 +85,14 @@ class PropiedadController:
         
         
     def get_propiedad(self, id):
+        from flask import request
         propiedad = Propiedad.query.get_or_404(id)
         user_favoritos = []
         if session.get('rol') == 'cliente':
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
                 user_favoritos = cliente.favoritos
-        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos)
+        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, request=request)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)

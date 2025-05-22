@@ -76,6 +76,9 @@
                         </form>
                         <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
                     {% endif %}
+                    {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+                        <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
