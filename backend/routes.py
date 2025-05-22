@@ -425,3 +425,14 @@ def eliminar_propiedad(id):
     db.session.commit()
     flash('Propiedad eliminada correctamente.', 'success')
     return redirect(request.referrer or url_for('main.ver_propiedades'))
+
+@main.route('/ver-administradores')
+@login_required
+def ver_administradores():
+    user_rol = session.get('rol')
+    if user_rol not in ['superusuario', 'administrador']:
+        flash('No tienes permiso para ver los administradores.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.user import Administrador
+    administradores = Administrador.query.all()
+    return render_template('ver_administradores.html', administradores=administradores)
