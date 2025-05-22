@@ -114,10 +114,22 @@
                                     </div>
                                     <div class="atributos-botones-row">
                                         <div class="atributos-propiedad flex-nowrap">
-                                            <div class="card-text"><span class="atributo-label">Ubicación:</span> <i class="fas fa-map-marker-alt"></i> {{ propiedad.ubicacion }}</div>
-                                            <div class="card-text"><span class="atributo-label">Precio:</span> <i class="fas fa-dollar-sign"></i> ${{ propiedad.precio }}</div>
-                                            <div class="card-text"><span class="atributo-label">Habitaciones:</span> <i class="fas fa-bed"></i> {{ propiedad.cantidad_habitaciones }} hab.</div>
-                                            <div class="card-text"><span class="atributo-label">Capacidad:</span> <i class="fas fa-users"></i> {{ propiedad.limite_personas }} pers.</div>
+                                            <div class="card-text text-center">
+                                                <span class="atributo-label">Ubicación:</span><br>
+                                                <span>{{ propiedad.ubicacion }}</span>
+                                            </div>
+                                            <div class="card-text text-center">
+                                                <span class="atributo-label">Precio:</span><br>
+                                                <span>${{ propiedad.precio }}</span>
+                                            </div>
+                                            <div class="card-text text-center">
+                                                <span class="atributo-label">Habitaciones:</span><br>
+                                                <span>{{ propiedad.cantidad_habitaciones }} hab.</span>
+                                            </div>
+                                            <div class="card-text text-center">
+                                                <span class="atributo-label">Capacidad:</span><br>
+                                                <span>{{ propiedad.limite_personas }} pers.</span>
+                                            </div>
                                         </div>
                                         <div class="botones-columna">
                                             <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-primary">Ver detalle</a>
