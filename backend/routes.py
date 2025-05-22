@@ -12,6 +12,7 @@ from architectural_patterns.service.empleado_service import EmpleadoService
 from unittest.mock import patch
 from functools import wraps
 from models.propiedad import Propiedad
+from sqlalchemy.sql.expression import func
 
 from architectural_patterns.service.search_service import SearchService
 
@@ -34,7 +35,8 @@ def login_required(f):
 # Ruta principal
 @main.route('/')
 def index():
-    return render_template('index.html')
+    propiedades_random = Propiedad.query.order_by(func.random()).limit(6).all()
+    return render_template('index.html', propiedades_random=propiedades_random)
 
 # Ruta de login
 @main.route('/login', methods=['GET', 'POST'])

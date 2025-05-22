@@ -4,6 +4,30 @@
 {% block title %}Alquilando{% endblock %}
 
 {% block hero_content %}
-<h1 class="display-5 text-secondary">Alquilando, cada estadía una experiencia única</h1>
+<div class="container mt-4">
+  <h1 class="display-5 text-secondary mb-4" style="margin-top: 2rem;">Alquilando, cada estadía una experiencia única</h1>
+  <div class="row">
+    {% for propiedad in propiedades_random %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ propiedad.nombre }}</h5>
+            <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
+            <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
+            <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
+            <div class="mb-2">
+              {% if propiedad.wifi %}<i class="bi bi-wifi" title="WiFi"></i> {% endif %}
+              {% if propiedad.piscina %}<i class="bi bi-water" title="Pileta"></i> {% endif %}
+              {% if propiedad.cochera %}<i class="bi bi-car-front" title="Cochera"></i> {% endif %}
+              {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
+              {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
+            </div>
+            <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-primary">Ver detalle</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}
 
