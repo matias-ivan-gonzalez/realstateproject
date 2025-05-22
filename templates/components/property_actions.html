@@ -1,0 +1,7 @@
+{% macro property_actions(propiedad) %}
+<div class="botones-columna">
+    <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-primary">Ver detalle</a>
+    <a href="#" class="btn btn-warning">Editar</a>
+    <a href="#" class="btn btn-danger">Eliminar</a>
+</div>
+{% endmacro %} 
