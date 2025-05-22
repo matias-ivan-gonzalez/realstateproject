@@ -399,3 +399,14 @@ def detalle_propiedad(id):
 @main.route('/agregar-propiedad')
 def agregar_propiedad_redirect():
     return redirect(url_for('main.nueva_propiedad'))
+
+@main.route('/ver-encargados')
+@login_required
+def ver_encargados():
+    user_rol = session.get('rol')
+    if user_rol not in ['superusuario', 'administrador']:
+        flash('No tienes permiso para ver los encargados.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.user import Encargado
+    encargados = Encargado.query.all()
+    return render_template('ver_encargados.html', encargados=encargados)
