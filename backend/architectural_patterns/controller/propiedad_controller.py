@@ -20,7 +20,8 @@ class PropiedadController:
                 "descripcion": request.form.get('descripcion', ''),
                 "latitud": request.form.get('latitud'),
                 "longitud": request.form.get('longitud'),
-                "reembolsable": 'reembolsable' in request.form
+                "reembolsable": 'reembolsable' in request.form,
+                "eliminado": False
             }
             success, message = PropiedadService().crear_propiedad(data)
             if success:
@@ -55,7 +56,7 @@ class PropiedadController:
     
     # Obtener las propiedades paginadas
         propiedades = Propiedad.query
-    
+        propiedades = propiedades.filter(Propiedad.eliminado == False)
     # Aplicar filtros si existen
         if ubicacion:
             propiedades = propiedades.filter(Propiedad.ubicacion.ilike(f'%{ubicacion}%'))
@@ -63,9 +64,8 @@ class PropiedadController:
     # Si el usuario es encargado, mostrar solo sus propiedades
         if session.get('rol') == 'encargado':
             propiedades = propiedades.filter(Propiedad.encargado_id == session['user_id'])
-    # Si el usuario es administrador, mostrar las propiedades que administra
-        elif session.get('rol') == 'administrador':
-            propiedades = propiedades.filter(Propiedad.administradores.any(id=session['user_id']))
+    # Si el usuario es administrador o superusuario, mostrar todas las propiedades no eliminadas
+    # (ya filtrado arriba)
     
     # Ordenar por nombre
         propiedades = propiedades.order_by(Propiedad.nombre)
@@ -83,6 +83,13 @@ class PropiedadController:
         propiedad = Propiedad.query.get_or_404(id)
         return render_template('detalle_propiedad.html', propiedad=propiedad)
 
+    def eliminar_propiedad(self, id):
+        propiedad = Propiedad.query.get_or_404(id)
+        propiedad.eliminado = True
+        from database import db
+        db.session.commit()
+        flash('Propiedad eliminada correctamente.', 'success')
+        return redirect(url_for('main.ver_propiedades'))
     
     
     
