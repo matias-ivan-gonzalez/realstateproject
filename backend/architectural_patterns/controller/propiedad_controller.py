@@ -1,5 +1,5 @@
 from architectural_patterns.service.propiedad_service import PropiedadService
-
+from models.propiedad import Propiedad
 from flask import render_template, redirect, url_for, flash
 
 class PropiedadController:
@@ -43,6 +43,43 @@ class PropiedadController:
         }
         action_url = "/propiedades/modificar"
         return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
+    
+    
+    def list_propiedades(self, request,session):
+        page = request.args.get('page', 1, type=int)
+        ubicacion = request.args.get('ubicacion', '')
+        tipo = request.args.get('tipo', '')
+    
+    # Obtener las propiedades paginadas
+        propiedades = Propiedad.query
+    
+    # Aplicar filtros si existen
+        if ubicacion:
+            propiedades = propiedades.filter(Propiedad.ubicacion.ilike(f'%{ubicacion}%'))
+    
+    # Si el usuario es encargado, mostrar solo sus propiedades
+        if session.get('rol') == 'encargado':
+            propiedades = propiedades.filter(Propiedad.encargado_id == session['user_id'])
+    # Si el usuario es administrador, mostrar las propiedades que administra
+        elif session.get('rol') == 'administrador':
+            propiedades = propiedades.filter(Propiedad.administradores.any(id=session['user_id']))
+    
+    # Ordenar por nombre
+        propiedades = propiedades.order_by(Propiedad.nombre)
+    
+    # Paginar resultados (5 por página)
+        propiedades = propiedades.paginate(page=page, per_page=5, error_out=False)
+    
+        return render_template('properties_list.html', 
+                         propiedades=propiedades,
+                         ubicacion=ubicacion,
+                         tipo=tipo)
+        
+        
+    def get_propiedad(self,id):
+        propiedad = Propiedad.query.get_or_404(id)
+        return render_template('detalle_propiedad.html', propiedad=propiedad)
+
     
     
     

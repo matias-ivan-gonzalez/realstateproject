@@ -1,5 +1,6 @@
 from flask import  render_template,  redirect, url_for, flash
 from architectural_patterns.service.empleado_service import EmpleadoService
+from models.propiedad import Propiedad
 
 class EmpleadoController:
     
@@ -42,3 +43,25 @@ class EmpleadoController:
                 return render_template('agregar_empleado.html', roles=roles_permitidos, data=data, user_rol=user_rol)
             
         return render_template('agregar_empleado.html', roles=roles_permitidos, user_rol=user_rol)
+    
+    def list_my_propiedades(self, request, current_user):
+        # Verificar que el usuario es un encargado
+        if not hasattr(current_user, 'propiedades_encargadas'):
+            return "Acceso no autorizado", 403
+    
+    # Obtener el número de página de la URL, por defecto 1
+        page = request.args.get('page', 1, type=int)
+    # Obtener el filtro de ubicación
+        ubicacion = request.args.get('ubicacion', '')
+    
+    # Consulta base
+        query = Propiedad.query.filter_by(encargado_id=current_user.id)
+    
+    # Aplicar filtro de ubicación si existe
+        if ubicacion:
+            query = query.filter(Propiedad.ubicacion.ilike(f'%{ubicacion}%'))
+    
+    # Paginar los resultados
+        propiedades = query.paginate(page=page, per_page=10, error_out=False)
+    
+        return render_template('encargado/mis_propiedades.html', propiedades=propiedades) 

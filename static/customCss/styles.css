@@ -77,3 +77,104 @@
   max-width: 90vw;
   box-shadow: 0 0 20px rgba(0,0,0,0.2);
 }
+
+.card.compact-propiedad {
+    min-height: 100px;
+    margin-bottom: 8px;
+    padding: 8px 0;
+    width: 100%;
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.card.compact-propiedad .card-body {
+    padding: 10px 18px 10px 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    gap: 1.5rem;
+    flex-wrap: nowrap;
+}
+
+.card.compact-propiedad .img-fluid {
+    max-height: 80px;
+    min-height: 80px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.card.compact-propiedad .card-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+}
+
+.card.compact-propiedad .atributos-botones-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+.card.compact-propiedad .atributos-propiedad {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2.5rem;
+    flex: 1 1 0;
+    width: 100%;
+    min-width: 0;
+}
+
+.card.compact-propiedad .card-text {
+    font-size: 0.97rem;
+    margin-bottom: 0.08rem;
+    margin-right: 0;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.card.compact-propiedad .botones-columna {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    max-width: 420px;
+}
+
+.card.compact-propiedad .btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.97rem;
+    min-width: 100px;
+    max-width: 130px;
+    white-space: nowrap;
+}
+
+.card.compact-propiedad .atributo-label {
+    font-weight: 600;
+    margin-right: 0.2rem;
+}
+
+@keyframes card-appear-3d {
+  0% {
+    opacity: 0;
+    transform: perspective(600px) rotateY(40deg) scale(0.8) translateY(40px);
+  }
+  80% {
+    opacity: 1;
+    transform: perspective(600px) rotateY(-5deg) scale(1.03) translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(600px) rotateY(0deg) scale(1) translateY(0);
+  }
+}
+
+.card-appear-3d {
+  animation: card-appear-3d 0.6s cubic-bezier(.23,1.01,.32,1) both;
+  will-change: transform, opacity;
+}

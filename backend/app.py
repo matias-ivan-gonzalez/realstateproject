@@ -5,11 +5,14 @@ from database import db  # Importa tu configuración de base de datos desde un a
 from config import Config  # Importa la gitclase Config
 from werkzeug.security import generate_password_hash
 from datetime import date
+from flask_mail import Mail
 
 flask_params = {
     'static_folder': os.path.join('..', 'static'),
     'template_folder': os.path.join('..', 'templates')
 }
+
+mail = Mail()  # Instancia global
 
 def create_app():
     app = Flask(__name__, **flask_params)
@@ -19,6 +22,12 @@ def create_app():
     app.config.from_object(Config)
     app.secret_key = 'mi_clave_super_secreta_123'  # Clave secreta para sesión y mensajes flash
     
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'alquilandopropiedades@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'kvbisebwjatkdnrw'
+    mail.init_app(app)
 
     # Inicializar SQLAlchemy
     db.init_app(app)

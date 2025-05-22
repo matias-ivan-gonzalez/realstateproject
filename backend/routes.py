@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from functools import wraps
+from models.propiedad import Propiedad
+from sqlalchemy.sql.expression import func
 from architectural_patterns.controller.user_controller import UserController
 from architectural_patterns.controller.empleado_controller import EmpleadoController
 from architectural_patterns.controller.propiedad_controller import PropiedadController
@@ -24,7 +26,8 @@ def login_required(f):
 # Ruta principal
 @main.route('/')
 def index():
-    return render_template('index.html')
+    propiedades_random = Propiedad.query.order_by(func.random()).limit(6).all()
+    return render_template('index.html', propiedades_random=propiedades_random)
 
 
 @main.route('/login', methods=['GET', 'POST'])
@@ -83,3 +86,26 @@ def perfil():
 def eliminar_cuenta():
     user_controller = UserController()
     return user_controller.delete_account(session)
+
+@main.route('/ver-propiedades')
+@login_required
+def ver_propiedades():
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.list_propiedades(request, session)
+
+@main.route('/propiedad/<int:id>')
+@login_required
+def detalle_propiedad(id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.get_propiedad(id)
+   
+
+@main.route('/recuperar-contraseña', methods=['GET', 'POST'])
+def recuperar_contraseña():
+    user_controller = UserController()
+    return user_controller.recover_password(request)
+
+@main.route('/cambiar-contraseña/<token>', methods=['GET', 'POST'])
+def cambiar_contraseña(token):
+    user_controller = UserController()
+    return user_controller.change_password(request,token)

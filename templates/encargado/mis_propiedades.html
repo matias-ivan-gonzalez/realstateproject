@@ -1,0 +1,32 @@
+{% extends "base_hero.html" %}
+{% from "components/property_card.html" import property_card %}
+{% from "components/search_filter.html" import search_filter %}
+{% from "components/pagination.html" import pagination %}
+
+{% block title %}Mis Propiedades - Alquilando{% endblock %}
+
+{% block hero_content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='customCss/styles.css') }}">
+<div class="container-fluid px-0">
+    <div class="row justify-content-center">
+        <div class="col-12" style="max-width: 95vw;">
+            <h2 class="text-center mb-3">Mis Propiedades</h2>
+            
+            {{ search_filter(url_for('encargado.mis_propiedades')) }}
+            
+            <!-- Lista de propiedades -->
+            <div class="row g-2">
+                {% for propiedad in propiedades.items %}
+                    {{ property_card(propiedad) }}
+                {% else %}
+                <div class="col-12 text-center">
+                    <p class="lead">No tienes propiedades asignadas.</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {{ pagination(propiedades, 'encargado.mis_propiedades') }}
+        </div>
+    </div>
+</div>
+{% endblock %} 
