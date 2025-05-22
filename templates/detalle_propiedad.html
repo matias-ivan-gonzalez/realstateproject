@@ -63,7 +63,9 @@
                             {% endif %}
                         </form>
                     {% endif %}
-                    <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+                    {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                        <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
