@@ -133,8 +133,9 @@
           </ul>
         </nav>
         <script>
-        window.addEventListener("load", function() {
-            var mapas = {{ mapas|tojson|safe }};
+        document.addEventListener("DOMContentLoaded", function() {
+            var mapas = JSON.parse('{{ mapas|tojson|safe }}');
+            if (!Array.isArray(mapas)) return;
             mapas.forEach(function(m) {
                 var map = L.map('mapa-' + m.id).setView([m.lat, m.lng], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

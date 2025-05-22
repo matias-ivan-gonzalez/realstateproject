@@ -54,6 +54,15 @@
                     </div>
                 </div>
                 <div class="card-footer text-end">
+                    {% if session.rol == 'cliente' %}
+                        <form method="POST" action="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" style="display:inline;">
+                            {% if propiedad in session.favoritos %}
+                                <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-warning">Quitar de favoritos</button>
+                            {% else %}
+                                <button class="btn btn-outline-primary">Agregar a favoritos</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
                     <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
                 </div>
             </div>

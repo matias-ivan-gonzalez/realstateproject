@@ -124,3 +124,21 @@ def ver_administradores():
 def ver_encargados():
     user_controller = UserController()
     return user_controller.ver_encargados(session)
+
+@main.route('/favoritos/agregar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def agregar_favorito(propiedad_id):
+    user_controller = UserController()
+    return user_controller.agregar_favorito(session, propiedad_id)
+
+@main.route('/favoritos/quitar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def quitar_favorito(propiedad_id):
+    user_controller = UserController()
+    return user_controller.quitar_favorito(session, propiedad_id)
+
+@main.route('/ver-favoritos')
+@login_required
+def ver_favoritos():
+    user_controller = UserController()
+    return user_controller.ver_favoritos(session)
