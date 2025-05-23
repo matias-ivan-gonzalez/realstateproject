@@ -178,3 +178,24 @@
   animation: card-appear-3d 0.6s cubic-bezier(.23,1.01,.32,1) both;
   will-change: transform, opacity;
 }
+
+.confirm-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-box {
+  background: #fff;
+  border-radius: 8px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  text-align: center;
+  min-width: 300px;
+}
+.confirm-box button {
+  margin: 0 0.5rem;
+}

@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import session
 from models.user import Cliente
 import os
+from flask import request
 
 class PropiedadController:
     
@@ -36,21 +37,36 @@ class PropiedadController:
             return render_template('nueva_propiedad.html')
         return render_template('nueva_propiedad.html')
     
-    def update_propiedad(self):
-        propiedad = {
-            "nombre": "Casa de Prueba",
-            "ubicacion": "Calle Falsa 123",
-            "precio": 150000,
-            "cantidad_habitaciones": 3,
-            "limite_personas": 5,
-            "pet_friendly": True,
-            "cochera": False,
-            "wifi": True,
-            "piscina": False,
-            "patio_trasero": True,
-            "descripcion": "Una casa de prueba para modificar."
-        }
-        action_url = "/propiedades/modificar"
+    def update_propiedad(self, id):
+        propiedad = Propiedad.query.get_or_404(id)
+        action_url = f"/propiedades/modificar/{id}"
+        if request.method == 'POST':
+            data = {
+                "nombre": request.form.get('nombre'),
+                "direccion": request.form.get('direccion'),
+                "ubicacion": request.form.get('ubicacion'),
+                "precio": request.form.get('precio'),
+                "cantidad_habitaciones": request.form.get('cantidad_habitaciones'),
+                "limite_personas": request.form.get('limite_personas'),
+                "pet_friendly": 'pet_friendly' in request.form,
+                "cochera": 'cochera' in request.form,
+                "wifi": 'wifi' in request.form,
+                "piscina": 'piscina' in request.form,
+                "patio_trasero": 'patio_trasero' in request.form,
+                "descripcion": request.form.get('descripcion', ''),
+                "latitud": request.form.get('latitud'),
+                "longitud": request.form.get('longitud'),
+                "reembolsable": 'reembolsable' in request.form,
+                "eliminado": False
+            }
+            success, message = PropiedadService().update_propiedad(id, data)
+            if success:
+                flash('Propiedad modificada correctamente.', 'success')
+                return redirect(url_for('main.ver_propiedades'))
+            else:
+                flash(message, 'danger')
+                propiedad = Propiedad.query.get_or_404(id)
+                return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
         return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
     
     
@@ -85,14 +101,24 @@ class PropiedadController:
         
         
     def get_propiedad(self, id):
-        from flask import request
         propiedad = Propiedad.query.get_or_404(id)
         user_favoritos = []
         if session.get('rol') == 'cliente':
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
                 user_favoritos = cliente.favoritos
-        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, request=request)
+
+        # Obtener la carpeta de imágenes desde nombre_archivo del primer registro de imagen
+        imagenes_files = []
+        if propiedad.imagenes and propiedad.imagenes[0].nombre_archivo:
+            folder = propiedad.imagenes[0].nombre_archivo.replace('\\', '/').replace('static/', '').lstrip('/')
+            folder_path = os.path.join('static', folder)
+            if os.path.isdir(folder_path):
+                for fname in os.listdir(folder_path):
+                    if fname.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
+                        imagenes_files.append(f"{folder}/{fname}")
+
+        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, imagenes_files=imagenes_files, request=request)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -141,6 +167,38 @@ class PropiedadController:
         db.session.commit()
         flash('Imagen eliminada correctamente.', 'success')
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+    
+    def ver_propiedades_asignar(self, session, encargado_id):
+        from models.propiedad import Propiedad
+        from models.user import Usuario
+        encargado = Usuario.query.get_or_404(encargado_id)
+        propiedades = Propiedad.query.filter_by(eliminado=False, encargado_id=None).all()
+        return render_template('asignar_propiedad.html', encargado=encargado, propiedades=propiedades)
+
+    def ver_propiedades_desasignar(self, session, encargado_id):
+        from models.propiedad import Propiedad
+        from models.user import Usuario
+        encargado = Usuario.query.get_or_404(encargado_id)
+        propiedades = Propiedad.query.filter_by(eliminado=False, encargado_id=encargado_id).all()
+        return render_template('desasignar_propiedad.html', encargado=encargado, propiedades=propiedades)
+
+    def asignar_propiedad(self, session, propiedad_id, encargado_id):
+        from models.propiedad import Propiedad
+        from database import db
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        propiedad.encargado_id = encargado_id
+        db.session.commit()
+        flash('Propiedad asignada correctamente.', 'success')
+        return redirect(url_for('main.ver_encargados'))
+
+    def desasignar_propiedad(self, session, propiedad_id):
+        from models.propiedad import Propiedad
+        from database import db
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        propiedad.encargado_id = None
+        db.session.commit()
+        flash('Propiedad desasignada correctamente.', 'success')
+        return redirect(url_for('main.ver_encargados'))
     
     
     
