@@ -68,6 +68,30 @@
     @keyframes fadeInAnim {
         to { opacity: 1; }
     }
+    .custom-modal {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-backdrop {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 1;
+    }
+    .custom-modal-content {
+        position: relative;
+        z-index: 2;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
 </style>
 <div class="container mt-4 fade-in">
     <div class="detalle-grid">
@@ -144,9 +168,29 @@
         <div class="mapa">
             <div class="card shadow h-100">
                 <div class="card-header w-100 text-center">MAPA</div>
-                <div class="card-body w-100 text-center d-flex flex-column align-items-center justify-content-center">
+                <div class="card-body w-100 text-center d-flex flex-column align-items-center justify-content-center position-relative" style="padding:0;">
                     {% if propiedad.latitud and propiedad.longitud %}
-                        <div id="mapa-propiedad" style="height: 200px; width: 100%; max-width: 350px;"></div>
+                        <div style="position:relative; width:100%; max-width:350px;">
+                            <div id="mapa-propiedad" style="height: 200px; width: 100%;"></div>
+                            <div class="leaflet-control leaflet-bar fullscreen-btn-container" style="position:absolute; top:10px; right:10px; z-index:1001;">
+                                <a href="#" id="abrirModalMapa" class="leaflet-control-zoom-in" title="Pantalla completa" role="button" style="display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Modal personalizado para mapa -->
+                        <div id="modalMapaCustom" class="custom-modal" style="display:none;">
+                          <div class="custom-modal-backdrop"></div>
+                          <div class="custom-modal-content" style="max-width:900px; width:90vw; min-height:400px;">
+                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                              <h5 class="mb-0">Mapa de la propiedad</h5>
+                              <button type="button" class="btn-close" id="cerrarModalMapa" aria-label="Cerrar"></button>
+                            </div>
+                            <div style="width:100%; height:60vh; min-height:400px;">
+                              <div id="mapa-propiedad-modal" style="width:100%; height:100%;"></div>
+                            </div>
+                          </div>
+                        </div>
                     {% else %}
                         <p class="text-muted">(Aquí irá el mapa de la propiedad)</p>
                     {% endif %}
@@ -213,17 +257,56 @@
         {% endif %}
     </div>
 </div>
-{% if propiedad.latitud and propiedad.longitud %}
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var coords = [{{ propiedad.latitud|tojson }}, {{ propiedad.longitud|tojson }}];
-        var map = L.map('mapa-propiedad').setView(coords, 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-        L.marker(coords).addTo(map);
+document.addEventListener("DOMContentLoaded", function() {
+    var coords = [{{ propiedad.latitud|tojson }}, {{ propiedad.longitud|tojson }}];
+    // Mapa pequeño
+    var map = L.map('mapa-propiedad').setView(coords, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    L.marker(coords).addTo(map);
+
+    // Modal personalizado
+    var modal = document.getElementById('modalMapaCustom');
+    var abrirBtn = document.getElementById('abrirModalMapa');
+    var cerrarBtn = document.getElementById('cerrarModalMapa');
+    var backdrop = modal.querySelector('.custom-modal-backdrop');
+    var modalMap;
+
+    function abrirModal(e) {
+        e.preventDefault();
+        modal.style.display = 'flex';
+        setTimeout(function() {
+            if (!modalMap) {
+                modalMap = L.map('mapa-propiedad-modal').setView(coords, 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(modalMap);
+                L.marker(coords).addTo(modalMap);
+            } else {
+                modalMap.invalidateSize();
+                modalMap.setView(coords, 15);
+            }
+        }, 100);
+    }
+    function cerrarModal(e) {
+        if (e) e.preventDefault();
+        modal.style.display = 'none';
+        if (modalMap) {
+            modalMap.remove();
+            modalMap = null;
+        }
+    }
+    abrirBtn.addEventListener('click', abrirModal);
+    cerrarBtn.addEventListener('click', cerrarModal);
+    backdrop.addEventListener('click', cerrarModal);
+    // Prevenir cierre al hacer click dentro del contenido
+    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+        e.stopPropagation();
     });
+});
 </script>
-{% endif %}
 {% endblock %} 
