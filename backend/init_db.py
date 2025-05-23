@@ -241,8 +241,8 @@ def init_db():
         prop10.administradores.append(admin)
         
     # Reservas
-    fecha_inicio = '2025-5-20'	
-    fecha_fin = '2025-5-25'
+    fecha_inicio = '2025-6-24'	
+    fecha_fin = '2025-6-30'
     fecha_inicio_convertida = datetime.strptime(fecha_inicio, '%Y-%m-%d')
     fecha_fin_convertida = datetime.strptime(fecha_fin, '%Y-%m-%d')
     reserva1 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida).first()
