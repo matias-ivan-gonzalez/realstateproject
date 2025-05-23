@@ -3,85 +3,518 @@
 {% block title %}Detalle de Propiedad - Alquilando{% endblock %}
 
 {% block hero_content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">{{ propiedad.nombre }}</h3>
-                </div>
+<!-- Leaflet CSS y JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+    .detalle-grid {
+        display: grid;
+        grid-template-columns: 2fr 0.8fr 1.2fr;
+        grid-template-rows: auto 1fr auto;
+        gap: 20px;
+        grid-template-areas:
+            "nombre nombre favoritos"
+            "fotos datos mapa"
+            "caracteristicas-descripcion caracteristicas-descripcion caracteristicas-descripcion";
+        margin-bottom: 30px;
+    }
+    .nombre-propiedad { grid-area: nombre; }
+    .favoritos { grid-area: favoritos; text-align: right; }
+    .fotos { grid-area: fotos; }
+    .datos { grid-area: datos; }
+    .mapa { grid-area: mapa; }
+    .caracteristicas-descripcion-row {
+        grid-area: caracteristicas-descripcion;
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: stretch;
+        width: 100%;
+    }
+    .caracteristicas {
+        width: fit-content;
+        min-width: 160px;
+        flex-shrink: 0;
+    }
+    .descripcion {
+        flex: 1 1 0%;
+        width: auto;
+        min-height: unset;
+    }
+    .favorito-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        vertical-align: middle;
+        transition: color 0.3s ease;
+    }
+    .favorito-btn.filled { 
+        color: #e74c3c; 
+    }
+    .favorito-btn.outline { 
+        color: #aaa; 
+    }
+    .favorito-btn:hover {
+        transform: scale(1.1);
+    }
+    /* Fade-in animation */
+    .fade-in {
+        opacity: 0;
+        animation: fadeInAnim 0.5s ease-in forwards;
+    }
+    @keyframes fadeInAnim {
+        to { opacity: 1; }
+    }
+    .custom-modal {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-backdrop {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 1;
+    }
+    .custom-modal-content {
+        position: relative;
+        z-index: 2;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+        overflow: hidden;
+        max-width: 90vw;
+        width: 90vw;
+        min-width: 320px;
+        min-height: 300px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+    }
+    /* Carrusel modal: flechas visibles y centrado de imagen */
+    #carouselImagenesModal .carousel-control-prev, #carouselImagenesModal .carousel-control-next {
+        width: 48px;
+        height: 48px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(30,30,30,0.7);
+        border-radius: 50%;
+        opacity: 1;
+        z-index: 20;
+    }
+    #carouselImagenesModal .carousel-control-prev-icon, #carouselImagenesModal .carousel-control-next-icon {
+        filter: invert(0) grayscale(1) brightness(0.3);
+        width: 2rem;
+        height: 2rem;
+    }
+    #carouselImagenesModal {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 0;
+    }
+    #carouselImagenesModal .carousel-inner {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    #carouselImagenesModal .carousel-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    #carouselImagenesModal img {
+        max-width: 100%;
+        max-height: 80vh;
+        margin: auto;
+        display: block;
+        object-fit: contain;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+        position: relative;
+    }
+    .carousel-img-container {
+        width: 100%;
+        height: 250px;
+        position: relative;
+        overflow: hidden;
+    }
+    .carousel-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .btn-fullscreen-img {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        background: rgba(255,255,255,0.8);
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    /* Flechas del carrusel Bootstrap en negro sólido */
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-image: none !important;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent !important;
+        border-radius: 50%;
+        border: none;
+    }
+    .carousel-control-prev-icon::after,
+    .carousel-control-next-icon::after {
+        content: '';
+        display: block;
+        width: 2rem;
+        height: 2rem;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+    }
+    .carousel-control-prev-icon::after {
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M11 1.5a1 1 0 0 1 0 1.415L6.914 7.001l4.086 4.086a1 1 0 1 1-1.415 1.415l-4.793-4.793a1 1 0 0 1 0-1.415l4.793-4.793a1 1 0 0 1 1.415 0z'/></svg>");
+    }
+    .carousel-control-next-icon::after {
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M5 14.5a1 1 0 0 1 0-1.415L9.086 9l-4.086-4.086a1 1 0 1 1 1.415-1.415l4.793 4.793a1 1 0 0 1 0 1.415l-4.793 4.793a1 1 0 0 1-1.415 0z'/></svg>");
+    }
+    /* Elimino estilos previos del modal de imagen y agrego estilos simples y fiables */
+    .custom-modal-img {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 3000;
+        background: rgba(0,0,0,0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-img.active {
+        display: flex;
+    }
+    .custom-modal-img-content {
+        background: #fff;
+        border-radius: 10px;
+        max-width: 90vw;
+        max-height: 90vh;
+        width: 700px;
+        min-width: 320px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+        position: relative;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-img-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 2rem;
+        color: #333;
+        background: none;
+        border: none;
+        z-index: 10;
+        cursor: pointer;
+    }
+    .custom-modal-img-carousel {
+        width: 100%;
+        height: 70vh;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 0;
+    }
+    .custom-modal-img-carousel .carousel-inner {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-img-carousel .carousel-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-img-carousel img {
+        max-width: 100%;
+        max-height: 65vh;
+        margin: auto;
+        display: block;
+        object-fit: contain;
+    }
+</style>
+<div class="container mt-4 fade-in">
+    <div class="detalle-grid">
+        <!-- Nombre de la propiedad -->
+        <div class="nombre-propiedad">
+            <h2 class="mb-0">{{ propiedad.nombre }}</h2>
+        </div>
+        <!-- Botón de favoritos -->
+        <div class="favoritos">
+            {% if session.rol == 'cliente' %}
+                <form method="POST" style="display:inline;">
+                    {% if propiedad in user_favoritos %}
+                        <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn filled" title="Quitar de favoritos">❤️</button>
+                    {% else %}
+                        <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn outline" title="Agregar a favoritos">🤍</button>
+                    {% endif %}
+                </form>
+            {% endif %}
+        </div>
+        <!-- Fotos -->
+        <div class="fotos">
+            <div class="card shadow h-100">
+                <div class="card-header text-center">FOTOS</div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
-                            <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
-                            <p><strong>Precio:</strong> ${{ propiedad.precio }}</p>
-                            <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
-                            <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
-                            <p><strong>Pet Friendly:</strong> {{ 'Sí' if propiedad.pet_friendly else 'No' }}</p>
-                            <p><strong>Cochera:</strong> {{ 'Sí' if propiedad.cochera else 'No' }}</p>
-                            <p><strong>WiFi:</strong> {{ 'Sí' if propiedad.wifi else 'No' }}</p>
-                            <p><strong>Piscina:</strong> {{ 'Sí' if propiedad.piscina else 'No' }}</p>
-                            <p><strong>Patio trasero:</strong> {{ 'Sí' if propiedad.patio_trasero else 'No' }}</p>
-                            <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
-                            <p><strong>Latitud:</strong> {{ propiedad.latitud }}</p>
-                            <p><strong>Longitud:</strong> {{ propiedad.longitud }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Descripción:</strong></p>
-                            <p>{{ propiedad.descripcion or 'Sin descripción.' }}</p>
-                            {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
-                                <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
-                                    <div class="carousel-inner">
-                                        {% for imagen in propiedad.imagenes %}
-                                            <div class="carousel-item {% if loop.first %}active{% endif %}" style="position:relative;">
-                                                <img src="{{ url_for('static', filename='img/propiedades/' ~ imagen.nombre_archivo) }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
-                                                {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
-                                                    <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="position:absolute; top:10px; right:10px; z-index:10;">
-                                                        <button type="submit" class="btn btn-danger btn-sm" style="background:rgba(255,0,0,0.8); border:none;" onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Anterior</span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
-                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Siguiente</span>
-                                    </button>
+                    {% if imagenes_files and imagenes_files|length > 0 %}
+                        <div style="position:relative;">
+                            <button class="btn-fullscreen-img" data-bs-toggle="modal" data-bs-target="#modalImagenBootstrap" title="Pantalla completa"><i class="bi bi-arrows-fullscreen"></i></button>
+                            <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    {% for img_path in imagenes_files %}
+                                        <div class="carousel-item {% if loop.first %}active{% endif %} carousel-img-container">
+                                            <img src="{{ url_for('static', filename=img_path) }}" alt="Imagen de {{ propiedad.nombre }}">
+                                        </div>
+                                    {% endfor %}
                                 </div>
-                            {% else %}
-                                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded" alt="Sin imagen">
-                            {% endif %}
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Anterior</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Siguiente</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    {% if session.rol == 'cliente' %}
-                        <form method="POST" style="display:inline;">
-                            {% if propiedad in user_favoritos %}
-                                <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-warning">Quitar de favoritos</button>
-                            {% else %}
-                                <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-outline-primary">Agregar a favoritos</button>
-                            {% endif %}
-                        </form>
+                        <!-- Modal Bootstrap para imagen ampliada -->
+                        <div class="modal fade" id="modalImagenBootstrap" tabindex="-1" aria-labelledby="modalImagenBootstrapLabel" aria-hidden="true" data-bs-backdrop="false">
+                          <div class="modal-dialog modal-dialog-centered modal-xl">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="modalImagenBootstrapLabel">Imágenes</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                              </div>
+                              <div class="modal-body p-0">
+                                <div id="carouselImagenesModalBootstrap" class="carousel slide" data-bs-ride="carousel">
+                                  <div class="carousel-inner">
+                                    {% for img_path in imagenes_files %}
+                                      <div class="carousel-item {% if loop.first %}active{% endif %}" style="height:70vh;display:flex;align-items:center;justify-content:center;">
+                                        <img src="{{ url_for('static', filename=img_path) }}" style="max-width:100%;max-height:65vh;object-fit:contain;margin:auto;display:block;" alt="Imagen de {{ propiedad.nombre }}">
+                                      </div>
+                                    {% endfor %}
+                                  </div>
+                                  <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenesModalBootstrap" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Anterior</span>
+                                  </button>
+                                  <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenesModalBootstrap" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Siguiente</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded mx-auto d-block" alt="Sin imagen">
                     {% endif %}
                     {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
-                        <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" style="display:inline;">
-                            <input type="file" name="imagenes" accept="image/*" multiple required style="display:inline-block; max-width:200px;">
-                            <button type="submit" class="btn btn-success">Agregar imagen</button>
+                        <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" class="mt-2">
+                            <input type="file" name="imagenes" accept="image/*" multiple required style="max-width:200px;">
+                            <button type="submit" class="btn btn-success btn-sm">Agregar imagen</button>
                         </form>
-                        <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
-                    {% endif %}
-                    {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
-                        <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
                     {% endif %}
                 </div>
             </div>
         </div>
+        <!-- Datos -->
+        <div class="datos">
+            <div class="card shadow h-100">
+                <div class="card-header">DATOS</div>
+                <div class="card-body">
+                    <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+                    <p><strong>Precio:</strong> ${{ propiedad.precio }}</p>
+                    <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
+                    <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
+                    <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Mapa -->
+        <div class="mapa">
+            <div class="card shadow h-100">
+                <div class="card-header w-100 text-center">MAPA</div>
+                <div class="card-body w-100 text-center d-flex flex-column align-items-center justify-content-center position-relative" style="padding:0;">
+                    {% if propiedad.latitud and propiedad.longitud %}
+                        <div style="position:relative; width:100%; max-width:350px;">
+                            <div id="mapa-propiedad" style="height: 200px; width: 100%;"></div>
+                            <div class="leaflet-control leaflet-bar fullscreen-btn-container" style="position:absolute; top:10px; right:10px; z-index:1001;">
+                                <a href="#" id="abrirModalMapa" class="leaflet-control-zoom-in" title="Pantalla completa" role="button" style="display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Modal personalizado para mapa -->
+                        <div id="modalMapaCustom" class="custom-modal" style="display:none;">
+                          <div class="custom-modal-backdrop"></div>
+                          <div class="custom-modal-content" style="max-width:900px; width:90vw; min-height:400px;">
+                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                              <h5 class="mb-0">Mapa de la propiedad</h5>
+                              <button type="button" class="btn-close" id="cerrarModalMapa" aria-label="Cerrar"></button>
+                            </div>
+                            <div style="width:100%; height:60vh; min-height:400px;">
+                              <div id="mapa-propiedad-modal" style="width:100%; height:100%;"></div>
+                            </div>
+                          </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">(Aquí irá el mapa de la propiedad)</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Características y Descripción -->
+        <div class="caracteristicas-descripcion-row">
+            <div class="caracteristicas">
+                <div class="card shadow h-100" style="width: fit-content;">
+                    <div class="card-header text-center">CARACTERISTICAS</div>
+                    <div class="card-body p-2">
+                        <div class="d-flex flex-column gap-1">
+                            {% if propiedad.wifi %}
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-wifi me-2" style="font-size: 1.1rem;"></i>
+                                <span>WiFi</span>
+                            </div>
+                            {% endif %}
+                            {% if propiedad.piscina %}
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-water me-2" style="font-size: 1.1rem;"></i>
+                                <span>Piscina</span>
+                            </div>
+                            {% endif %}
+                            {% if propiedad.cochera %}
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-car-front me-2" style="font-size: 1.1rem;"></i>
+                                <span>Cochera</span>
+                            </div>
+                            {% endif %}
+                            {% if propiedad.pet_friendly %}
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-cat me-2" style="font-size: 1.1rem;"></i>
+                                <span>Pet Friendly</span>
+                            </div>
+                            {% endif %}
+                            {% if propiedad.patio_trasero %}
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-tree me-2" style="font-size: 1.1rem;"></i>
+                                <span>Patio trasero</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="descripcion">
+                <div class="card shadow h-100" style="height: 100%;">
+                    <div class="card-header text-center">DESCRIPCION</div>
+                    <div class="card-body">
+                        <p>{{ propiedad.descripcion or 'Sin descripción.' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mb-2">
+        {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+            <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+        {% endif %}
+        {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+            <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+        {% endif %}
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var coords = [{{ propiedad.latitud|tojson }}, {{ propiedad.longitud|tojson }}];
+    // Mapa pequeño
+    var map = L.map('mapa-propiedad').setView(coords, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    L.marker(coords).addTo(map);
+
+    // Modal personalizado
+    var modal = document.getElementById('modalMapaCustom');
+    var abrirBtn = document.getElementById('abrirModalMapa');
+    var cerrarBtn = document.getElementById('cerrarModalMapa');
+    var backdrop = modal.querySelector('.custom-modal-backdrop');
+    var modalMap;
+
+    function abrirModal(e) {
+        e.preventDefault();
+        modal.style.display = 'flex';
+        setTimeout(function() {
+            if (!modalMap) {
+                modalMap = L.map('mapa-propiedad-modal').setView(coords, 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(modalMap);
+                L.marker(coords).addTo(modalMap);
+            } else {
+                modalMap.invalidateSize();
+                modalMap.setView(coords, 15);
+            }
+        }, 100);
+    }
+    function cerrarModal(e) {
+        if (e) e.preventDefault();
+        modal.style.display = 'none';
+        if (modalMap) {
+            modalMap.remove();
+            modalMap = null;
+        }
+    }
+    abrirBtn.addEventListener('click', abrirModal);
+    cerrarBtn.addEventListener('click', cerrarModal);
+    backdrop.addEventListener('click', cerrarModal);
+    // Prevenir cierre al hacer click dentro del contenido
+    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
 {% endblock %} 
