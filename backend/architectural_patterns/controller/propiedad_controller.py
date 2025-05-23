@@ -153,5 +153,37 @@ class PropiedadController:
         flash('Imagen eliminada correctamente.', 'success')
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     
+    def ver_propiedades_asignar(self, session, encargado_id):
+        from models.propiedad import Propiedad
+        from models.user import Usuario
+        encargado = Usuario.query.get_or_404(encargado_id)
+        propiedades = Propiedad.query.filter_by(eliminado=False, encargado_id=None).all()
+        return render_template('asignar_propiedad.html', encargado=encargado, propiedades=propiedades)
+
+    def ver_propiedades_desasignar(self, session, encargado_id):
+        from models.propiedad import Propiedad
+        from models.user import Usuario
+        encargado = Usuario.query.get_or_404(encargado_id)
+        propiedades = Propiedad.query.filter_by(eliminado=False, encargado_id=encargado_id).all()
+        return render_template('desasignar_propiedad.html', encargado=encargado, propiedades=propiedades)
+
+    def asignar_propiedad(self, session, propiedad_id, encargado_id):
+        from models.propiedad import Propiedad
+        from database import db
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        propiedad.encargado_id = encargado_id
+        db.session.commit()
+        flash('Propiedad asignada correctamente.', 'success')
+        return redirect(url_for('main.ver_encargados'))
+
+    def desasignar_propiedad(self, session, propiedad_id):
+        from models.propiedad import Propiedad
+        from database import db
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        propiedad.encargado_id = None
+        db.session.commit()
+        flash('Propiedad desasignada correctamente.', 'success')
+        return redirect(url_for('main.ver_encargados'))
+    
     
     

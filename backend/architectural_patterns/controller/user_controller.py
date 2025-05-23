@@ -165,7 +165,7 @@ class UserController:
         if user_rol not in ['superusuario', 'administrador']:
             flash('No tienes permiso para ver los administradores.', 'danger')
             return redirect(url_for('main.index'))
-        administradores = Administrador.query.all()
+        administradores = Administrador.query.filter_by(eliminado=False).all()
         return render_template('ver_administradores.html', administradores=administradores)
 
     def ver_encargados(self, session):
@@ -173,7 +173,7 @@ class UserController:
         if user_rol not in ['superusuario', 'administrador']:
             flash('No tienes permiso para ver los encargados.', 'danger')
             return redirect(url_for('main.index'))
-        encargados = Encargado.query.all()
+        encargados = Encargado.query.filter_by(eliminado=False).all()
         return render_template('ver_encargados.html', encargados=encargados)
 
     def agregar_favorito(self, session, propiedad_id):
@@ -224,3 +224,38 @@ class UserController:
         cliente = Cliente.query.get(user_id)
         favoritos = cliente.favoritos
         return render_template('favoritos.html', favoritos=favoritos)
+
+    def eliminar_encargado(self, session, id):
+        user_rol = session.get('rol')
+        if user_rol not in ['administrador', 'superusuario']:
+            flash('No tienes permiso para eliminar encargados.', 'danger')
+            return redirect(url_for('main.ver_encargados'))
+        from models.user import Encargado
+        encargado = Encargado.query.get(id)
+        if not encargado:
+            flash('Encargado no encontrado.', 'danger')
+            return redirect(url_for('main.ver_encargados'))
+        if hasattr(encargado, 'propiedades_encargadas') and encargado.propiedades_encargadas:
+            if len(encargado.propiedades_encargadas) > 0:
+                flash('No es posible eliminar un encargado que tiene propiedades asignadas.', 'danger')
+                return redirect(url_for('main.ver_encargados'))
+        user_service = UserService()
+        success = user_service.eliminar_usuario_logico(id)
+        if success:
+            flash('Encargado eliminado correctamente.', 'success')
+        else:
+            flash('No se pudo eliminar el encargado.', 'danger')
+        return redirect(url_for('main.ver_encargados'))
+
+    def eliminar_administrador(self, session, id):
+        user_rol = session.get('rol')
+        if user_rol != 'superusuario':
+            flash('No tienes permiso para eliminar administradores.', 'danger')
+            return redirect(url_for('main.ver_administradores'))
+        user_service = UserService()
+        success = user_service.eliminar_usuario_logico(id)
+        if success:
+            flash('Administrador eliminado correctamente.', 'success')
+        else:
+            flash('No se pudo eliminar el administrador.', 'danger')
+        return redirect(url_for('main.ver_administradores'))

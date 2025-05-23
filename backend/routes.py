@@ -154,3 +154,37 @@ def agregar_imagen(id):
 def eliminar_imagen(imagen_id):
     propiedad_controller = PropiedadController()
     return propiedad_controller.eliminar_imagen(imagen_id)
+
+@main.route('/encargado/eliminar/<int:id>', methods=['POST'])
+def eliminar_encargado(id):
+    user_controller = UserController()
+    return user_controller.eliminar_encargado(session, id)
+
+@main.route('/administrador/eliminar/<int:id>', methods=['POST'])
+def eliminar_administrador(id):
+    user_controller = UserController()
+    return user_controller.eliminar_administrador(session, id)
+
+@main.route('/encargado/<int:encargado_id>/propiedades/asignar')
+def ver_propiedades_asignar(encargado_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.ver_propiedades_asignar(session, encargado_id)
+
+@main.route('/encargado/<int:encargado_id>/propiedades/desasignar')
+def ver_propiedades_desasignar(encargado_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.ver_propiedades_desasignar(session, encargado_id)
+
+@main.route('/propiedad/<int:propiedad_id>/asignar/<int:encargado_id>', methods=['POST'])
+def asignar_propiedad(propiedad_id, encargado_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)
+
+@main.route('/propiedad/<int:propiedad_id>/desasignar', methods=['POST'])
+def desasignar_propiedad(propiedad_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.desasignar_propiedad(session, propiedad_id)

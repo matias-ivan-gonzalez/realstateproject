@@ -14,6 +14,9 @@
                     <th>Email</th>
                     <th>Teléfono</th>
                     <th>DNI</th>
+                    {% if session.rol == 'superusuario' %}
+                    <th>Acción</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +27,13 @@
                     <td>{{ admin.email }}</td>
                     <td>{{ admin.telefono }}</td>
                     <td>{{ admin.dni }}</td>
+                    {% if session.rol == 'superusuario' %}
+                    <td>
+                        <form method="POST" action="{{ url_for('main.eliminar_administrador', id=admin.id) }}" style="display:inline;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="mostrarConfirmacion(this, '¿seguro quiere eliminar este administrador?')">Eliminar</button>
+                        </form>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% else %}
                 <tr>
