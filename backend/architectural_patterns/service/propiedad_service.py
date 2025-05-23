@@ -1,10 +1,13 @@
 from architectural_patterns.repository.propiedad_repository import PropiedadRepository
+from sqlalchemy import func
 
 class PropiedadService:
     def __init__(self, repository=None):
         self.repository = repository or PropiedadRepository
 
     def crear_propiedad(self, data):
+        # Normalizar el nombre
+        nombre_normalizado = data["nombre"].strip().lower()
         # Validación de campos obligatorios
         required_fields = [
             "nombre", "ubicacion", "precio", "cantidad_habitaciones", "limite_personas"
@@ -22,7 +25,7 @@ class PropiedadService:
             return False, "Precio, cantidad de habitaciones y límite de personas deben ser numéricos."
 
         # Validación de unicidad del nombre usando el repository
-        if self.repository.get_by_nombre(data["nombre"]):
+        if self.repository.get_by_nombre(nombre_normalizado):
             return False, "Ya existe una propiedad con ese nombre."
 
         # Guardar en la base de datos
@@ -30,6 +33,8 @@ class PropiedadService:
             self.repository.crear_propiedad(data)
             return True, "Propiedad guardada exitosamente."
         except Exception as e:
+            if "UNIQUE constraint failed: propiedad.nombre" in str(e):
+                return False, "Ya existe una propiedad con ese nombre."
             return False, f"Error al guardar la propiedad: {str(e)}"
 
     def update_propiedad(self, propiedad_id, data):
