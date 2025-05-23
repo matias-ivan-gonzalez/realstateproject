@@ -3,85 +3,169 @@
 {% block title %}Detalle de Propiedad - Alquilando{% endblock %}
 
 {% block hero_content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">{{ propiedad.nombre }}</h3>
-                </div>
+<style>
+    .detalle-grid {
+        display: grid;
+        grid-template-columns: 2fr 1.2fr 1.2fr;
+        grid-template-rows: auto 1fr auto 1fr;
+        gap: 20px;
+        grid-template-areas:
+            "nombre nombre favoritos"
+            "fotos datos form"
+            "caracteristicas datos form"
+            "descripcion mapa mapa";
+        margin-bottom: 30px;
+    }
+    .nombre-propiedad { grid-area: nombre; }
+    .favoritos { grid-area: favoritos; text-align: right; }
+    .fotos { grid-area: fotos; }
+    .datos { grid-area: datos; }
+    .form-reserva { grid-area: form; }
+    .caracteristicas { grid-area: caracteristicas; }
+    .descripcion { grid-area: descripcion; }
+    .mapa { grid-area: mapa; }
+    .favorito-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #e74c3c;
+        cursor: pointer;
+        vertical-align: middle;
+    }
+    .favorito-btn.filled { color: #e74c3c; }
+    .favorito-btn.outline { color: #aaa; }
+    /* Fade-in animation */
+    .fade-in {
+        opacity: 0;
+        animation: fadeInAnim 0.5s ease-in forwards;
+    }
+    @keyframes fadeInAnim {
+        to { opacity: 1; }
+    }
+</style>
+<div class="container mt-4 fade-in">
+    <div class="detalle-grid">
+        <!-- Nombre de la propiedad -->
+        <div class="nombre-propiedad">
+            <h2 class="mb-0">{{ propiedad.nombre }}</h2>
+        </div>
+        <!-- Botón de favoritos -->
+        <div class="favoritos">
+            {% if session.rol == 'cliente' %}
+                <form method="POST" style="display:inline;">
+                    {% if propiedad in user_favoritos %}
+                        <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn filled" title="Quitar de favoritos">&#10084;</button>
+                    {% else %}
+                        <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn outline" title="Agregar a favoritos">&#10084;</button>
+                    {% endif %}
+                </form>
+            {% endif %}
+        </div>
+        <!-- Fotos -->
+        <div class="fotos">
+            <div class="card shadow h-100">
+                <div class="card-header text-center">FOTOS</div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
-                            <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
-                            <p><strong>Precio:</strong> ${{ propiedad.precio }}</p>
-                            <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
-                            <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
-                            <p><strong>Pet Friendly:</strong> {{ 'Sí' if propiedad.pet_friendly else 'No' }}</p>
-                            <p><strong>Cochera:</strong> {{ 'Sí' if propiedad.cochera else 'No' }}</p>
-                            <p><strong>WiFi:</strong> {{ 'Sí' if propiedad.wifi else 'No' }}</p>
-                            <p><strong>Piscina:</strong> {{ 'Sí' if propiedad.piscina else 'No' }}</p>
-                            <p><strong>Patio trasero:</strong> {{ 'Sí' if propiedad.patio_trasero else 'No' }}</p>
-                            <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
-                            <p><strong>Latitud:</strong> {{ propiedad.latitud }}</p>
-                            <p><strong>Longitud:</strong> {{ propiedad.longitud }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Descripción:</strong></p>
-                            <p>{{ propiedad.descripcion or 'Sin descripción.' }}</p>
-                            {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
-                                <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
-                                    <div class="carousel-inner">
-                                        {% for imagen in propiedad.imagenes %}
-                                            <div class="carousel-item {% if loop.first %}active{% endif %}" style="position:relative;">
-                                                <img src="{{ url_for('static', filename='img/propiedades/' ~ imagen.nombre_archivo) }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
-                                                {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
-                                                    <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="position:absolute; top:10px; right:10px; z-index:10;">
-                                                        <button type="submit" class="btn btn-danger btn-sm" style="background:rgba(255,0,0,0.8); border:none;" onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        {% endfor %}
+                    {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                        <div id="carouselImagenes" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                {% for imagen in propiedad.imagenes %}
+                                    <div class="carousel-item {% if loop.first %}active{% endif %}" style="position:relative;">
+                                        <img src="{{ url_for('static', filename='img/propiedades/' ~ imagen.nombre_archivo) }}" class="d-block w-100 rounded" alt="Imagen de {{ propiedad.nombre }}">
+                                        {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                                            <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="position:absolute; top:10px; right:10px; z-index:10;">
+                                                <button type="submit" class="btn btn-danger btn-sm" style="background:rgba(255,0,0,0.8); border:none;" onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</button>
+                                            </form>
+                                        {% endif %}
                                     </div>
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Anterior</span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
-                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Siguiente</span>
-                                    </button>
-                                </div>
-                            {% else %}
-                                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded" alt="Sin imagen">
-                            {% endif %}
+                                {% endfor %}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Siguiente</span>
+                            </button>
                         </div>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    {% if session.rol == 'cliente' %}
-                        <form method="POST" style="display:inline;">
-                            {% if propiedad in user_favoritos %}
-                                <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-warning">Quitar de favoritos</button>
-                            {% else %}
-                                <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="btn btn-outline-primary">Agregar a favoritos</button>
-                            {% endif %}
-                        </form>
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded mx-auto d-block" alt="Sin imagen">
                     {% endif %}
                     {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
-                        <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" style="display:inline;">
-                            <input type="file" name="imagenes" accept="image/*" multiple required style="display:inline-block; max-width:200px;">
-                            <button type="submit" class="btn btn-success">Agregar imagen</button>
+                        <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" class="mt-2">
+                            <input type="file" name="imagenes" accept="image/*" multiple required style="max-width:200px;">
+                            <button type="submit" class="btn btn-success btn-sm">Agregar imagen</button>
                         </form>
-                        <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
-                    {% endif %}
-                    {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
-                        <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
                     {% endif %}
                 </div>
             </div>
         </div>
+        <!-- Datos -->
+        <div class="datos">
+            <div class="card shadow h-100">
+                <div class="card-header">DATOS</div>
+                <div class="card-body">
+                    <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+                    <p><strong>Precio:</strong> ${{ propiedad.precio }}</p>
+                    <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
+                    <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
+                    <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Form reservar -->
+        <div class="form-reserva">
+            <div class="card shadow h-100 d-flex align-items-center justify-content-center">
+                <div class="card-header w-100 text-center">Form reservar</div>
+                <div class="card-body w-100 text-center d-flex flex-column align-items-center justify-content-center">
+                    <p class="text-muted">(Aquí irá el formulario de reserva)</p>
+                </div>
+            </div>
+        </div>
+        <!-- Características -->
+        <div class="caracteristicas">
+            <div class="card shadow h-100">
+                <div class="card-header text-center">CARACTERISTICAS</div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>Pet Friendly:</strong> {{ 'Sí' if propiedad.pet_friendly else 'No' }}</li>
+                        <li><strong>Cochera:</strong> {{ 'Sí' if propiedad.cochera else 'No' }}</li>
+                        <li><strong>WiFi:</strong> {{ 'Sí' if propiedad.wifi else 'No' }}</li>
+                        <li><strong>Piscina:</strong> {{ 'Sí' if propiedad.piscina else 'No' }}</li>
+                        <li><strong>Patio trasero:</strong> {{ 'Sí' if propiedad.patio_trasero else 'No' }}</li>
+                        <li><strong>Latitud:</strong> {{ propiedad.latitud }}</li>
+                        <li><strong>Longitud:</strong> {{ propiedad.longitud }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Descripción -->
+        <div class="descripcion">
+            <div class="card shadow h-100">
+                <div class="card-header text-center">DESCRIPCION</div>
+                <div class="card-body">
+                    <p>{{ propiedad.descripcion or 'Sin descripción.' }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Mapa -->
+        <div class="mapa">
+            <div class="card shadow h-100 d-flex align-items-center justify-content-center">
+                <div class="card-header w-100 text-center">MAPA</div>
+                <div class="card-body w-100 text-center d-flex flex-column align-items-center justify-content-center">
+                    <p class="text-muted">(Aquí irá el mapa de la propiedad)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mb-2">
+        {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+            <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+        {% endif %}
+        {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+            <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %} 
