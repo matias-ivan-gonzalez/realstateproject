@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import session
 from models.user import Cliente
 import os
+from flask import request
 
 class PropiedadController:
     
@@ -36,21 +37,36 @@ class PropiedadController:
             return render_template('nueva_propiedad.html')
         return render_template('nueva_propiedad.html')
     
-    def update_propiedad(self):
-        propiedad = {
-            "nombre": "Casa de Prueba",
-            "ubicacion": "Calle Falsa 123",
-            "precio": 150000,
-            "cantidad_habitaciones": 3,
-            "limite_personas": 5,
-            "pet_friendly": True,
-            "cochera": False,
-            "wifi": True,
-            "piscina": False,
-            "patio_trasero": True,
-            "descripcion": "Una casa de prueba para modificar."
-        }
-        action_url = "/propiedades/modificar"
+    def update_propiedad(self, id):
+        propiedad = Propiedad.query.get_or_404(id)
+        action_url = f"/propiedades/modificar/{id}"
+        if request.method == 'POST':
+            data = {
+                "nombre": request.form.get('nombre'),
+                "direccion": request.form.get('direccion'),
+                "ubicacion": request.form.get('ubicacion'),
+                "precio": request.form.get('precio'),
+                "cantidad_habitaciones": request.form.get('cantidad_habitaciones'),
+                "limite_personas": request.form.get('limite_personas'),
+                "pet_friendly": 'pet_friendly' in request.form,
+                "cochera": 'cochera' in request.form,
+                "wifi": 'wifi' in request.form,
+                "piscina": 'piscina' in request.form,
+                "patio_trasero": 'patio_trasero' in request.form,
+                "descripcion": request.form.get('descripcion', ''),
+                "latitud": request.form.get('latitud'),
+                "longitud": request.form.get('longitud'),
+                "reembolsable": 'reembolsable' in request.form,
+                "eliminado": False
+            }
+            success, message = PropiedadService().update_propiedad(id, data)
+            if success:
+                flash('Propiedad modificada correctamente.', 'success')
+                return redirect(url_for('main.ver_propiedades'))
+            else:
+                flash(message, 'danger')
+                propiedad = Propiedad.query.get_or_404(id)
+                return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
         return render_template('modificar_propiedad.html', propiedad=propiedad, action_url=action_url)
     
     
@@ -85,7 +101,6 @@ class PropiedadController:
         
         
     def get_propiedad(self, id):
-        from flask import request
         propiedad = Propiedad.query.get_or_404(id)
         user_favoritos = []
         if session.get('rol') == 'cliente':

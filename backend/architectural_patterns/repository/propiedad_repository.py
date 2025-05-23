@@ -1,5 +1,6 @@
 from models.propiedad import Propiedad
 from database import db
+from sqlalchemy import func
 
 class PropiedadRepository:
 
@@ -37,7 +38,10 @@ class PropiedadRepository:
 
     @staticmethod
     def get_by_nombre(nombre):
-        return Propiedad.query.filter_by(nombre=nombre, eliminado=False).first()
+        return Propiedad.query.filter(
+            func.lower(func.trim(Propiedad.nombre)) == nombre.strip().lower(),
+            Propiedad.eliminado == False
+        ).first()
     @staticmethod
     def crear_propiedad(data):
         propiedad = Propiedad(**data)
@@ -52,7 +56,11 @@ class PropiedadRepository:
             return False, "Propiedad no encontrada"
         # Validar nombre único (excepto para sí misma)
         if 'nombre' in data and data['nombre']:
-            existente = Propiedad.query.filter(Propiedad.nombre == data['nombre'], Propiedad.id != propiedad_id).first()
+            nombre_normalizado = data['nombre'].strip().lower()
+            existente = Propiedad.query.filter(
+                func.lower(func.trim(Propiedad.nombre)) == nombre_normalizado,
+                Propiedad.id != propiedad_id
+            ).first()
             if existente:
                 return False, "Nombre de la propiedad existente"
         for key, value in data.items():
