@@ -16,7 +16,7 @@
                 <input class="form-control" type="search" name="ubicacion" id="ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion }}">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-3">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Buscar</button>
+                <button type="submit" class="btn btn-primary w-100" id="btn-buscar" disabled><i class="bi bi-search me-2"></i>Buscar</button>
             </div>
         </div>
         <!-- Rango de fechas movido debajo de ubicación -->
@@ -174,6 +174,14 @@
       precioMin.disabled = !enabled;
       precioMax.disabled = !enabled;
     }
+    // --- NUEVO: Habilitar/deshabilitar botón Buscar según input ubicación ---
+    const ubicacionInput = document.getElementById('ubicacion');
+    const btnBuscar = document.getElementById('btn-buscar');
+    function toggleBuscarBtn() {
+      btnBuscar.disabled = ubicacionInput.value.trim() === '';
+    }
+    ubicacionInput.addEventListener('input', toggleBuscarBtn);
+    toggleBuscarBtn();
     document.getElementById('fecha_inicio').addEventListener('input', function() {
       setFechaFinMin();
       togglePriceInputs();
