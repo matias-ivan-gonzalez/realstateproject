@@ -92,7 +92,18 @@ class PropiedadController:
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
                 user_favoritos = cliente.favoritos
-        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, request=request)
+
+        # Obtener la carpeta de imágenes desde nombre_archivo del primer registro de imagen
+        imagenes_files = []
+        if propiedad.imagenes and propiedad.imagenes[0].nombre_archivo:
+            folder = propiedad.imagenes[0].nombre_archivo.replace('\\', '/').replace('static/', '').lstrip('/')
+            folder_path = os.path.join('static', folder)
+            if os.path.isdir(folder_path):
+                for fname in os.listdir(folder_path):
+                    if fname.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
+                        imagenes_files.append(f"{folder}/{fname}")
+
+        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, imagenes_files=imagenes_files, request=request)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
