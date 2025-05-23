@@ -13,6 +13,7 @@ class Usuario(db.Model):
     contrasena = db.Column(db.String(100), nullable=False)
     telefono = db.Column(db.String(20), nullable=False)
     nacionalidad = db.Column(db.String(50), nullable=False)
+    eliminado = db.Column(db.Boolean, default=False, nullable=False)
     
     
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))

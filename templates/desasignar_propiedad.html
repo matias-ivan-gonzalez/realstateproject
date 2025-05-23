@@ -1,0 +1,35 @@
+{% extends 'base_hero.html' %}
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Desasignar propiedad de {{ encargado.nombre }} {{ encargado.apellido }}</h2>
+    {% if propiedades|length == 0 %}
+        <div class="alert alert-info">No hay propiedades asignadas a este encargado.</div>
+    {% else %}
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>Ubicación</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for propiedad in propiedades %}
+            <tr>
+                <td>{{ propiedad.nombre }}</td>
+                <td>{{ propiedad.direccion }}</td>
+                <td>{{ propiedad.ubicacion }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('main.desasignar_propiedad', propiedad_id=propiedad.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-primary btn-sm">Desasignar</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <a href="{{ url_for('main.ver_encargados') }}" class="btn btn-secondary mt-3">Volver</a>
+</div>
+{% endblock %} 

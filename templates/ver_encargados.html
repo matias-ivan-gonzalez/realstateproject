@@ -5,6 +5,12 @@
 {% block hero_content %}
 <div class="container mt-4">
     <h2 class="text-center mb-4">Lista de Encargados</h2>
+    <div class="d-flex justify-content-end mb-2">
+        {% if encargados|length > 0 and session.rol in ['administrador', 'superusuario'] %}
+            <!-- Botón general para eliminar encargados seleccionados o instrucciones -->
+            <!-- Aquí podrías poner instrucciones o un botón general si implementas selección múltiple -->
+        {% endif %}
+    </div>
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
             <thead class="table-light">
@@ -14,6 +20,9 @@
                     <th>Email</th>
                     <th>Teléfono</th>
                     <th>DNI</th>
+                    {% if session.rol in ['administrador', 'superusuario'] %}
+                    <th>Acción</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +33,17 @@
                     <td>{{ encargado.email }}</td>
                     <td>{{ encargado.telefono }}</td>
                     <td>{{ encargado.dni }}</td>
+                    {% if session.rol in ['administrador', 'superusuario'] %}
+                    <td>
+                        <form method="POST" action="{{ url_for('main.eliminar_encargado', id=encargado.id) }}" style="display:inline;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="mostrarConfirmacion(this, '¿seguro quiere eliminar este encargado?')">Eliminar</button>
+                        </form>
+                        <a href="{{ url_for('main.ver_propiedades_asignar', encargado_id=encargado.id) }}" class="btn btn-success btn-sm ms-1">Asignar propiedades</a>
+                        {% if encargado.propiedades_encargadas|length > 0 %}
+                        <a href="{{ url_for('main.ver_propiedades_desasignar', encargado_id=encargado.id) }}" class="btn btn-primary btn-sm ms-1">Desasignar propiedades</a>
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% else %}
                 <tr>

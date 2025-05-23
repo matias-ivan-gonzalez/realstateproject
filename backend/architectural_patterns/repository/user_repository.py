@@ -41,14 +41,9 @@ class UserRepository:
         user = db.session.get(Usuario, user_id)
         if not user:
             return False
-        user.nombre = '[eliminated]'
-        user.apellido = '[eliminated]'
-        user.email = f'eliminated_{user.id}@deleted.com'
-        user.dni = '[eliminated]'
-        user.telefono = '[eliminated]'
-        if hasattr(user, 'tarjeta'):
-            user.tarjeta = '[eliminated]'
-        if hasattr(user, 'fecha_nacimiento'):
-            user.fecha_nacimiento = None
+        user.eliminado = True
+        # Modificar email y dni para evitar conflictos de unicidad
+        user.email = f'eliminated_{user.id}_{user.email}'
+        user.dni = f'eliminated_{user.id}_{user.dni}'
         db.session.commit()
         return True 
