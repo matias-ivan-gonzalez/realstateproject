@@ -91,8 +91,8 @@
                                 </a>
                             </h5>
                             <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
+                            <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
                             {% if cantidad_noches %}
-                                <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
                                 <p class="card-text">Total ({{ cantidad_noches }} noches): ${{ precios_totales[propiedad.id] }}</p>
                             {% endif %}
                             <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
@@ -165,15 +165,6 @@
         fechaFinInput.min = '';
       }
     }
-    function togglePriceInputs() {
-      const fechaInicio = document.getElementById('fecha_inicio').value;
-      const fechaFin = document.getElementById('fecha_fin').value;
-      const precioMin = document.getElementById('precio_min');
-      const precioMax = document.getElementById('precio_max');
-      const enabled = fechaInicio && fechaFin;
-      precioMin.disabled = !enabled;
-      precioMax.disabled = !enabled;
-    }
     // --- NUEVO: Habilitar/deshabilitar botón Buscar según input ubicación ---
     const ubicacionInput = document.getElementById('ubicacion');
     const btnBuscar = document.getElementById('btn-buscar');
@@ -184,10 +175,8 @@
     toggleBuscarBtn();
     document.getElementById('fecha_inicio').addEventListener('input', function() {
       setFechaFinMin();
-      togglePriceInputs();
     });
     document.getElementById('fecha_fin').addEventListener('input', function() {
-      togglePriceInputs();
     });
     // Validación al enviar el formulario
     document.querySelector('form').addEventListener('submit', function(e) {
@@ -199,7 +188,6 @@
       }
     });
     setFechaFinMin(); // <-- Esto asegura que al cargar la página se ajuste el min
-    togglePriceInputs();
   });
 </script>
 {% endblock %}
