@@ -4,7 +4,7 @@
     {% if session.rol in ['administrador', 'superusuario'] %}
     <a href="{{ url_for('main.modificar_propiedad', id=propiedad.id) }}" class="btn btn-warning">Editar</a>
     <form method="POST" action="{{ url_for('main.eliminar_propiedad', id=propiedad.id) }}" style="display:inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('¿Deseas eliminar esta propiedad?')">Eliminar</button>
+        <button type="button" class="btn btn-danger" onclick="mostrarConfirmacion(this, '¿Deseas eliminar esta propiedad?')">Eliminar</button>
     </form>
     {% endif %}
 </div>
