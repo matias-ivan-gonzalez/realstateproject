@@ -62,8 +62,22 @@ class SearchService:
                 if cumple_min and cumple_max:
                     propiedades_filtradas.append(propiedad)
             else:
+                # Si no hay fechas, filtrar por precio por noche
+                cumple_min = True
+                cumple_max = True
+                if data['precio_min']:
+                    try:
+                        cumple_min = propiedad.precio >= float(data['precio_min'])
+                    except Exception:
+                        cumple_min = True
+                if data['precio_max']:
+                    try:
+                        cumple_max = propiedad.precio <= float(data['precio_max'])
+                    except Exception:
+                        cumple_max = True
+                if cumple_min and cumple_max:
+                    propiedades_filtradas.append(propiedad)
                 precios_totales[propiedad.id] = None
-                propiedades_filtradas.append(propiedad)
 
         # Ordenar por precio si se solicita
         if data.get('orden_precio') == 'asc':
