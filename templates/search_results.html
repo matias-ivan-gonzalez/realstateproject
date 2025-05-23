@@ -180,8 +180,14 @@
 
     // Validación de fechas
     function setFechaFinMin() {
-      const fechaInicio = document.getElementById('fecha_inicio').value;
+      const fechaInicioInput = document.getElementById('fecha_inicio');
       const fechaFinInput = document.getElementById('fecha_fin');
+      // Establecer min de fecha de inicio a hoy
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      fechaInicioInput.min = todayStr;
+      // Lógica existente para fecha fin
+      const fechaInicio = fechaInicioInput.value;
       if (fechaInicio) {
         const minDate = new Date(fechaInicio);
         minDate.setDate(minDate.getDate() + 1);
