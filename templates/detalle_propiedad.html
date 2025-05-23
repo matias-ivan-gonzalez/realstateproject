@@ -145,7 +145,11 @@
             <div class="card shadow h-100">
                 <div class="card-header w-100 text-center">MAPA</div>
                 <div class="card-body w-100 text-center d-flex flex-column align-items-center justify-content-center">
-                    <p class="text-muted">(Aquí irá el mapa de la propiedad)</p>
+                    {% if propiedad.latitud and propiedad.longitud %}
+                        <div id="mapa-propiedad" style="height: 200px; width: 100%; max-width: 350px;"></div>
+                    {% else %}
+                        <p class="text-muted">(Aquí irá el mapa de la propiedad)</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -209,4 +213,17 @@
         {% endif %}
     </div>
 </div>
+{% if propiedad.latitud and propiedad.longitud %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var coords = [{{ propiedad.latitud|tojson }}, {{ propiedad.longitud|tojson }}];
+        var map = L.map('mapa-propiedad').setView(coords, 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        L.marker(coords).addTo(map);
+    });
+</script>
+{% endif %}
 {% endblock %} 
