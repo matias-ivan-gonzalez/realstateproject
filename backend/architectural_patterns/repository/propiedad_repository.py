@@ -56,7 +56,11 @@ class PropiedadRepository:
             return False, "Propiedad no encontrada"
         # Validar nombre único (excepto para sí misma)
         if 'nombre' in data and data['nombre']:
-            existente = Propiedad.query.filter(Propiedad.nombre == data['nombre'], Propiedad.id != propiedad_id).first()
+            nombre_normalizado = data['nombre'].strip().lower()
+            existente = Propiedad.query.filter(
+                func.lower(func.trim(Propiedad.nombre)) == nombre_normalizado,
+                Propiedad.id != propiedad_id
+            ).first()
             if existente:
                 return False, "Nombre de la propiedad existente"
         for key, value in data.items():

@@ -10,7 +10,7 @@ class PropiedadService:
         nombre_normalizado = data["nombre"].strip().lower()
         # Validación de campos obligatorios
         required_fields = [
-            "nombre", "ubicacion", "precio", "cantidad_habitaciones", "limite_personas"
+            "nombre", "ubicacion", "precio", "cantidad_habitaciones", "limite_personas", "latitud", "longitud"
         ]
         for field in required_fields:
             if not data.get(field):
@@ -38,7 +38,9 @@ class PropiedadService:
             return False, f"Error al guardar la propiedad: {str(e)}"
 
     def update_propiedad(self, propiedad_id, data):
-        # Validar campos obligatorios
+        # Normalizar el nombre
+        nombre_normalizado = data["nombre"].strip().lower()
+        # Validar campos obligatorios (igual que en crear_propiedad)
         required_fields = [
             "nombre", "ubicacion", "precio", "cantidad_habitaciones", "limite_personas", "latitud", "longitud"
         ]
@@ -50,9 +52,11 @@ class PropiedadService:
             data["precio"] = float(data["precio"])
             data["cantidad_habitaciones"] = int(data["cantidad_habitaciones"])
             data["limite_personas"] = int(data["limite_personas"])
-            data["latitud"] = float(data["latitud"])
-            data["longitud"] = float(data["longitud"])
         except ValueError:
-            return False, "Precio, cantidad de habitaciones, límite de personas, latitud y longitud deben ser numéricos."
+            return False, "Precio, cantidad de habitaciones y límite de personas deben ser numéricos."
+        # Validar unicidad de nombre (excepto para sí misma)
+        existente = self.repository.get_by_nombre(nombre_normalizado)
+        if existente and existente.id != propiedad_id:
+            return False, "Nombre de la propiedad existente."
         # Llama al repository
         return self.repository.update_propiedad(propiedad_id, data)
