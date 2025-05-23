@@ -62,11 +62,11 @@
         <div class="row align-items-center mb-3" style="margin-top:-4.5rem;">
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_min" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
-                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" value="{{ precio_min or '' }}" placeholder="Precio mín.">
+                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" step="1" value="{{ precio_min or '' }}" placeholder="Precio mín.">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_max" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
-                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" value="{{ precio_max or '' }}" placeholder="Precio máx.">
+                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" step="1" value="{{ precio_max or '' }}" placeholder="Precio máx.">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;"></span></label>
@@ -150,6 +150,35 @@
 </div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Definir variables de inputs
+    const precioMinInput = document.getElementById('precio_min');
+    const precioMaxInput = document.getElementById('precio_max');
+    const ubicacionInput = document.getElementById('ubicacion');
+    const btnBuscar = document.getElementById('btn-buscar');
+
+    function toggleBuscarBtn() {
+      btnBuscar.disabled = ubicacionInput.value.trim() === '' ||
+        (precioMinInput.value !== '' && precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value));
+    }
+
+    function updatePrecioMaxMin() {
+      if (precioMinInput.value !== '') {
+        precioMaxInput.min = parseInt(precioMinInput.value);
+        if (precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value)) {
+          precioMaxInput.value = '';
+        }
+      } else {
+        precioMaxInput.min = 0;
+      }
+      toggleBuscarBtn();
+    }
+
+    ubicacionInput.addEventListener('input', toggleBuscarBtn);
+    precioMinInput.addEventListener('input', updatePrecioMaxMin);
+    precioMaxInput.addEventListener('input', toggleBuscarBtn);
+    toggleBuscarBtn();
+
+    // Validación de fechas
     function setFechaFinMin() {
       const fechaInicio = document.getElementById('fecha_inicio').value;
       const fechaFinInput = document.getElementById('fecha_fin');
@@ -165,28 +194,9 @@
         fechaFinInput.min = '';
       }
     }
-    function togglePriceInputs() {
-      const fechaInicio = document.getElementById('fecha_inicio').value;
-      const fechaFin = document.getElementById('fecha_fin').value;
-      const precioMin = document.getElementById('precio_min');
-      const precioMax = document.getElementById('precio_max');
-      const enabled = fechaInicio && fechaFin;
-      precioMin.disabled = !enabled;
-      precioMax.disabled = !enabled;
-    }
-    // --- NUEVO: Habilitar/deshabilitar botón Buscar según input ubicación ---
-    const ubicacionInput = document.getElementById('ubicacion');
-    const btnBuscar = document.getElementById('btn-buscar');
-    function toggleBuscarBtn() {
-      btnBuscar.disabled = ubicacionInput.value.trim() === '';
-    }
-    ubicacionInput.addEventListener('input', toggleBuscarBtn);
-    toggleBuscarBtn();
-    document.getElementById('fecha_inicio').addEventListener('input', function() {
-      setFechaFinMin();
-    });
-    document.getElementById('fecha_fin').addEventListener('input', function() {
-    });
+    document.getElementById('fecha_inicio').addEventListener('input', setFechaFinMin);
+    setFechaFinMin();
+
     // Validación al enviar el formulario
     document.querySelector('form').addEventListener('submit', function(e) {
       const fechaInicio = document.getElementById('fecha_inicio').value;
@@ -195,8 +205,12 @@
         alert('La fecha de fin debe ser mayor a la fecha de inicio.');
         e.preventDefault();
       }
+      if (precioMinInput.value !== '' && precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value)) {
+        precioMaxInput.value = '';
+        precioMaxInput.focus();
+        e.preventDefault();
+      }
     });
-    setFechaFinMin(); // <-- Esto asegura que al cargar la página se ajuste el min
   });
 </script>
 {% endblock %}
