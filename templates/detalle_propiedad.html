@@ -28,12 +28,19 @@
         background: none;
         border: none;
         font-size: 2rem;
-        color: #e74c3c;
         cursor: pointer;
         vertical-align: middle;
+        transition: color 0.3s ease;
     }
-    .favorito-btn.filled { color: #e74c3c; }
-    .favorito-btn.outline { color: #aaa; }
+    .favorito-btn.filled { 
+        color: #e74c3c; 
+    }
+    .favorito-btn.outline { 
+        color: #aaa; 
+    }
+    .favorito-btn:hover {
+        transform: scale(1.1);
+    }
     /* Fade-in animation */
     .fade-in {
         opacity: 0;
@@ -54,9 +61,9 @@
             {% if session.rol == 'cliente' %}
                 <form method="POST" style="display:inline;">
                     {% if propiedad in user_favoritos %}
-                        <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn filled" title="Quitar de favoritos">&#10084;</button>
+                        <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn filled" title="Quitar de favoritos">❤️</button>
                     {% else %}
-                        <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn outline" title="Agregar a favoritos">&#10084;</button>
+                        <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn outline" title="Agregar a favoritos">🤍</button>
                     {% endif %}
                 </form>
             {% endif %}
