@@ -62,11 +62,11 @@
         <div class="row align-items-center mb-3" style="margin-top:-4.5rem;">
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_min" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
-                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" step="1" value="{{ precio_min or '' }}" placeholder="Precio mín.">
+                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" step="1" value="{{ precio_min or '' }}" placeholder="Precio mín." inputmode="numeric" pattern="[0-9]*" onkeydown="return event.key >= '0' && event.key <= '9' || event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_max" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
-                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" step="1" value="{{ precio_max or '' }}" placeholder="Precio máx.">
+                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" step="1" value="{{ precio_max or '' }}" placeholder="Precio máx." inputmode="numeric" pattern="[0-9]*" onkeydown="return event.key >= '0' && event.key <= '9' || event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;"></span></label>

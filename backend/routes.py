@@ -131,9 +131,11 @@ def agregar_favorito(propiedad_id):
     user_controller = UserController()
     return user_controller.agregar_favorito(session, propiedad_id)
 
-@main.route('/favoritos/quitar/<int:propiedad_id>', methods=['POST'])
+@main.route('/favoritos/quitar/<int:propiedad_id>', methods=['GET', 'POST'])
 @login_required
 def quitar_favorito(propiedad_id):
+    if request.method == 'GET':
+        return redirect(url_for('main.ver_favoritos'))
     user_controller = UserController()
     return user_controller.quitar_favorito(session, propiedad_id)
 

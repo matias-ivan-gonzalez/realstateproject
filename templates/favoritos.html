@@ -42,36 +42,4 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.favorito-btn').forEach(function(btn) {
-        btn.closest('form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            fetch(form.action, {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            }).then(function(response) {
-                if (response.ok) {
-                    // Eliminar la tarjeta de la propiedad del DOM
-                    const card = form.closest('.col-md-6, .col-lg-4');
-                    if (card) card.remove();
-                    // Si no quedan más tarjetas, mostrar el mensaje de vacío
-                    const cards = document.querySelectorAll('.col-md-6, .col-lg-4');
-                    if (cards.length === 0) {
-                        const row = document.querySelector('.row.g-3');
-                        if (row) {
-                            const emptyMsg = document.createElement('div');
-                            emptyMsg.className = 'col-12 text-center';
-                            emptyMsg.innerHTML = '<p class="lead">No tienes propiedades favoritas.</p>';
-                            row.appendChild(emptyMsg);
-                        }
-                    }
-                }
-            });
-        });
-    });
-});
-</script>
 {% endblock %} 
