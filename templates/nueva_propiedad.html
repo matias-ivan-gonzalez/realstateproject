@@ -90,7 +90,7 @@
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Guardar Propiedad</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar" disabled>Guardar Propiedad</button>
                 <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
@@ -113,5 +113,27 @@
             }, false)
         })
 })()
+
+// Habilitar/deshabilitar el botón Guardar según los campos obligatorios
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const requiredInputs = form.querySelectorAll('[required]');
+    const btnGuardar = document.getElementById('btn-guardar');
+
+    function checkInputs() {
+        let allFilled = true;
+        requiredInputs.forEach(input => {
+            if (!input.value.trim()) {
+                allFilled = false;
+            }
+        });
+        btnGuardar.disabled = !allFilled;
+    }
+
+    checkInputs();
+    requiredInputs.forEach(input => {
+        input.addEventListener('input', checkInputs);
+    });
+});
 </script>
 {% endblock %} 
