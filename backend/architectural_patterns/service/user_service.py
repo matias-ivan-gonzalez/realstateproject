@@ -118,8 +118,8 @@ class UserService:
         # Verificar si hay nueva contraseña
         if data.get('password'):
             has_changes = True
-            if len(data['password']) < 8:
-                return False, 'La contraseña debe tener al menos 8 caracteres.'
+            if len(data['password']) < 6:
+                return False, 'La contraseña debe tener al menos 6 caracteres.'
             if data['password'] != data.get('password_confirm'):
                 return False, 'Las contraseñas no coinciden.'
 
