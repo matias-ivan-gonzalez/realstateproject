@@ -78,6 +78,24 @@ document.addEventListener('DOMContentLoaded', function() {
         var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
         fNac.max = maxDate.toISOString().split('T')[0];
     }
+
+    // Solo permitir números en el campo de tarjeta
+    var tarjetaInput = document.getElementById('tarjeta');
+    if (tarjetaInput) {
+        tarjetaInput.addEventListener('keypress', function(e) {
+            if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
+            }
+        });
+
+        tarjetaInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            if (/^\d*$/.test(text)) {
+                this.value = text;
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
