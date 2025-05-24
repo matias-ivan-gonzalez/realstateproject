@@ -241,8 +241,8 @@ def init_db():
         prop10.administradores.append(admin)
         
     # Reservas
-    fecha_inicio = '2025-5-20'	
-    fecha_fin = '2025-5-25'
+    fecha_inicio = '2025-6-24'	
+    fecha_fin = '2025-6-30'
     fecha_inicio_convertida = datetime.strptime(fecha_inicio, '%Y-%m-%d')
     fecha_fin_convertida = datetime.strptime(fecha_fin, '%Y-%m-%d')
     reserva1 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida).first()
@@ -259,13 +259,18 @@ def init_db():
     db.session.commit()
 
     # Imagenes
-    from sqlalchemy import and_
-    img1 = Imagen.query.filter(and_(Imagen.nombre_archivo=='img1.jpg', Imagen.propiedad_id==prop1.id)).first()
-    if not img1:
-        img1 = Imagen(url='http://img1.com', nombre_archivo='img1.jpg', propiedad=prop1)
-        db.session.add(img1)
-    img2 = Imagen.query.filter(and_(Imagen.nombre_archivo=='img2.jpg', Imagen.propiedad_id==prop2.id)).first()
-    if not img2:
-        img2 = Imagen(url='http://img2.com', nombre_archivo='img2.jpg', propiedad=prop2)
-        db.session.add(img2)
+   
+    img1 = Imagen(url='img/prop1/img1.jpeg', nombre_archivo='Primera foto', propiedad=prop1)
+    db.session.add(img1)
+    prop1.imagenes.append(img1)
+    
+    img2 = Imagen(url='img/prop2/Diseno-casa-familiar-el-bambu-3.jpg', nombre_archivo='img2.jpg', propiedad=prop2)
+    db.session.add(img2)
+    prop2.imagenes.append(img2)
+    
+    img3 = Imagen(url='img/prop3/download.jpeg', nombre_archivo='img3.jpg', propiedad=prop3)
+    db.session.add(img3)
+    prop3.imagenes.append(img3)
+    
+    
     db.session.commit() 

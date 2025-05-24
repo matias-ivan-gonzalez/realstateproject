@@ -36,3 +36,25 @@ class Propiedad(db.Model):
 
     def __repr__(self):
         return f"<Propiedad {self.nombre} - {self.ubicacion}>"
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'ubicacion': self.ubicacion,
+            'precio': self.precio,
+            'cantidad_habitaciones': self.cantidad_habitaciones,
+            'limite_personas': self.limite_personas,
+            'pet_friendly': self.pet_friendly,
+            'cochera': self.cochera,
+            'wifi': self.wifi,
+            'piscina': self.piscina,
+            'patio_trasero': self.patio_trasero,
+            'descripcion': self.descripcion,
+            'latitud': self.latitud,
+            'longitud': self.longitud,
+            'direccion': self.direccion,
+            'reembolsable': self.reembolsable,
+            'eliminado': self.eliminado,
+            'imagenes': [img.to_dict() for img in self.imagenes]
+        }

@@ -9,9 +9,18 @@ class SearchService:
         propiedades = []
         repo_prop = PropiedadRepository()
         propiedades = repo_prop.get_properties_by_location(data['ubicacion'])
+
+        if not propiedades:
+            return {
+                "success": False,
+                "mensaje": "No se encontraron propiedades en esta ubicación, pruebe otra ubicación."
+            }
+
+        propiedades_disponibles = propiedades
         precios_totales = {}
         cantidad_noches = None
 
+    # Filtrar por fechas
         if data['fecha_inicio'] and data['fecha_fin']:
             try:
                 fecha_inicio_dt = datetime.strptime(data['fecha_inicio'], '%Y-%m-%d')
@@ -22,12 +31,19 @@ class SearchService:
 
                 repo_res = ReservaRepository()
                 propiedades_ocupadas_ids = repo_res.get_propiedades_reservadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
-                propiedades = [p for p in propiedades if p.id not in propiedades_ocupadas_ids]
+                propiedades_disponibles = [p for p in propiedades_disponibles if p.id not in propiedades_ocupadas_ids]
             except Exception:
                 cantidad_noches = None
 
-        propiedades_filtradas = []
-        for propiedad in propiedades:
+        if not propiedades_disponibles:
+            return {
+                "success": False,
+                "mensaje": "No hay propiedades disponibles en esas fechas."
+            }
+
+    # Filtrar por características
+        propiedades_filtradas_caracteristicas = []
+        for propiedad in propiedades_disponibles:
             cumple_caracteristicas = True
             for c in data['caracteristicas']:
                 if c == 'wifi' and not propiedad.wifi:
@@ -40,9 +56,18 @@ class SearchService:
                     cumple_caracteristicas = False
                 if c == 'patio' and not propiedad.patio_trasero:
                     cumple_caracteristicas = False
-            if not cumple_caracteristicas:
-                continue
+            if cumple_caracteristicas:
+                propiedades_filtradas_caracteristicas.append(propiedad)
 
+        if not propiedades_filtradas_caracteristicas:
+            return {
+                "success": False,
+                "mensaje": "No se encontraron propiedades que cumplan con las características seleccionadas. Intente modificar los filtros."
+            }
+
+    # Filtrar por precio
+        propiedades_finales = []
+        for propiedad in propiedades_filtradas_caracteristicas:
             if cantidad_noches:
                 precio_total = round(propiedad.precio * cantidad_noches, 2)
                 precios_totales[propiedad.id] = precio_total
@@ -53,63 +78,56 @@ class SearchService:
                     try:
                         cumple_min = precio_total >= float(data['precio_min'])
                     except Exception:
-                        cumple_min = True
+                        pass
                 if data['precio_max']:
                     try:
                         cumple_max = precio_total <= float(data['precio_max'])
                     except Exception:
-                        cumple_max = True
+                        pass
                 if cumple_min and cumple_max:
-                    propiedades_filtradas.append(propiedad)
+                    propiedades_finales.append(propiedad)
             else:
-                # Si no hay fechas, filtrar por precio por noche
                 cumple_min = True
                 cumple_max = True
                 if data['precio_min']:
                     try:
                         cumple_min = propiedad.precio >= float(data['precio_min'])
                     except Exception:
-                        cumple_min = True
+                        pass
                 if data['precio_max']:
                     try:
                         cumple_max = propiedad.precio <= float(data['precio_max'])
                     except Exception:
-                        cumple_max = True
+                        pass
                 if cumple_min and cumple_max:
-                    propiedades_filtradas.append(propiedad)
+                    propiedades_finales.append(propiedad)
                 precios_totales[propiedad.id] = None
 
-        # Ordenar por precio si se solicita
-        if data.get('orden_precio') == 'asc':
-            propiedades_filtradas.sort(key=lambda p: p.precio)
-        elif data.get('orden_precio') == 'desc':
-            propiedades_filtradas.sort(key=lambda p: p.precio, reverse=True)
-
-        pagina = int(data.get('pagina', 1))
-        por_pagina = int(data.get('por_pagina', 3))
-        total_propiedades = len(propiedades_filtradas)
-        total_paginas = (total_propiedades + por_pagina - 1) // por_pagina if por_pagina > 0 else 1
-        inicio = (pagina - 1) * por_pagina
-        fin = inicio + por_pagina
-        propiedades_pagina = propiedades_filtradas[inicio:fin]
-
-        if data['precio_min'] and data['precio_max'] and total_propiedades == 0:
+        if not propiedades_finales:
             return {
                 "success": False,
                 "mensaje": "No se encontraron propiedades dentro del rango de precios seleccionado. Intente ajustar el rango de precios."
             }
-        elif len(propiedades) > 0 and total_propiedades == 0:
-            return {
-                "success": False,
-                "mensaje": "No se encontraron propiedades que cumplan con las caracteristicas seleccionadas. Intente modificar los filtros."
-            }
-        elif total_propiedades == 0:
-            return {
-                "success": False,
-                "mensaje": "No se encontraron propiedades en esta ubicación, pruebe otra ubicación."
-            }
 
-        propiedades_serializadas = [propiedad.to_dict() if hasattr(propiedad, 'to_dict') else propiedad.__dict__ for propiedad in propiedades_pagina]
+    # Ordenar por precio
+        if data.get('orden_precio') == 'asc':
+            propiedades_finales.sort(key=lambda p: p.precio)
+        elif data.get('orden_precio') == 'desc':
+            propiedades_finales.sort(key=lambda p: p.precio, reverse=True)
+
+    # Paginación
+        pagina = int(data.get('pagina', 1))
+        por_pagina = int(data.get('por_pagina', 3))
+        total_propiedades = len(propiedades_finales)
+        total_paginas = (total_propiedades + por_pagina - 1) // por_pagina if por_pagina > 0 else 1
+        inicio = (pagina - 1) * por_pagina
+        fin = inicio + por_pagina
+        propiedades_pagina = propiedades_finales[inicio:fin]
+
+        propiedades_serializadas = [
+            propiedad.to_dict() if hasattr(propiedad, 'to_dict') else propiedad.__dict__
+            for propiedad in propiedades_pagina
+        ]
 
         return {
             "success": True,

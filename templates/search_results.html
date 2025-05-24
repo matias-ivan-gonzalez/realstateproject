@@ -80,7 +80,6 @@
     </form>
     {% if propiedades %}
         <div class="row">
-            {% set mapas = [] %}
             {% for propiedad in propiedades %}
                 <div class="col-md-4 mb-3">
                     <div class="card h-100">
@@ -103,10 +102,18 @@
                                 {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
                             </div>
-                            {% if propiedad.latitud and propiedad.longitud %}
-                                <div id="mapa-{{ propiedad.id }}" style="height: 200px;"></div>
-                                {% set _ = mapas.append({'id': propiedad.id, 'lat': propiedad.latitud, 'lng': propiedad.longitud}) %}
+
+
+                            {% if propiedad and propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                <img src="{{ url_for('static', filename=propiedad.imagenes[0].url) }}" alt="Imagen de {{ propiedad.nombre }}" class="img-fluid rounded mb-2" />
+                            {% else %}
+                                <div class="d-flex justify-content-center align-items-center bg-light rounded mb-2" style="height:200px; width:100%;">
+                                    <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+                                </div>
                             {% endif %}
+                            <div class="d-grid gap-2 mt-2">
+                                <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-outline-primary btn-sm">Ver detalle</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -132,20 +139,6 @@
             </li>
           </ul>
         </nav>
-        <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var mapas = JSON.parse('{{ mapas|tojson|safe }}');
-            if (!Array.isArray(mapas)) return;
-            mapas.forEach(function(m) {
-                var map = L.map('mapa-' + m.id).setView([m.lat, m.lng], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
-                L.marker([m.lat, m.lng]).addTo(map);
-            });
-        });
-        </script>
     {% endif %}
 </div>
 <script>
