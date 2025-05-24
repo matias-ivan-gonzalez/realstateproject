@@ -63,7 +63,7 @@
       </div>
 
       <div class="d-grid mt-3">
-        <button type="submit" class="btn btn-primary">Confirmar</button>
+        <button type="submit" class="btn btn-primary" id="btn-confirmar" disabled>Confirmar</button>
       </div>
     </form>
   </div>
@@ -96,6 +96,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Deshabilitar botón si todos los campos requeridos están vacíos
+    const campos = [
+        'nombre', 'apellido', 'email', 'password',
+        'telefono', 'f_nac', 'domicilio', 'nacionalidad', 'dni'
+    ];
+    const btnConfirmar = document.getElementById('btn-confirmar');
+
+    function verificarCampos() {
+        let todosConValor = campos.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
+        });
+        btnConfirmar.disabled = !todosConValor;
+    }
+
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+        }
+    });
+
+    // Llamar al cargar la página por si hay valores precargados
+    verificarCampos();
 });
 </script>
 {% endblock %}
