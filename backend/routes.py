@@ -162,3 +162,33 @@ def eliminar_imagen(imagen_id):
 def eliminar_administrador(id):
     user_controller = UserController()
     return user_controller.eliminar_administrador(session, id)
+
+@main.route('/encargado/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_encargado(id):
+    user_controller = UserController()
+    return user_controller.eliminar_encargado(session, id)
+
+@main.route('/encargado/<int:encargado_id>/asignar-propiedades')
+@login_required
+def ver_propiedades_asignar(encargado_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.ver_propiedades_asignar(session, encargado_id)
+
+@main.route('/encargado/<int:encargado_id>/desasignar-propiedades')
+@login_required
+def ver_propiedades_desasignar(encargado_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.ver_propiedades_desasignar(session, encargado_id)
+
+@main.route('/propiedad/desasignar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def desasignar_propiedad(propiedad_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.desasignar_propiedad(session, propiedad_id)
+
+@main.route('/propiedad/asignar/<int:propiedad_id>/<int:encargado_id>', methods=['POST'])
+@login_required
+def asignar_propiedad(propiedad_id, encargado_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)
