@@ -78,22 +78,6 @@
                         <input type="hidden" name="tarjeta" value="">
                         {% endif %}
 
-                        <!-- Sección de cambio de contraseña -->
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <hr>
-                                <h5>Cambiar contraseña (opcional)</h5>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="password" class="form-label">Nueva contraseña</label>
-                                <input type="password" class="form-control" id="password" name="password" minlength="8">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="password_confirm" class="form-label">Confirmar contraseña</label>
-                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" minlength="8">
-                            </div>
-                        </div>
-
                         <!-- Botones de acción -->
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
@@ -102,7 +86,7 @@
                                 Eliminar cuenta
                             </button>
                             {% endif %}
-                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            <button type="submit" class="btn btn-primary" id="btn-guardar" disabled>Guardar cambios</button>
                         </div>
                     </form>
                 </div>
@@ -200,6 +184,30 @@ document.addEventListener('DOMContentLoaded', function() {
         var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
         fNac.max = maxDate.toISOString().split('T')[0];
     }
+
+    // Deshabilitar el botón Guardar cambios si los campos requeridos no están completos
+    const camposRequeridos = [
+        'nombre', 'apellido', 'telefono', 'dni', 'nacionalidad'
+    ];
+    if (document.getElementById('f_nac')) camposRequeridos.push('f_nac');
+    if (document.getElementById('domicilio')) camposRequeridos.push('domicilio');
+    const btnGuardar = document.getElementById('btn-guardar');
+
+    function verificarCampos() {
+        let todosConValor = camposRequeridos.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
+        });
+        btnGuardar.disabled = !todosConValor;
+    }
+
+    camposRequeridos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+        }
+    });
+    verificarCampos();
 });
 </script>
 {% endblock %} 
