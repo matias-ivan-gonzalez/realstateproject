@@ -167,8 +167,11 @@ class UserService:
             return False, 'El DNI debe ser numérico.'
         if not is_numeric(data['telefono']):
             return False, 'El teléfono debe ser numérico.'
-        if data.get('tarjeta') and not is_numeric(data['tarjeta']):
-            return False, 'La tarjeta debe ser numérica.'
+        if data.get('tarjeta'):
+            if not is_numeric(data['tarjeta']):
+                return False, 'La tarjeta debe ser numérica.'
+            if len(data['tarjeta']) < 12 or len(data['tarjeta']) > 16:
+                return False, 'El número de tarjeta debe tener entre 12 y 16 dígitos.'
         if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
             return False, 'Nacionalidad inválida.'
         if self.email_exists(data['email']):
