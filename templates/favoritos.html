@@ -11,16 +11,19 @@
                 {% if favoritos and favoritos|length > 0 %}
                     {% for propiedad in favoritos %}
                         <div class="col-md-6 col-lg-4">
-                            <div class="card h-100">
+                            <div class="card h-100 position-relative">
                                 <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id, from_='favoritos') }}" class="text-decoration-none text-primary">
                                     {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
                                         <img src="{{ url_for('static', filename='img/propiedades/' ~ propiedad.imagenes[0].nombre_archivo) }}" class="card-img-top" alt="Imagen de {{ propiedad.nombre }}">
                                     {% else %}
                                         <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="card-img-top" alt="Sin imagen">
                                     {% endif %}
-                                    <h5 class="card-title">{{ propiedad.nombre }}</h5>
                                 </a>
+                                <form method="POST" action="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" style="position:absolute; top:10px; right:10px; z-index:2;">
+                                    <button type="submit" class="favorito-btn filled" title="Quitar de favoritos">❤️</button>
+                                </form>
                                 <div class="card-body">
+                                    <h5 class="card-title">{{ propiedad.nombre }}</h5>
                                     <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
                                     <p class="card-text">Precio: ${{ propiedad.precio }}</p>
                                 </div>
@@ -39,4 +42,36 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.favorito-btn').forEach(function(btn) {
+        btn.closest('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function(response) {
+                if (response.ok) {
+                    // Eliminar la tarjeta de la propiedad del DOM
+                    const card = form.closest('.col-md-6, .col-lg-4');
+                    if (card) card.remove();
+                    // Si no quedan más tarjetas, mostrar el mensaje de vacío
+                    const cards = document.querySelectorAll('.col-md-6, .col-lg-4');
+                    if (cards.length === 0) {
+                        const row = document.querySelector('.row.g-3');
+                        if (row) {
+                            const emptyMsg = document.createElement('div');
+                            emptyMsg.className = 'col-12 text-center';
+                            emptyMsg.innerHTML = '<p class="lead">No tienes propiedades favoritas.</p>';
+                            row.appendChild(emptyMsg);
+                        }
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %} 
