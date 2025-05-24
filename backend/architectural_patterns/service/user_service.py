@@ -161,8 +161,8 @@ class UserService:
                 return False, f'El campo {field} es obligatorio.'
         if not is_valid_email(data['email']):
             return False, 'Email inválido.'
-        if len(data['password']) < 8:
-            return False, 'La contraseña debe tener al menos 8 caracteres.'
+        if len(data['password']) < 6:
+            return False, 'La contraseña debe tener al menos 6 caracteres.'
         if not is_numeric(data['dni']):
             return False, 'El DNI debe ser numérico.'
         if not is_numeric(data['telefono']):
