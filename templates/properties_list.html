@@ -20,7 +20,11 @@
                     {{ property_card(propiedad) }}
                 {% else %}
                 <div class="col-12 text-center">
-                    <p class="lead">No se encontraron propiedades que coincidan con los criterios de búsqueda.</p>
+                    {% if request.args.get('ubicacion') %}
+                        <p class="lead">No se encontraron propiedades en esta ubicación, pruebe otra ubicación.</p>
+                    {% else %}
+                        <p class="lead">No se encontraron propiedades que coincidan con los criterios de búsqueda.</p>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

@@ -27,7 +27,7 @@
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2 offset-md-1">
                 <label for="fecha_fin" class="form-label mb-0 me-2"><i class="bi bi-calendar-event"></i> Hasta</label>
-                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}" >
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}" disabled>
             </div>
         </div>
         <div class="row align-items-center mb-3" style="margin-top: -10.5rem;">
@@ -210,6 +210,25 @@
         e.preventDefault();
       }
     });
+
+    const fechaInputs = [document.getElementById('fecha_inicio'), document.getElementById('fecha_fin')];
+    fechaInputs.forEach(input => {
+      input.addEventListener('keydown', function(e) {
+        e.preventDefault();
+      });
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+      });
+    });
+
+    // Habilitar/deshabilitar fecha_fin según fecha_inicio
+    const fechaInicioInput = document.getElementById('fecha_inicio');
+    const fechaFinInput = document.getElementById('fecha_fin');
+    function toggleFechaFin() {
+      fechaFinInput.disabled = !fechaInicioInput.value;
+    }
+    fechaInicioInput.addEventListener('input', toggleFechaFin);
+    toggleFechaFin();
   });
 </script>
 {% endblock %}
