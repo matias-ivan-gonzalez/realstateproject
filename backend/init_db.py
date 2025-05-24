@@ -259,13 +259,13 @@ def init_db():
     db.session.commit()
 
     # Imagenes
-    from sqlalchemy import and_
-    img1 = Imagen.query.filter(and_(Imagen.nombre_archivo=='img1.jpg', Imagen.propiedad_id==prop1.id)).first()
-    if not img1:
-        img1 = Imagen(url='http://img1.com', nombre_archivo='img1.jpg', propiedad=prop1)
-        db.session.add(img1)
-    img2 = Imagen.query.filter(and_(Imagen.nombre_archivo=='img2.jpg', Imagen.propiedad_id==prop2.id)).first()
-    if not img2:
-        img2 = Imagen(url='http://img2.com', nombre_archivo='img2.jpg', propiedad=prop2)
-        db.session.add(img2)
+   
+    img1 = Imagen(url='img/prop1/download(1).jpeg', nombre_archivo='img1.jpg', propiedad=prop1)
+    db.session.add(img1)
+    
+    img2 = Imagen(url='img/prop2/Diseno-casa-familiar-el-bambu-3.jpg', nombre_archivo='img2.jpg', propiedad=prop2)
+    db.session.add(img2)
+    
+    img3 = Imagen(url='img/prop3/download.jpeg', nombre_archivo='img3.jpg', propiedad=prop3)
+    db.session.add(img3)
     db.session.commit() 

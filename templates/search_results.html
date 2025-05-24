@@ -80,7 +80,6 @@
     </form>
     {% if propiedades %}
         <div class="row">
-            {% set mapas = [] %}
             {% for propiedad in propiedades %}
                 <div class="col-md-4 mb-3">
                     <div class="card h-100">
@@ -103,9 +102,20 @@
                                 {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
                             </div>
-                            {% if propiedad.latitud and propiedad.longitud %}
-                                <div id="mapa-{{ propiedad.id }}" style="height: 200px;"></div>
-                                {% set _ = mapas.append({'id': propiedad.id, 'lat': propiedad.latitud, 'lng': propiedad.longitud}) %}
+                            {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                {% set img_url = propiedad.imagenes[0].url %}
+                                <div style="font-size:10px; color:red; word-break:break-all;">Ruta imagen: {{ img_url }}</div>
+                                {% if img_url.startswith('http') %}
+                                    <img src="{{ img_url }}" alt="Foto propiedad" class="img-fluid rounded mb-2" style="max-height:200px; object-fit:cover; width:100%;">
+                                {% elif '/' in img_url %}
+                                    <img src="{{ url_for('static', filename=img_url) }}" alt="Foto propiedad" class="img-fluid rounded mb-2" style="max-height:200px; object-fit:cover; width:100%;">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/propiedades/' ~ img_url) }}" alt="Foto propiedad" class="img-fluid rounded mb-2" style="max-height:200px; object-fit:cover; width:100%;">
+                                {% endif %}
+                            {% else %}
+                                <div class="d-flex justify-content-center align-items-center bg-light rounded mb-2" style="height:200px; width:100%;">
+                                    <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -132,20 +142,6 @@
             </li>
           </ul>
         </nav>
-        <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var mapas = JSON.parse('{{ mapas|tojson|safe }}');
-            if (!Array.isArray(mapas)) return;
-            mapas.forEach(function(m) {
-                var map = L.map('mapa-' + m.id).setView([m.lat, m.lng], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
-                L.marker([m.lat, m.lng]).addTo(map);
-            });
-        });
-        </script>
     {% endif %}
 </div>
 <script>
