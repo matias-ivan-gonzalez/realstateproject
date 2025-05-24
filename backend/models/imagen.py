@@ -12,4 +12,12 @@ class Imagen(db.Model):
     propiedad = db.relationship('Propiedad', back_populates='imagenes')
 
     def __repr__(self):
-        return f"<Imagen {self.nombre_archivo} de Propiedad {self.propiedad_id}>" 
+        return f"<Imagen {self.nombre_archivo} de Propiedad {self.propiedad_id}>"
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'url': self.url,
+            'nombre_archivo': self.nombre_archivo,
+            'propiedad_id': self.propiedad_id
+        }

@@ -102,16 +102,10 @@
                                 {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
                             </div>
-                            {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
-                                {% set img_url = propiedad.imagenes[0].url %}
-                                <div style="font-size:10px; color:red; word-break:break-all;">Ruta imagen: {{ img_url }}</div>
-                                {% if img_url.startswith('http') %}
-                                    <img src="{{ img_url }}" alt="Foto propiedad" class="img-fluid rounded mb-2" style="max-height:200px; object-fit:cover; width:100%;">
-                                {% elif '/' in img_url %}
-                                    <img src="{{ url_for('static', filename=img_url) }}" alt="Foto propiedad" class="img-fluid rounded mb-2" style="max-height:200px; object-fit:cover; width:100%;">
-                                {% else %}
-                                    <img src="{{ url_for('static', filename='img/propiedades/' ~ img_url) }}" alt="Foto propiedad" class="img-fluid rounded mb-2" style="max-height:200px; object-fit:cover; width:100%;">
-                                {% endif %}
+
+
+                            {% if propiedad and propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                <img src="{{ url_for('static', filename=propiedad.imagenes[0].url) }}" alt="Imagen de {{ propiedad.nombre }}" class="img-fluid rounded mb-2" />
                             {% else %}
                                 <div class="d-flex justify-content-center align-items-center bg-light rounded mb-2" style="height:200px; width:100%;">
                                     <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
