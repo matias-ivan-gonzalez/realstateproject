@@ -156,3 +156,9 @@ def agregar_imagen(id):
 def eliminar_imagen(imagen_id):
     propiedad_controller = PropiedadController()
     return propiedad_controller.eliminar_imagen(imagen_id)
+
+@main.route('/administrador/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_administrador(id):
+    user_controller = UserController()
+    return user_controller.eliminar_administrador(session, id)
