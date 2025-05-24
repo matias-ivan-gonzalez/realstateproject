@@ -199,3 +199,25 @@
 .confirm-box button {
   margin: 0 0.5rem;
 }
+
+.favorito-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: color 0.3s ease;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0;
+    margin: 0;
+}
+.favorito-btn.filled { 
+    color: #e74c3c; 
+}
+.favorito-btn.outline { 
+    color: #aaa; 
+}
+.favorito-btn:hover {
+    transform: scale(1.1);
+}

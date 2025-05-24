@@ -26,7 +26,7 @@
         </div>
         <div class="col-md-3 mb-2">
           <label for="password" class="form-label text-secondary">Contraseña</label>
-          <input type="password" class="form-control" id="password" name="password" required minlength="8" value="{{ request.form.password }}">
+          <input type="password" class="form-control" id="password" name="password" value="{{ request.form.password }}">
         </div>
       </div>
 
@@ -58,12 +58,12 @@
         </div>
         <div class="col-md-6 mb-2">
           <label for="tarjeta" class="form-label text-secondary">Tarjeta <small class="text-muted">(opcional)</small></label>
-          <input type="text" class="form-control" id="tarjeta" name="tarjeta" pattern="^[0-9]*$" value="{{ request.form.tarjeta }}">
+          <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="{{ request.form.tarjeta }}">
         </div>
       </div>
 
       <div class="d-grid mt-3">
-        <button type="submit" class="btn btn-primary">Confirmar</button>
+        <button type="submit" class="btn btn-primary" id="btn-confirmar" disabled>Confirmar</button>
       </div>
     </form>
   </div>
@@ -78,6 +78,49 @@ document.addEventListener('DOMContentLoaded', function() {
         var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
         fNac.max = maxDate.toISOString().split('T')[0];
     }
+
+    // Solo permitir números en el campo de tarjeta
+    var tarjetaInput = document.getElementById('tarjeta');
+    if (tarjetaInput) {
+        tarjetaInput.addEventListener('keypress', function(e) {
+            if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
+            }
+        });
+
+        tarjetaInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            if (/^\d*$/.test(text)) {
+                this.value = text;
+            }
+        });
+    }
+
+    // Deshabilitar botón si todos los campos requeridos están vacíos
+    const campos = [
+        'nombre', 'apellido', 'email', 'password',
+        'telefono', 'f_nac', 'domicilio', 'nacionalidad', 'dni'
+    ];
+    const btnConfirmar = document.getElementById('btn-confirmar');
+
+    function verificarCampos() {
+        let todosConValor = campos.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
+        });
+        btnConfirmar.disabled = !todosConValor;
+    }
+
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+        }
+    });
+
+    // Llamar al cargar la página por si hay valores precargados
+    verificarCampos();
 });
 </script>
 {% endblock %}

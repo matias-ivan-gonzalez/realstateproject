@@ -10,9 +10,22 @@
             <input type="email" class="form-control" id="email" name="email" required>
         </div>
         <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-primary">Confirmar</button>
+            <button type="submit" class="btn btn-primary" id="btn-confirmar" disabled>Confirmar</button>
         </div>
     </form>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailInput = document.getElementById('email');
+        const btnConfirmar = document.getElementById('btn-confirmar');
+
+        function verificarCampo() {
+            btnConfirmar.disabled = emailInput.value.trim() === '';
+        }
+
+        emailInput.addEventListener('input', verificarCampo);
+        verificarCampo();
+    });
+    </script>
   </div>
 </div>
 {% endblock %} 

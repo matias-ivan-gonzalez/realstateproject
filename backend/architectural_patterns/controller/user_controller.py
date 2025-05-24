@@ -1,4 +1,4 @@
-from flask import  render_template,  redirect, url_for, flash
+from flask import  render_template,  redirect, url_for, flash, request
 from architectural_patterns.service.user_service import UserService
 from flask_mail import Message
 from models.user import Administrador, Encargado
@@ -199,6 +199,9 @@ class UserController:
         from models.user import Cliente
         from models.propiedad import Propiedad
         from database import db
+        from flask import request
+        if request.method != 'POST':
+            return redirect(url_for('main.ver_favoritos'))
         user_id = session.get('user_id')
         user_tipo = session.get('rol')
         if user_tipo != 'cliente':
@@ -210,8 +213,11 @@ class UserController:
             cliente.favoritos.remove(propiedad)
             db.session.commit()
             flash('Propiedad quitada de favoritos.', 'success')
-        else:
-            flash('La propiedad no estaba en tus favoritos.', 'info')
+        # Si la petición viene de la página de favoritos, renderiza la plantilla actualizada
+        if request.referrer and 'ver-favoritos' in request.referrer:
+            favoritos = cliente.favoritos
+            return render_template('favoritos.html', favoritos=favoritos)
+        # Si no, redirige como antes
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
 
     def ver_favoritos(self, session):
