@@ -94,7 +94,6 @@ def ver_propiedades():
     return propiedad_controller.list_propiedades(request, session)
 
 @main.route('/propiedad/<int:id>')
-@login_required
 def detalle_propiedad(id):
     propiedad_controller = PropiedadController()
     return propiedad_controller.get_propiedad(id)
