@@ -31,6 +31,13 @@ class PropiedadController:
             }
             success, message = PropiedadService().crear_propiedad(data)
             if success:
+                # Obtener la propiedad recién creada para obtener su id
+                from models.propiedad import Propiedad
+                from sqlalchemy import desc
+                nueva_prop = Propiedad.query.order_by(desc(Propiedad.id)).first()
+                if nueva_prop:
+                    img_dir = os.path.join('static', 'img', f'prop{nueva_prop.id}')
+                    os.makedirs(img_dir, exist_ok=True)
                 flash(message, 'success')
             else:
                 flash(message, 'danger')
