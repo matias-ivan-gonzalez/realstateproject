@@ -39,16 +39,16 @@
                 </div>
             </div>
             <div class="mb-2">
-                <label for="direccion" class="form-label text-secondary">Dirección</label>
+                <label for="direccion" class="form-label text-secondary">Dirección*</label>
                 <input type="text" class="form-control" id="direccion" name="direccion" required>
             </div>
             <div class="row mb-2">
                 <div class="col-md-4">
-                    <label for="latitud" class="form-label text-secondary">Latitud</label>
+                    <label for="latitud" class="form-label text-secondary">Latitud*</label>
                     <input type="number" class="form-control" id="latitud" name="latitud" step="any" required>
                 </div>
                 <div class="col-md-4">
-                    <label for="longitud" class="form-label text-secondary">Longitud</label>
+                    <label for="longitud" class="form-label text-secondary">Longitud*</label>
                     <input type="number" class="form-control" id="longitud" name="longitud" step="any" required>
                 </div>
             </div>
@@ -116,24 +116,59 @@
 
 // Habilitar/deshabilitar el botón Guardar según los campos obligatorios
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    const requiredInputs = form.querySelectorAll('[required]');
+    const campos = [
+        'nombre',
+        'ubicacion',
+        'precio',
+        'cantidad_habitaciones',
+        'limite_personas',
+        'latitud',
+        'longitud',
+        'direccion'
+    ];
     const btnGuardar = document.getElementById('btn-guardar');
 
-    function checkInputs() {
-        let allFilled = true;
-        requiredInputs.forEach(input => {
-            if (!input.value.trim()) {
-                allFilled = false;
-            }
+    function verificarCampos() {
+        let todosConValor = campos.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
         });
-        btnGuardar.disabled = !allFilled;
+        btnGuardar.disabled = !todosConValor;
     }
 
-    checkInputs();
-    requiredInputs.forEach(input => {
-        input.addEventListener('input', checkInputs);
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+        }
     });
+
+    // Llamar al cargar la página por si hay valores precargados
+    verificarCampos();
+});
+
+// Solo permitir números del 0 al 9 en los campos numéricos
+['precio', 'cantidad_habitaciones', 'limite_personas'].forEach(function(id) {
+    var input = document.getElementById(id);
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            // Permitir solo dígitos
+            if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            if (/^[0-9]+$/.test(text)) {
+                this.value = text;
+            }
+        });
+        // Opcional: evitar la rueda del mouse para cambiar el valor
+        input.addEventListener('wheel', function(e) {
+            this.blur();
+        });
+    }
 });
 </script>
 {% endblock %} 
