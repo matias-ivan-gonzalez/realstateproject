@@ -35,6 +35,18 @@
                 </div>
             </div>
             <div class="row mb-2">
+                <div class="col-md-8">
+                    <label for="direccion" class="form-label text-secondary">Dirección*</label>
+                    <input type="text" class="form-control" id="direccion" name="direccion" value="{{ propiedad.direccion }}" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-center">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable" {% if propiedad.reembolsable %}checked{% endif %}>
+                        <label class="form-check-label text-secondary" for="reembolsable">Reembolsable</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
                 <div class="col-md-4">
                     <label for="latitud" class="form-label text-secondary">Latitud*</label>
                     <input type="number" class="form-control" id="latitud" name="latitud" step="any" value="{{ propiedad.latitud }}">
@@ -42,12 +54,6 @@
                 <div class="col-md-4">
                     <label for="longitud" class="form-label text-secondary">Longitud*</label>
                     <input type="number" class="form-control" id="longitud" name="longitud" step="any" value="{{ propiedad.longitud }}">
-                </div>
-                <div class="col-md-4 d-flex align-items-center">
-                    <div class="form-check mt-4">
-                        <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable" {% if propiedad.reembolsable %}checked{% endif %}>
-                        <label class="form-check-label text-secondary" for="reembolsable">Reembolsable</label>
-                    </div>
                 </div>
             </div>
             <div class="row mb-2">
@@ -82,10 +88,69 @@
                 <textarea class="form-control" id="descripcion" name="descripcion" rows="2">{{ propiedad.descripcion }}</textarea>
             </div>
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar" disabled>Guardar Cambios</button>
                 <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+// Habilitar/deshabilitar el botón Guardar Cambios según los campos obligatorios
+document.addEventListener('DOMContentLoaded', function() {
+    const campos = [
+        'nombre',
+        'ubicacion',
+        'precio',
+        'cantidad_habitaciones',
+        'limite_personas',
+        'latitud',
+        'longitud',
+        'direccion'
+    ];
+    const btnGuardar = document.getElementById('btn-guardar');
+
+    function verificarCampos() {
+        let todosConValor = campos.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
+        });
+        btnGuardar.disabled = !todosConValor;
+    }
+
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+        }
+    });
+
+    // Llamar al cargar la página por si hay valores precargados
+    verificarCampos();
+
+    // Solo permitir números del 0 al 9 en los campos numéricos
+    ['precio', 'cantidad_habitaciones', 'limite_personas'].forEach(function(id) {
+        var input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('keypress', function(e) {
+                // Permitir solo dígitos
+                if (e.key < '0' || e.key > '9') {
+                    e.preventDefault();
+                }
+            });
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                if (/^[0-9]+$/.test(text)) {
+                    this.value = text;
+                }
+            });
+            // Opcional: evitar la rueda del mouse para cambiar el valor
+            input.addEventListener('wheel', function(e) {
+                this.blur();
+            });
+        }
+    });
+});
+</script>
 {% endblock %} 
