@@ -165,7 +165,9 @@ class UserController:
         if user_rol not in ['superusuario', 'administrador']:
             flash('No tienes permiso para ver los administradores.', 'danger')
             return redirect(url_for('main.index'))
-        administradores = Administrador.query.filter_by(eliminado=False).all()
+        
+        page = request.args.get('page', 1, type=int)
+        administradores = Administrador.query.filter_by(eliminado=False).order_by(Administrador.nombre).paginate(page=page, per_page=5, error_out=False)
         return render_template('ver_administradores.html', administradores=administradores)
 
     def ver_encargados(self, session):

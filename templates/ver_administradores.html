@@ -1,47 +1,54 @@
 {% extends "base_hero.html" %}
+{% from "components/pagination.html" import pagination %}
 
 {% block title %}Lista de Administradores - Alquilando{% endblock %}
 
 {% block hero_content %}
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Lista de Administradores</h2>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>DNI</th>
-                    {% if session.rol == 'superusuario' %}
-                    <th>Acción</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for admin in administradores %}
-                <tr>
-                    <td>{{ admin.nombre }}</td>
-                    <td>{{ admin.apellido }}</td>
-                    <td>{{ admin.email }}</td>
-                    <td>{{ admin.telefono }}</td>
-                    <td>{{ admin.dni }}</td>
-                    {% if session.rol == 'superusuario' %}
-                    <td>
-                        <form method="POST" action="{{ url_for('main.eliminar_administrador', id=admin.id) }}" style="display:inline;">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="mostrarConfirmacion(this, '¿seguro quiere eliminar este administrador?')">Eliminar</button>
-                        </form>
-                    </td>
-                    {% endif %}
-                </tr>
+<link rel="stylesheet" href="{{ url_for('static', filename='customCss/styles.css') }}">
+<div class="container-fluid px-0">
+    <div class="row justify-content-center">
+        <div class="col-12" style="max-width: 95vw;">
+            <h2 class="text-center mb-3">Lista de Administradores</h2>
+            
+            <!-- Lista de administradores -->
+            <div class="row g-2">
+                {% for admin in administradores.items %}
+                <div class="col-12">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <h5 class="card-title">{{ admin.nombre }} {{ admin.apellido }}</h5>
+                                </div>
+                                <div class="col-md-3">
+                                    <p class="card-text"><strong>Email:</strong> {{ admin.email }}</p>
+                                </div>
+                                <div class="col-md-2">
+                                    <p class="card-text"><strong>Teléfono:</strong> {{ admin.telefono }}</p>
+                                </div>
+                                <div class="col-md-2">
+                                    <p class="card-text"><strong>DNI:</strong> {{ admin.dni }}</p>
+                                </div>
+                                {% if session.rol == 'superusuario' %}
+                                <div class="col-md-3 text-end">
+                                    <form method="POST" action="{{ url_for('main.eliminar_administrador', id=admin.id) }}" style="display:inline;">
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="mostrarConfirmacion(this, '¿Seguro quiere eliminar este administrador?')">Eliminar</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {% else %}
-                <tr>
-                    <td colspan="5" class="text-center">No hay administradores registrados.</td>
-                </tr>
+                <div class="col-12 text-center">
+                    <p class="lead">No hay administradores registrados.</p>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+            
+            {{ pagination(administradores, 'main.ver_administradores') }}
+        </div>
     </div>
 </div>
 {% endblock %} 
