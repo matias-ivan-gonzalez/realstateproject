@@ -10,23 +10,19 @@
 <div class="container-fluid px-0">
     <div class="row justify-content-center">
         <div class="col-12" style="max-width: 95vw;">
-            <h2 class="text-center mb-3">Propiedades</h2>
-            
-            {{ search_filter(url_for('main.ver_propiedades')) }}
-            
             <!-- Lista de propiedades -->
             <div class="row g-2">
-                {% for propiedad in propiedades.items %}
-                    {{ property_card(propiedad) }}
+                {% if propiedades.items|length == 0 %}
+                    <div class="col-12 text-center" style="margin-top: 4rem;">
+                        <p class="lead">No tenes propiedades asignadas</p>
+                    </div>
                 {% else %}
-                <div class="col-12 text-center">
-                    {% if request.args.get('ubicacion') %}
-                        <p class="lead">No se encontraron propiedades en esta ubicación, pruebe otra ubicación.</p>
-                    {% else %}
-                        <p class="lead">No se encontraron propiedades que coincidan con los criterios de búsqueda.</p>
-                    {% endif %}
-                </div>
-                {% endfor %}
+                    <h2 class="text-center mb-3">Propiedades</h2>
+                    {# {{ search_filter(url_for('main.ver_propiedades')) }} #}
+                    {% for propiedad in propiedades.items %}
+                        {{ property_card(propiedad) }}
+                    {% endfor %}
+                {% endif %}
             </div>
             
             {{ pagination(propiedades, 'main.ver_propiedades') }}

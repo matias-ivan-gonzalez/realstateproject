@@ -53,7 +53,7 @@
               {% endfor %}
             </select>
           {% else %}
-            <input type="hidden" name="rol" value="Encargado">
+            <input type="hidden" name="rol" id="rol" value="Encargado">
             <label class="form-label">Rol</label>
             <input type="text" class="form-control" value="Encargado" disabled>
           {% endif %}
@@ -61,10 +61,40 @@
       </div>
       <div class="row">
         <div class="col-md-12 mb-3 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary w-100">Guardar</button>
+          <button type="submit" class="btn btn-primary w-100" id="btn-guardar" disabled>Guardar</button>
         </div>
       </div>
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Lista de campos requeridos en agregar_empleado
+    const campos = [
+        'nombre', 'apellido', 'dni', 'telefono', 'nacionalidad', 'email', 'contrasena', 'rol'
+    ];
+    const btnGuardar = document.getElementById('btn-guardar');
+
+    function verificarCampos() {
+        let todosConValor = campos.every(id => {
+            const el = document.getElementById(id);
+            // Para el select de nacionalidad y rol, también chequea si existe y tiene valor
+            return el && el.value.trim() !== '';
+        });
+        btnGuardar.disabled = !todosConValor;
+    }
+
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+            el.addEventListener('change', verificarCampos);
+        }
+    });
+
+    // Llamar al cargar la página por si hay valores precargados
+    verificarCampos();
+});
+</script>
 {% endblock %} 
