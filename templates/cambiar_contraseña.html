@@ -6,14 +6,14 @@
     <h2 class="text-center text-secondary mb-4">Cambiar contraseña</h2>
     {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
+    {% else %}
     <form method="POST">
         <div class="mb-3">
             <label for="password" class="form-label text-secondary">Nueva contraseña:</label>
             <input type="password" class="form-control" id="password" name="password" required>
         </div>
         <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-primary">Confirmar</button>
+            <button type="submit" class="btn btn-primary" id="btn-confirmar" disabled>Confirmar</button>
         </div>
     </form>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -25,6 +25,20 @@
         </ul>
       {% endif %}
     {% endwith %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const btnConfirmar = document.getElementById('btn-confirmar');
+
+        function verificarCampo() {
+            btnConfirmar.disabled = passwordInput.value.trim() === '';
+        }
+
+        passwordInput.addEventListener('input', verificarCampo);
+        verificarCampo();
+    });
+    </script>
+    {% endif %}
   </div>
 </div>
 {% endblock %} 

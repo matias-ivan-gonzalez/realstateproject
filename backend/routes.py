@@ -26,7 +26,7 @@ def login_required(f):
 # Ruta principal
 @main.route('/')
 def index():
-    propiedades_random = Propiedad.query.filter_by(eliminado=False).order_by(func.random()).limit(6).all()
+    propiedades_random = Propiedad.query.order_by(func.random()).limit(6).all()
     return render_template('index.html', propiedades_random=propiedades_random)
 
 
@@ -56,10 +56,11 @@ def nueva_propiedad():
     
 
 # Ruta para mostrar el formulario de modificar propiedad
-@main.route('/propiedades/modificar/<int:id>', methods=['GET', 'POST'])
-def modificar_propiedad(id):
+@main.route('/propiedades/modificar', methods=['GET', 'POST'])
+def modificar_propiedad():
+    # Diccionario de ejemplo con datos de una propiedad
     propiedad_controller = PropiedadController()
-    return propiedad_controller.update_propiedad(id)
+    return propiedad_controller.update_propiedad()
 
 # Ruta para agregar un nuevo empleado (administrador o encargado)
 @main.route('/empleados/nuevo', methods=['GET', 'POST'])
@@ -130,9 +131,11 @@ def agregar_favorito(propiedad_id):
     user_controller = UserController()
     return user_controller.agregar_favorito(session, propiedad_id)
 
-@main.route('/favoritos/quitar/<int:propiedad_id>', methods=['POST'])
+@main.route('/favoritos/quitar/<int:propiedad_id>', methods=['GET', 'POST'])
 @login_required
 def quitar_favorito(propiedad_id):
+    if request.method == 'GET':
+        return redirect(url_for('main.ver_favoritos'))
     user_controller = UserController()
     return user_controller.quitar_favorito(session, propiedad_id)
 
@@ -154,36 +157,38 @@ def eliminar_imagen(imagen_id):
     propiedad_controller = PropiedadController()
     return propiedad_controller.eliminar_imagen(imagen_id)
 
-@main.route('/encargado/eliminar/<int:id>', methods=['POST'])
-def eliminar_encargado(id):
-    user_controller = UserController()
-    return user_controller.eliminar_encargado(session, id)
-
 @main.route('/administrador/eliminar/<int:id>', methods=['POST'])
+@login_required
 def eliminar_administrador(id):
     user_controller = UserController()
     return user_controller.eliminar_administrador(session, id)
 
-@main.route('/encargado/<int:encargado_id>/propiedades/asignar')
+@main.route('/encargado/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_encargado(id):
+    user_controller = UserController()
+    return user_controller.eliminar_encargado(session, id)
+
+@main.route('/encargado/<int:encargado_id>/asignar-propiedades')
+@login_required
 def ver_propiedades_asignar(encargado_id):
-    from architectural_patterns.controller.propiedad_controller import PropiedadController
     propiedad_controller = PropiedadController()
     return propiedad_controller.ver_propiedades_asignar(session, encargado_id)
 
-@main.route('/encargado/<int:encargado_id>/propiedades/desasignar')
+@main.route('/encargado/<int:encargado_id>/desasignar-propiedades')
+@login_required
 def ver_propiedades_desasignar(encargado_id):
-    from architectural_patterns.controller.propiedad_controller import PropiedadController
     propiedad_controller = PropiedadController()
     return propiedad_controller.ver_propiedades_desasignar(session, encargado_id)
 
-@main.route('/propiedad/<int:propiedad_id>/asignar/<int:encargado_id>', methods=['POST'])
-def asignar_propiedad(propiedad_id, encargado_id):
-    from architectural_patterns.controller.propiedad_controller import PropiedadController
-    propiedad_controller = PropiedadController()
-    return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)
-
-@main.route('/propiedad/<int:propiedad_id>/desasignar', methods=['POST'])
+@main.route('/propiedad/desasignar/<int:propiedad_id>', methods=['POST'])
+@login_required
 def desasignar_propiedad(propiedad_id):
-    from architectural_patterns.controller.propiedad_controller import PropiedadController
     propiedad_controller = PropiedadController()
     return propiedad_controller.desasignar_propiedad(session, propiedad_id)
+
+@main.route('/propiedad/asignar/<int:propiedad_id>/<int:encargado_id>', methods=['POST'])
+@login_required
+def asignar_propiedad(propiedad_id, encargado_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)

@@ -28,7 +28,7 @@
         </div>
 
         <div class="d-grid mb-3">
-          <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+          <button type="submit" class="btn btn-primary" id="btn-login" disabled>Iniciar sesión</button>
         </div>
 
         <div class="text-end">
@@ -38,4 +38,28 @@
     {% endif %}
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const campos = ['email', 'password'];
+    const btnLogin = document.getElementById('btn-login');
+
+    function verificarCampos() {
+        let todosConValor = campos.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
+        });
+        btnLogin.disabled = !todosConValor;
+    }
+
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', verificarCampos);
+        }
+    });
+
+    verificarCampos();
+});
+</script>
 {% endblock %}

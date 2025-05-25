@@ -1,6 +1,7 @@
 from architectural_patterns.repository.user_repository import UserRepository
 from datetime import datetime, date, timedelta
 import re
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 NACIONALIDADES_VALIDAS = [
     "Afganistán", "Albania", "Alemania", "Andorra", "Angola", "Antigua y Barbuda", "Arabia Saudita", "Argelia", "Argentina", "Armenia", "Australia", "Austria", "Azerbaiyán", "Bahamas", "Bangladés", "Barbados", "Baréin", "Bélgica", "Belice", "Benín", "Bielorrusia", "Birmania", "Bolivia", "Bosnia y Herzegovina", "Botsuana", "Brasil", "Brunéi", "Bulgaria", "Burkina Faso", "Burundi", "Bután", "Cabo Verde", "Camboya", "Camerún", "Canadá", "Catar", "Chad", "Chile", "China", "Chipre", "Ciudad del Vaticano", "Colombia", "Comoras", "Corea del Norte", "Corea del Sur", "Costa de Marfil", "Costa Rica", "Croacia", "Cuba", "Dinamarca", "Dominica", "Ecuador", "Egipto", "El Salvador", "Emiratos Árabes Unidos", "Eritrea", "Eslovaquia", "Eslovenia", "España", "Estados Unidos", "Estonia", "Etiopía", "Filipinas", "Finlandia", "Fiyi", "Francia", "Gabón", "Gambia", "Georgia", "Ghana", "Granada", "Grecia", "Guatemala", "Guyana", "Guinea", "Guinea ecuatorial", "Guinea-Bisáu", "Haití", "Honduras", "Hungría", "India", "Indonesia", "Irak", "Irán", "Irlanda", "Islandia", "Islas Marshall", "Islas Salomón", "Israel", "Italia", "Jamaica", "Japón", "Jordania", "Kazajistán", "Kenia", "Kirguistán", "Kiribati", "Kuwait", "Laos", "Lesoto", "Letonia", "Líbano", "Liberia", "Libia", "Liechtenstein", "Lituania", "Luxemburgo", "Macedonia del Norte", "Madagascar", "Malasia", "Malaui", "Maldivas", "Malí", "Malta", "Marruecos", "Mauricio", "Mauritania", "México", "Micronesia", "Moldavia", "Mónaco", "Mongolia", "Montenegro", "Mozambique", "Namibia", "Nauru", "Nepal", "Nicaragua", "Níger", "Nigeria", "Noruega", "Nueva Zelanda", "Omán", "Países Bajos", "Pakistán", "Palaos", "Panamá", "Papúa Nueva Guinea", "Paraguay", "Perú", "Polonia", "Portugal", "Reino Unido", "República Centroafricana", "República Checa", "República del Congo", "República Democrática del Congo", "República Dominicana", "Ruanda", "Rumanía", "Rusia", "Samoa", "San Cristóbal y Nieves", "San Marino", "San Vicente y las Granadinas", "Santa Lucía", "Santo Tomé y Príncipe", "Senegal", "Serbia", "Seychelles", "Sierra Leona", "Singapur", "Siria", "Somalia", "Sri Lanka", "Suazilandia", "Sudáfrica", "Sudán", "Sudán del Sur", "Suecia", "Suiza", "Surinam", "Tailandia", "Tanzania", "Tayikistán", "Timor Oriental", "Togo", "Tonga", "Trinidad y Tobago", "Túnez", "Turkmenistán", "Turquía", "Tuvalu", "Ucrania", "Uganda", "Uruguay", "Uzbekistán", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Yibuti", "Zambia", "Zimbabue"
@@ -72,7 +73,8 @@ class UserService:
             return False, 'El teléfono debe ser numérico.'
         if data.get('tarjeta') and not is_numeric(data['tarjeta']):
             return False, 'La tarjeta debe ser numérica.'
-
+        if data.get('tarjeta') and len(data['tarjeta']) < 12 or len(data['tarjeta']) > 16:
+            return False, 'El número de tarjeta debe tener entre 12 y 16 dígitos.'
         # Validar nacionalidad
         if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
             return False, 'Nacionalidad inválida.'
@@ -118,8 +120,8 @@ class UserService:
         # Verificar si hay nueva contraseña
         if data.get('password'):
             has_changes = True
-            if len(data['password']) < 8:
-                return False, 'La contraseña debe tener al menos 8 caracteres.'
+            if len(data['password']) < 6:
+                return False, 'La contraseña debe tener al menos 6 caracteres.'
             if data['password'] != data.get('password_confirm'):
                 return False, 'Las contraseñas no coinciden.'
 
@@ -161,14 +163,17 @@ class UserService:
                 return False, f'El campo {field} es obligatorio.'
         if not is_valid_email(data['email']):
             return False, 'Email inválido.'
-        if len(data['password']) < 8:
-            return False, 'La contraseña debe tener al menos 8 caracteres.'
+        if len(data['password']) < 6:
+            return False, 'La contraseña debe tener al menos 6 caracteres.'
         if not is_numeric(data['dni']):
             return False, 'El DNI debe ser numérico.'
         if not is_numeric(data['telefono']):
             return False, 'El teléfono debe ser numérico.'
-        if data.get('tarjeta') and not is_numeric(data['tarjeta']):
-            return False, 'La tarjeta debe ser numérica.'
+        if data.get('tarjeta'):
+            if not is_numeric(data['tarjeta']):
+                return False, 'La tarjeta debe ser numérica.'
+            if len(data['tarjeta']) < 12 or len(data['tarjeta']) > 16:
+                return False, 'El número de tarjeta debe tener entre 12 y 16 dígitos.'
         if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
             return False, 'Nacionalidad inválida.'
         if self.email_exists(data['email']):
@@ -205,3 +210,24 @@ class UserService:
 
     def eliminar_usuario_logico(self, user_id):
         return self.user_repository.eliminar_usuario_logico(user_id) 
+
+    def generar_token_recuperacion(self, user, expires_sec=3600):
+        s = URLSafeTimedSerializer('clave_secreta_para_tokens')
+        return s.dumps({'user_id': user.id})
+
+    def verificar_token_recuperacion(self, token, max_age=3600):
+        s = URLSafeTimedSerializer('clave_secreta_para_tokens')
+        try:
+            data = s.loads(token, max_age=max_age)
+            user_id = data.get('user_id')
+            return self.get_user_by_id(user_id)
+        except SignatureExpired:
+            return None  # Token caducado
+        except BadSignature:
+            return None  # Token inválido
+
+    def actualizar_password(self, user, nueva_password):
+        user.contrasena = nueva_password
+        from database import db
+        db.session.commit()
+        return True 
