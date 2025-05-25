@@ -26,7 +26,7 @@ def login_required(f):
 # Ruta principal
 @main.route('/')
 def index():
-    propiedades_random = Propiedad.query.order_by(func.random()).limit(6).all()
+    propiedades_random = Propiedad.query.filter_by(eliminado=False).order_by(func.random()).limit(6).all()
     return render_template('index.html', propiedades_random=propiedades_random)
 
 
@@ -56,11 +56,10 @@ def nueva_propiedad():
     
 
 # Ruta para mostrar el formulario de modificar propiedad
-@main.route('/propiedades/modificar', methods=['GET', 'POST'])
-def modificar_propiedad():
-    # Diccionario de ejemplo con datos de una propiedad
+@main.route('/propiedades/modificar/<int:id>', methods=['GET', 'POST'])
+def modificar_propiedad(id):
     propiedad_controller = PropiedadController()
-    return propiedad_controller.update_propiedad()
+    return propiedad_controller.update_propiedad(id)
 
 # Ruta para agregar un nuevo empleado (administrador o encargado)
 @main.route('/empleados/nuevo', methods=['GET', 'POST'])
