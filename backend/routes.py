@@ -26,7 +26,7 @@ def login_required(f):
 # Ruta principal
 @main.route('/')
 def index():
-    propiedades_random = Propiedad.query.order_by(func.random()).limit(6).all()
+    propiedades_random = Propiedad.query.filter_by(eliminado=False).order_by(func.random()).limit(6).all()
     return render_template('index.html', propiedades_random=propiedades_random)
 
 
