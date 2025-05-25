@@ -175,7 +175,9 @@ class UserController:
         if user_rol not in ['superusuario', 'administrador']:
             flash('No tienes permiso para ver los encargados.', 'danger')
             return redirect(url_for('main.index'))
-        encargados = Encargado.query.filter_by(eliminado=False).all()
+        
+        page = request.args.get('page', 1, type=int)
+        encargados = Encargado.query.filter_by(eliminado=False).order_by(Encargado.nombre).paginate(page=page, per_page=5, error_out=False)
         return render_template('ver_encargados.html', encargados=encargados)
 
     def agregar_favorito(self, session, propiedad_id):
