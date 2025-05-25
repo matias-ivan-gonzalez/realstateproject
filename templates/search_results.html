@@ -70,7 +70,7 @@
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;"></span></label>
-                <select class="form-select" id="orden_precio" name="orden_precio">
+                <select class="form-select" id="orden_precio" name="orden_precio" style="min-width: 220px;">
                     <option value="" {% if not orden_precio %}selected{% endif %}>---</option>
                     <option value="asc" {% if orden_precio == 'asc' %}selected{% endif %}>Precio - Menor a Mayor</option>
                     <option value="desc" {% if orden_precio == 'desc' %}selected{% endif %}>Precio - Mayor a Menor</option>
