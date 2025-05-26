@@ -177,70 +177,70 @@ def init_db():
     # Propiedades
     prop1 = Propiedad.query.filter_by(nombre='Casa Palermo').first()
     if not prop1:
-        prop1 = Propiedad(nombre='Casa Palermo', ubicacion='Gorriti 4800, Palermo, CABA', precio=250000, cantidad_habitaciones=4, limite_personas=7, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa moderna con pileta y jardín en el corazón de Palermo.', superusuario=superuser, encargado=encargado, latitud=-34.5831, longitud=-58.4246)
+        prop1 = Propiedad(nombre='Casa Palermo', ubicacion='Palermo, CABA', direccion='Gorriti 4800, Palermo, CABA', precio=250000, cantidad_habitaciones=4, limite_personas=7, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa moderna con pileta y jardín en el corazón de Palermo.', superusuario=superuser, encargado=encargado, latitud=-34.5831, longitud=-58.4246)
         db.session.add(prop1)
     else:
         prop1.latitud = -34.5831
         prop1.longitud = -58.4246
     prop2 = Propiedad.query.filter_by(nombre='Depto Recoleta').first()
     if not prop2:
-        prop2 = Propiedad(nombre='Depto Recoleta', ubicacion='Arenales 2100, Recoleta, CABA', precio=180000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento elegante cerca de Plaza Francia.', superusuario=superuser, encargado=encargado, latitud=-34.5895, longitud=-58.3936)
+        prop2 = Propiedad(nombre='Depto Recoleta', ubicacion='Recoleta, CABA', direccion='Arenales 2100, Recoleta, CABA', precio=180000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento elegante cerca de Plaza Francia.', superusuario=superuser, encargado=encargado, latitud=-34.5895, longitud=-58.3936)
         db.session.add(prop2)
     else:
         prop2.latitud = -34.5895
         prop2.longitud = -58.3936
     prop3 = Propiedad.query.filter_by(nombre='Casa San Isidro').first()
     if not prop3:
-        prop3 = Propiedad(nombre='Casa San Isidro', ubicacion='Av. del Libertador 16200, San Isidro, Buenos Aires', precio=320000, cantidad_habitaciones=5, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Amplia casa familiar con parque y pileta en zona norte.', superusuario=superuser, encargado=encargado, latitud=-34.4732, longitud=-58.5122)
+        prop3 = Propiedad(nombre='Casa San Isidro', ubicacion='San Isidro, Buenos Aires', direccion='Av. del Libertador 16200, San Isidro, Buenos Aires', precio=320000, cantidad_habitaciones=5, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Amplia casa familiar con parque y pileta en zona norte.', superusuario=superuser, encargado=encargado, latitud=-34.4732, longitud=-58.5122)
         db.session.add(prop3)
     else:
         prop3.latitud = -34.4732
         prop3.longitud = -58.5122
     prop4 = Propiedad.query.filter_by(nombre='Depto Rosario Centro').first()
     if not prop4:
-        prop4 = Propiedad(nombre='Depto Rosario Centro', ubicacion='Córdoba 1200, Rosario, Santa Fe', precio=95000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento céntrico a metros del Monumento a la Bandera.', superusuario=superuser, encargado=encargado, latitud=-32.9468, longitud=-60.6393)
+        prop4 = Propiedad(nombre='Depto Rosario Centro', ubicacion='Rosario, Santa Fe', direccion='Córdoba 1200, Rosario, Santa Fe', precio=95000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento céntrico a metros del Monumento a la Bandera.', superusuario=superuser, encargado=encargado, latitud=-32.9468, longitud=-60.6393)
         db.session.add(prop4)
     else:
         prop4.latitud = -32.9468
         prop4.longitud = -60.6393
     prop5 = Propiedad.query.filter_by(nombre='Casa Bariloche Lago').first()
     if not prop5:
-        prop5 = Propiedad(nombre='Casa Bariloche Lago', ubicacion='Av. Bustillo Km 8, San Carlos de Bariloche, Río Negro', precio=400000, cantidad_habitaciones=6, limite_personas=10, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa de lujo con vista al lago Nahuel Huapi.', superusuario=superuser, encargado=encargado, latitud=-41.0999, longitud=-71.4196)
+        prop5 = Propiedad(nombre='Casa Bariloche Lago', ubicacion='San Carlos de Bariloche, Río Negro', direccion='Av. Bustillo Km 8, San Carlos de Bariloche, Río Negro', precio=400000, cantidad_habitaciones=6, limite_personas=10, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa de lujo con vista al lago Nahuel Huapi.', superusuario=superuser, encargado=encargado, latitud=-41.0999, longitud=-71.4196)
         db.session.add(prop5)
     else:
         prop5.latitud = -41.0999
         prop5.longitud = -71.4196
     prop6 = Propiedad.query.filter_by(nombre='Depto Mendoza Centro').first()
     if not prop6:
-        prop6 = Propiedad(nombre='Depto Mendoza Centro', ubicacion='Av. San Martín 800, Mendoza', precio=110000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento moderno en pleno centro de Mendoza.', superusuario=superuser, encargado=encargado, latitud=-32.8908, longitud=-68.8447)
+        prop6 = Propiedad(nombre='Depto Mendoza Centro', ubicacion='Mendoza', direccion='Av. San Martín 800, Mendoza', precio=110000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento moderno en pleno centro de Mendoza.', superusuario=superuser, encargado=encargado, latitud=-32.8908, longitud=-68.8447)
         db.session.add(prop6)
     else:
         prop6.latitud = -32.8908
         prop6.longitud = -68.8447
     prop7 = Propiedad.query.filter_by(nombre='Casa Córdoba Nueva Córdoba').first()
     if not prop7:
-        prop7 = Propiedad(nombre='Casa Córdoba Nueva Córdoba', ubicacion='Obispo Trejo 1200, Nueva Córdoba, Córdoba', precio=210000, cantidad_habitaciones=3, limite_personas=6, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=True, descripcion='Casa amplia cerca del Parque Sarmiento.', superusuario=superuser, encargado=encargado, latitud=-31.4273, longitud=-64.1830)
+        prop7 = Propiedad(nombre='Casa Córdoba Nueva Córdoba', ubicacion='Córdoba', direccion='Obispo Trejo 1200, Nueva Córdoba, Córdoba', precio=210000, cantidad_habitaciones=3, limite_personas=6, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=True, descripcion='Casa amplia cerca del Parque Sarmiento.', superusuario=superuser, encargado=encargado, latitud=-31.4273, longitud=-64.1830)
         db.session.add(prop7)
     else:
         prop7.latitud = -31.4273
         prop7.longitud = -64.1830
     prop8 = Propiedad.query.filter_by(nombre='Depto Mar del Plata Playa').first()
     if not prop8:
-        prop8 = Propiedad(nombre='Depto Mar del Plata Playa', ubicacion='Boulevard Marítimo 2200, Mar del Plata, Buenos Aires', precio=130000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento con vista al mar, a metros de Playa Bristol.', superusuario=superuser, encargado=encargado, latitud=-38.0055, longitud=-57.5426)
+        prop8 = Propiedad(nombre='Depto Mar del Plata Playa', ubicacion='Mar del Plata, Buenos Aires', direccion='Boulevard Marítimo 2200, Mar del Plata, Buenos Aires', precio=130000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento con vista al mar, a metros de Playa Bristol.', superusuario=superuser, encargado=encargado, latitud=-38.0055, longitud=-57.5426)
         db.session.add(prop8)
     else:
         prop8.latitud = -38.0055
         prop8.longitud = -57.5426
     prop9 = Propiedad.query.filter_by(nombre='Casa Tigre Delta').first()
     if not prop9:
-        prop9 = Propiedad(nombre='Casa Tigre Delta', ubicacion='Río Sarmiento 300, Tigre, Buenos Aires', precio=270000, cantidad_habitaciones=4, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa isleña con muelle propio en el Delta de Tigre.', superusuario=superuser, encargado=encargado, latitud=-34.4089, longitud=-58.5796)
+        prop9 = Propiedad(nombre='Casa Tigre Delta', ubicacion='Tigre, Buenos Aires', direccion='Río Sarmiento 300, Tigre, Buenos Aires', precio=270000, cantidad_habitaciones=4, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa isleña con muelle propio en el Delta de Tigre.', superusuario=superuser, encargado=encargado, latitud=-34.4089, longitud=-58.5796)
         db.session.add(prop9)
     else:
         prop9.latitud = -34.4089
         prop9.longitud = -58.5796
     prop10 = Propiedad.query.filter_by(nombre='Depto Salta Balcarce').first()
     if not prop10:
-        prop10 = Propiedad(nombre='Depto Salta Balcarce', ubicacion='Balcarce 500, Salta', precio=90000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento turístico en la zona de peñas y bares.', superusuario=superuser, encargado=encargado, latitud=-24.7883, longitud=-65.4106)
+        prop10 = Propiedad(nombre='Depto Salta Balcarce', ubicacion='Salta', direccion='Balcarce 500, Salta', precio=90000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento turístico en la zona de peñas y bares.', superusuario=superuser, encargado=encargado, latitud=-24.7883, longitud=-65.4106)
         db.session.add(prop10)
     else:
         prop10.latitud = -24.7883
