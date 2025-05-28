@@ -26,4 +26,7 @@ class EmpleadoRepository(UserRepository):
             
         db.session.add(nuevo_empleado)
         db.session.commit()
-        return nuevo_empleado 
+        return nuevo_empleado
+    
+    def get_by_dni_and_nacionalidad(self, dni, nacionalidad):
+        return Administrador.query.filter_by(dni=dni, nacionalidad=nacionalidad).first() or Encargado.query.filter_by(dni=dni, nacionalidad=nacionalidad).first() 
