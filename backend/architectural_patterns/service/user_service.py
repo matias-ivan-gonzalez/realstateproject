@@ -26,7 +26,9 @@ class UserService:
     def email_exists(self, email):
         return self.user_repository.get_by_email(email)
 
-    def dni_exists(self, dni):
+    def dni_exists(self, dni, nacionalidad=None):
+        if nacionalidad:
+            return self.user_repository.get_by_dni_and_nacionalidad(dni, nacionalidad)
         return self.user_repository.get_by_dni(dni)
 
     def parse_fecha_nacimiento(self, f_nac):
@@ -68,7 +70,7 @@ class UserService:
 
         # Validar campos numéricos
         if not is_numeric(data['dni']):
-            return False, 'El DNI debe ser numérico.'
+            return False, 'El documento de identidad debe ser numérico.'
         if not is_numeric(data['telefono']):
             return False, 'El teléfono debe ser numérico.'
         if data.get('tarjeta'):
@@ -97,10 +99,10 @@ class UserService:
             if email_exists and email_exists.id != user_id:
                 return False, 'El email ya está registrado por otro usuario.'
 
-        if data['dni'] != user.dni:
-            dni_exists = self.dni_exists(data['dni'])
+        if data['dni'] != user.dni or data['nacionalidad'] != user.nacionalidad:
+            dni_exists = self.dni_exists(data['dni'], data['nacionalidad'])
             if dni_exists and dni_exists.id != user_id:
-                return False, 'El DNI ya está registrado por otro usuario.'
+                return False, f'El DNI/cedula de identificación/Pasaporte/Otro ya está registrado con la nacionalidad seleccionada.'
 
         # Verificar si hay cambios en los datos
         has_changes = False
@@ -170,7 +172,7 @@ class UserService:
         if len(data['password']) < 6:
             return False, 'La contraseña debe tener al menos 6 caracteres.'
         if not is_numeric(data['dni']):
-            return False, 'El DNI debe ser numérico.'
+            return False, 'El documento de identidad debe ser numérico.'
         if not is_numeric(data['telefono']):
             return False, 'El teléfono debe ser numérico.'
         if data.get('tarjeta'):
@@ -185,8 +187,8 @@ class UserService:
             return False, 'Nacionalidad inválida.'
         if self.email_exists(data['email']):
             return False, 'El email ya está registrado.'
-        if self.dni_exists(data['dni']):
-            return False, 'El DNI ya está registrado.'
+        if self.dni_exists(data['dni'], data['nacionalidad']):
+            return False, f'Ya existe un usuario con ese documento de identidad para la nacionalidad {data["nacionalidad"]}.'
         fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
         if data.get('f_nac') and not fecha_nacimiento:
             return False, 'Fecha de nacimiento inválida.'

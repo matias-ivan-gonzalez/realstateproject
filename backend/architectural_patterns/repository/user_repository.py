@@ -11,6 +11,9 @@ class UserRepository:
     def get_by_dni(self, dni):
         return Usuario.query.filter_by(dni=dni).first()
 
+    def get_by_dni_and_nacionalidad(self, dni, nacionalidad):
+        return Usuario.query.filter_by(dni=dni, nacionalidad=nacionalidad).first()
+
     def create_usuario(self, user_dict):
         tipo = user_dict.get('tipo', 'cliente')
         if tipo == 'cliente':
