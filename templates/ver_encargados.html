@@ -33,9 +33,9 @@
                                     <form method="POST" action="{{ url_for('main.eliminar_encargado', id=encargado.id) }}" style="display:inline;">
                                         <button type="button" class="btn btn-danger btn-sm w-auto px-2" onclick="mostrarConfirmacion(this, '¿Seguro quiere eliminar este encargado?')">Eliminar</button>
                                     </form>
-                                    <a href="{{ url_for('main.ver_propiedades_asignar', encargado_id=encargado.id) }}" class="btn btn-success btn-sm w-auto px-2">Asignar propiedades</a>
+                                    <a href="{{ url_for('main.ver_propiedades_asignar', encargado_id=encargado.id) }}" class="btn btn-success btn-sm w-auto px-2">Ver propiedades sin asignar</a>
                                     {% if encargado.propiedades_encargadas|length > 0 %}
-                                        <a href="{{ url_for('main.ver_propiedades_desasignar', encargado_id=encargado.id) }}" class="btn btn-primary btn-sm w-auto px-2">Desasignar propiedades</a>
+                                        <a href="{{ url_for('main.ver_propiedades_desasignar', encargado_id=encargado.id) }}" class="btn btn-primary btn-sm w-auto px-2">Ver propiedades asignadas</a>
                                     {% endif %}
                                 </div>
                             </div>
