@@ -114,18 +114,7 @@ class PropiedadController:
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
                 user_favoritos = cliente.favoritos
-
-        # Obtener la carpeta de imágenes desde nombre_archivo del primer registro de imagen
-        imagenes_files = []
-        if propiedad.imagenes and propiedad.imagenes[0].nombre_archivo:
-            folder = propiedad.imagenes[0].nombre_archivo.replace('\\', '/').replace('static/', '').lstrip('/')
-            folder_path = os.path.join('static', folder)
-            if os.path.isdir(folder_path):
-                for fname in os.listdir(folder_path):
-                    if fname.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
-                        imagenes_files.append(f"{folder}/{fname}")
-
-        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, imagenes_files=imagenes_files, request=request)
+        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, request=request)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -145,18 +134,32 @@ class PropiedadController:
             if not files or files[0].filename == '':
                 flash('Debes seleccionar al menos una imagen.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
-            if len(propiedad.imagenes) + len(files) > 10:
-                flash('No puedes tener más de 10 imágenes por propiedad.', 'danger')
+            # Solo permitir .jpg y .png
+            files = [f for f in files if f.filename.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            if not files:
+                flash('Solo se permiten archivos .jpg y .png.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
-            carpeta_destino = 'static/img/propiedades/'
+            max_permitidas = 5 - len(propiedad.imagenes)
+            if max_permitidas <= 0 or len(files) > max_permitidas:
+                flash('La cantidad de imagenes totales supera 5', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=id))
+            carpeta_destino = os.path.join('static', 'img', f'prop{id}')
+            os.makedirs(carpeta_destino, exist_ok=True)
             for file in files:
                 filename = file.filename
                 ruta = os.path.join(carpeta_destino, filename)
+                # Si el archivo ya existe, agrega un sufijo incremental
+                base, ext = os.path.splitext(filename)
+                counter = 1
+                while os.path.exists(ruta):
+                    filename = f"{base}_{counter}{ext}"
+                    ruta = os.path.join(carpeta_destino, filename)
+                    counter += 1
                 file.save(ruta)
-                imagen = Imagen(url='/' + ruta.replace('\\', '/'), nombre_archivo=filename, propiedad=propiedad)
+                imagen = Imagen(url='/' + ruta.replace('\\', '/').replace(os.sep, '/'), nombre_archivo=filename, propiedad=propiedad)
                 db.session.add(imagen)
             db.session.commit()
-            flash('Imágenes agregadas correctamente.', 'success')
+            flash('Las imágenes se han agregado correctamente a la propiedad.', 'success')
             return redirect(url_for('main.detalle_propiedad', id=id))
         return redirect(url_for('main.detalle_propiedad', id=id))
     
