@@ -34,7 +34,7 @@
       <div class="row mb-2">
         <div class="col-md-3 mb-2">
           <label for="telefono" class="form-label text-secondary">Teléfono</label>
-          <input type="tel" class="form-control" id="telefono" name="telefono" required pattern="^[0-9]+$" value="{{ request.form.telefono }}">
+          <input type="tel" class="form-control" id="telefono" name="telefono" required value="{{ request.form.telefono }}">
         </div>
         <div class="col-md-3 mb-2">
           <label for="f_nac" class="form-label text-secondary">Fecha de nacimiento</label>
@@ -54,7 +54,7 @@
       <div class="row mb-2">
         <div class="col-md-6 mb-2">
           <label for="dni" class="form-label text-secondary">DNI/cedula de identificación/Pasaporte/Otro *</label>
-          <input type="text" class="form-control" id="dni" name="dni" required pattern="^[0-9]+$" value="{{ request.form.dni }}">
+          <input type="text" class="form-control" id="dni" name="dni" required value="{{ request.form.dni }}">
           <small class="text-muted" id="dniHelp">Ingrese su DNI</small>
         </div>
         <div class="col-md-6 mb-2">

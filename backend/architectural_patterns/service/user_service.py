@@ -69,10 +69,6 @@ class UserService:
             return False, 'Email inválido.'
 
         # Validar campos numéricos
-        if not is_numeric(data['dni']):
-            return False, 'El documento de identidad debe ser numérico.'
-        if not is_numeric(data['telefono']):
-            return False, 'El teléfono debe ser numérico.'
         if data.get('tarjeta'):
             if not is_numeric(data['tarjeta']):
                 return False, 'La tarjeta debe ser numérica.'
@@ -171,10 +167,6 @@ class UserService:
             return False, 'Email inválido.'
         if len(data['password']) < 6:
             return False, 'La contraseña debe tener al menos 6 caracteres.'
-        if not is_numeric(data['dni']):
-            return False, 'El documento de identidad debe ser numérico.'
-        if not is_numeric(data['telefono']):
-            return False, 'El teléfono debe ser numérico.'
         if data.get('tarjeta'):
             if not is_numeric(data['tarjeta']):
                 return False, 'La tarjeta debe ser numérica.'

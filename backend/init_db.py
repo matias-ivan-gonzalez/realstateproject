@@ -7,7 +7,7 @@ from models.imagen import Imagen
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
 from models.reserva import Reserva
-from datetime import datetime
+from datetime import datetime, date
 
 
 def init_db():
@@ -153,24 +153,28 @@ def init_db():
     # Usuarios
     superuser = SuperUsuario.query.filter_by(email='sofia.garcia@admin.com').first()
     if not superuser:
-        superuser = SuperUsuario(nombre='Sofía', apellido='García', dni='30123456', email='sofia.garcia@admin.com', contrasena='adminSG1', telefono='1134567890', nacionalidad='AR', rol=rol_superusuario)
+        superuser = SuperUsuario(nombre='Sofía', apellido='García', dni='30123456', email='sofia.garcia@admin.com', contrasena='adminSG1', telefono='1134567890', nacionalidad='Argentina', rol=rol_superusuario)
         db.session.add(superuser)
     admin = Administrador.query.filter_by(email='martin.perez@admin.com').first()
     if not admin:
-        admin = Administrador(nombre='Martín', apellido='Pérez', dni='32123456', email='martin.perez@admin.com', contrasena='adminMP2', telefono='1145678901', nacionalidad='AR', rol=rol_admin)
+        admin = Administrador(nombre='Martín', apellido='Pérez', dni='32123456', email='martin.perez@admin.com', contrasena='adminMP2', telefono='1145678901', nacionalidad='Argentina', rol=rol_admin)
         db.session.add(admin)
     encargado = Encargado.query.filter_by(email='lucia.fernandez@encargado.com').first()
     if not encargado:
-        encargado = Encargado(nombre='Lucía', apellido='Fernández', dni='34123456', email='lucia.fernandez@encargado.com', contrasena='encargLF3', telefono='1156789012', nacionalidad='AR', rol=rol_encargado)
+        encargado = Encargado(nombre='Lucía', apellido='Fernández', dni='34123456', email='lucia.fernandez@encargado.com', contrasena='encargLF3', telefono='1156789012', nacionalidad='Argentina', rol=rol_encargado)
         db.session.add(encargado)
 
     cliente = Cliente.query.filter_by(email='juan.lopez@cliente.com').first()
     if not cliente:
-        cliente = Cliente(nombre='Juan', apellido='López', dni='36123456', email='juan.lopez@cliente.com', contrasena='clienteJL4', telefono='1167890123', nacionalidad='AR', rol=rol_cliente)
+        cliente = Cliente(
+            nombre='Juan', apellido='López', dni='36123456', email='juan.lopez@cliente.com',
+            contrasena='clienteJL4', telefono='1167890123', nacionalidad='Argentina', rol=rol_cliente,
+            direccion='Av. Corrientes 1234, CABA', fecha_nacimiento=date(1990, 5, 15)
+        )
         db.session.add(cliente)
     encargado2 = Encargado.query.filter_by(email='marcos.silva@encargado.com').first()
     if not encargado2:
-        encargado2 = Encargado(nombre='Marcos', apellido='Silva', dni='35123456', email='marcos.silva@encargado.com', contrasena='encargMS4', telefono='1178901234', nacionalidad='AR', rol=rol_encargado)
+        encargado2 = Encargado(nombre='Marcos', apellido='Silva', dni='35123456', email='marcos.silva@encargado.com', contrasena='encargMS4', telefono='1178901234', nacionalidad='Argentina', rol=rol_encargado)
         db.session.add(encargado2)
     db.session.commit()
 
