@@ -71,10 +71,14 @@ class UserService:
             return False, 'El DNI debe ser numérico.'
         if not is_numeric(data['telefono']):
             return False, 'El teléfono debe ser numérico.'
-        if data.get('tarjeta') and not is_numeric(data['tarjeta']):
-            return False, 'La tarjeta debe ser numérica.'
-        if data.get('tarjeta') and len(data['tarjeta']) < 12 or len(data['tarjeta']) > 16:
-            return False, 'El número de tarjeta debe tener entre 12 y 16 dígitos.'
+        if data.get('tarjeta'):
+            if not is_numeric(data['tarjeta']):
+                return False, 'La tarjeta debe ser numérica.'
+            if len(data['tarjeta']) != 16:
+                return False, 'El número de tarjeta debe tener exactamente 16 dígitos.'
+            # Validar que sea Visa o Mastercard
+            if not (data['tarjeta'].startswith('4') or (data['tarjeta'].startswith('5') and data['tarjeta'][1] in '12345')):
+                return False, 'La tarjeta debe ser Visa o Mastercard.'
         # Validar nacionalidad
         if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
             return False, 'Nacionalidad inválida.'
@@ -172,8 +176,11 @@ class UserService:
         if data.get('tarjeta'):
             if not is_numeric(data['tarjeta']):
                 return False, 'La tarjeta debe ser numérica.'
-            if len(data['tarjeta']) < 12 or len(data['tarjeta']) > 16:
-                return False, 'El número de tarjeta debe tener entre 12 y 16 dígitos.'
+            if len(data['tarjeta']) != 16:
+                return False, 'El número de tarjeta debe tener exactamente 16 dígitos.'
+            # Validar que sea Visa o Mastercard
+            if not (data['tarjeta'].startswith('4') or (data['tarjeta'].startswith('5') and data['tarjeta'][1] in '12345')):
+                return False, 'La tarjeta debe ser Visa o Mastercard.'
         if data['nacionalidad'] not in NACIONALIDADES_VALIDAS:
             return False, 'Nacionalidad inválida.'
         if self.email_exists(data['email']):
