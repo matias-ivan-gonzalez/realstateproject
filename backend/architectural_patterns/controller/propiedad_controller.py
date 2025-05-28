@@ -118,6 +118,9 @@ class PropiedadController:
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
+        if propiedad.reservas and len(propiedad.reservas) > 0:
+            flash('La propiedad posee una reserva activa. No es posible eliminarla.', 'danger')
+            return redirect(url_for('main.ver_propiedades'))
         propiedad.eliminado = True
         propiedad.nombre = f'eliminated_{propiedad.id}'
         from database import db
