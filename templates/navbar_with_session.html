@@ -2,7 +2,58 @@
     <a class="btn btn-outline-light" href="{{ url_for('main.perfil') }}">Mi Perfil</a>
 </li>
 <li class="nav-item">
-    <form action="{{ url_for('main.logout') }}" method="post" class="d-inline">
-        <button type="submit" class="btn btn-outline-light">Cerrar sesión</button>
+    <button type="button" class="btn btn-outline-light" id="abrirModalCerrarSesion">Cerrar sesión</button>
+</li>
+
+<!-- Modal de confirmación para cerrar sesión -->
+<div id="modalCerrarSesionCustom" class="custom-modal" style="display:none;">
+  <div class="custom-modal-backdrop"></div>
+  <div class="custom-modal-content">
+    <form action="{{ url_for('main.logout') }}" method="post" id="formCerrarSesion">
+      <div class="mb-3">
+        <h5>Cerrar sesión</h5>
+        <p class="mb-3 text-warning fw-bold">
+          ¿Estás seguro de que deseas cerrar tu sesión?<br>
+          <span class="fw-normal text-dark">Deberás iniciar sesión nuevamente para acceder a tu cuenta.</span>
+        </p>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <div class="w-100 d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary" id="cerrarModalCerrarSesion">Cancelar</button>
+          <button type="submit" class="btn btn-warning">Confirmar</button>
+        </div>
+      </div>
     </form>
-</li> 
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalCerrarSesionCustom');
+    const abrirBtn = document.getElementById('abrirModalCerrarSesion');
+    const cerrarBtn = document.getElementById('cerrarModalCerrarSesion');
+    const backdrop = document.querySelector('.custom-modal-backdrop');
+
+    // Función para abrir el modal
+    function abrirModal(e) {
+        e.preventDefault();
+        modal.style.display = 'flex';
+    }
+
+    // Función para cerrar el modal
+    function cerrarModal(e) {
+        e.preventDefault();
+        modal.style.display = 'none';
+    }
+
+    // Event listeners para el modal
+    abrirBtn.addEventListener('click', abrirModal);
+    cerrarBtn.addEventListener('click', cerrarModal);
+    backdrop.addEventListener('click', cerrarModal);
+
+    // Prevenir el cierre al hacer clic dentro del contenido del modal
+    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script> 
