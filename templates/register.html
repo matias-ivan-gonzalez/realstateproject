@@ -34,7 +34,7 @@
       <div class="row mb-2">
         <div class="col-md-3 mb-2">
           <label for="telefono" class="form-label text-secondary">Teléfono</label>
-          <input type="tel" class="form-control" id="telefono" name="telefono" required pattern="^[0-9]+$" value="{{ request.form.telefono }}">
+          <input type="tel" class="form-control" id="telefono" name="telefono" required value="{{ request.form.telefono }}">
         </div>
         <div class="col-md-3 mb-2">
           <label for="f_nac" class="form-label text-secondary">Fecha de nacimiento</label>
@@ -53,8 +53,9 @@
       <!-- FILA 3: DNI, Tarjeta (opcional) -->
       <div class="row mb-2">
         <div class="col-md-6 mb-2">
-          <label for="dni" class="form-label text-secondary">DNI</label>
-          <input type="text" class="form-control" id="dni" name="dni" required pattern="^[0-9]+$" value="{{ request.form.dni }}">
+          <label for="dni" class="form-label text-secondary">DNI/cedula de identificación/Pasaporte/Otro *</label>
+          <input type="text" class="form-control" id="dni" name="dni" required value="{{ request.form.dni }}">
+          <small class="text-muted" id="dniHelp">Ingrese su DNI</small>
         </div>
         <div class="col-md-6 mb-2">
           <label for="tarjeta" class="form-label text-secondary">Tarjeta <small class="text-muted">(opcional)</small></label>
@@ -78,6 +79,56 @@ document.addEventListener('DOMContentLoaded', function() {
         var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
         fNac.max = maxDate.toISOString().split('T')[0];
     }
+
+    // Actualizar texto de ayuda según nacionalidad
+    var nacionalidadSelect = document.getElementById('nacionalidad');
+    var dniHelp = document.getElementById('dniHelp');
+    var dniInput = document.getElementById('dni');
+
+    function actualizarAyudaDNI() {
+        var nacionalidad = nacionalidadSelect.value;
+        var textoAyuda = '';
+        
+        switch(nacionalidad) {
+            case 'Argentina':
+                textoAyuda = 'Ingrese su DNI';
+                break;
+            case 'Uruguay':
+                textoAyuda = 'Ingrese su CI';
+                break;
+            case 'Brasil':
+                textoAyuda = 'Ingrese su CPF';
+                break;
+            case 'Chile':
+                textoAyuda = 'Ingrese su RUT';
+                break;
+            case 'Colombia':
+                textoAyuda = 'Ingrese su Cédula';
+                break;
+            case 'México':
+                textoAyuda = 'Ingrese su INE';
+                break;
+            case 'Perú':
+                textoAyuda = 'Ingrese su DNI';
+                break;
+            case 'Venezuela':
+                textoAyuda = 'Ingrese su Cédula';
+                break;
+            case 'Estados Unidos':
+                textoAyuda = 'Ingrese su SSN';
+                break;
+            case 'Canadá':
+                textoAyuda = 'Ingrese su SIN';
+                break;
+            default:
+                textoAyuda = 'Ingrese su documento de identidad';
+        }
+        
+        dniHelp.textContent = textoAyuda;
+    }
+
+    nacionalidadSelect.addEventListener('change', actualizarAyudaDNI);
+    actualizarAyudaDNI(); // Llamar al inicio para establecer el texto inicial
 
     // Solo permitir números en el campo de tarjeta
     var tarjetaInput = document.getElementById('tarjeta');

@@ -7,7 +7,7 @@ from models.imagen import Imagen
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
 from models.reserva import Reserva
-from datetime import datetime
+from datetime import datetime, date
 
 
 def init_db():
@@ -151,71 +151,104 @@ def init_db():
     db.session.commit()
 
     # Usuarios
-    superuser = SuperUsuario.query.filter_by(email='super@user.com').first()
+    superuser = SuperUsuario.query.filter_by(email='sofia.garcia@admin.com').first()
     if not superuser:
-        superuser = SuperUsuario(nombre='Super', apellido='User', dni='100', email='super@user.com', contrasena='123', telefono='123', nacionalidad='AR', rol=rol_superusuario)
+        superuser = SuperUsuario(nombre='Sofía', apellido='García', dni='30123456', email='sofia.garcia@admin.com', contrasena='adminSG1', telefono='1134567890', nacionalidad='Argentina', rol=rol_superusuario)
         db.session.add(superuser)
-    admin = Administrador.query.filter_by(email='admin@uno.com').first()
+    admin = Administrador.query.filter_by(email='martin.perez@admin.com').first()
     if not admin:
-        admin = Administrador(nombre='Admin', apellido='Uno', dni='101', email='admin@uno.com', contrasena='123', telefono='123', nacionalidad='AR', rol=rol_admin)
+        admin = Administrador(nombre='Martín', apellido='Pérez', dni='32123456', email='martin.perez@admin.com', contrasena='adminMP2', telefono='1145678901', nacionalidad='Argentina', rol=rol_admin)
         db.session.add(admin)
-    encargado = Encargado.query.filter_by(email='encargado@uno.com').first()
+    encargado = Encargado.query.filter_by(email='lucia.fernandez@encargado.com').first()
     if not encargado:
-        encargado = Encargado(nombre='Encargado', apellido='Uno', dni='102', email='encargado@uno.com', contrasena='123', telefono='123', nacionalidad='AR', rol=rol_encargado)
+        encargado = Encargado(nombre='Lucía', apellido='Fernández', dni='34123456', email='lucia.fernandez@encargado.com', contrasena='encargLF3', telefono='1156789012', nacionalidad='Argentina', rol=rol_encargado)
         db.session.add(encargado)
-    cliente = Cliente.query.filter_by(email='cliente@uno.com').first()
+
+    cliente = Cliente.query.filter_by(email='juan.lopez@cliente.com').first()
     if not cliente:
-        cliente = Cliente(nombre='Cliente', apellido='Uno', dni='103', email='cliente@uno.com', contrasena='123', telefono='123', nacionalidad='AR', rol=rol_cliente)
+        cliente = Cliente(
+            nombre='Juan', apellido='López', dni='36123456', email='juan.lopez@cliente.com',
+            contrasena='clienteJL4', telefono='1167890123', nacionalidad='Argentina', rol=rol_cliente,
+            direccion='Av. Corrientes 1234, CABA', fecha_nacimiento=date(1990, 5, 15)
+        )
         db.session.add(cliente)
+    encargado2 = Encargado.query.filter_by(email='marcos.silva@encargado.com').first()
+    if not encargado2:
+        encargado2 = Encargado(nombre='Marcos', apellido='Silva', dni='35123456', email='marcos.silva@encargado.com', contrasena='encargMS4', telefono='1178901234', nacionalidad='Argentina', rol=rol_encargado)
+        db.session.add(encargado2)
     db.session.commit()
 
     # Propiedades
-    prop1 = Propiedad.query.filter_by(nombre='Casa Centro').first()
+    prop1 = Propiedad.query.filter_by(nombre='Casa Palermo').first()
     if not prop1:
-        prop1 = Propiedad(nombre='Casa Centro', ubicacion='Calle Falsa 123', precio=100000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=True, descripcion='Linda casa', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop1 = Propiedad(nombre='Casa Palermo', ubicacion='Palermo, CABA', direccion='Gorriti 4800, Palermo, CABA', precio=250000, cantidad_habitaciones=4, limite_personas=7, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa moderna con pileta y jardín en el corazón de Palermo.', superusuario=superuser, encargado=encargado, latitud=-34.5831, longitud=-58.4246)
         db.session.add(prop1)
     else:
-        prop1.latitud = -34.6037
-        prop1.longitud = -58.3816
-    prop2 = Propiedad.query.filter_by(nombre='Depto Norte').first()
+        prop1.latitud = -34.5831
+        prop1.longitud = -58.4246
+    prop2 = Propiedad.query.filter_by(nombre='Depto Recoleta').first()
     if not prop2:
-        prop2 = Propiedad(nombre='Depto Norte', ubicacion='Avenida Siempreviva 742', precio=80000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento moderno', superusuario=superuser, encargado=encargado, latitud=-34.5955, longitud=-58.3932)
+        prop2 = Propiedad(nombre='Depto Recoleta', ubicacion='Recoleta, CABA', direccion='Arenales 2100, Recoleta, CABA', precio=180000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento elegante cerca de Plaza Francia.', superusuario=superuser, encargado=encargado, latitud=-34.5895, longitud=-58.3936)
         db.session.add(prop2)
     else:
-        prop2.latitud = -34.5955
-        prop2.longitud = -58.3932
-    prop3 = Propiedad.query.filter_by(nombre='Casa Sur').first()
+        prop2.latitud = -34.5895
+        prop2.longitud = -58.3936
+    prop3 = Propiedad.query.filter_by(nombre='Casa San Isidro').first()
     if not prop3:
-        prop3 = Propiedad(nombre='Casa Sur', ubicacion='Calle Falsa 456', precio=120000, cantidad_habitaciones=4, limite_personas=6, pet_friendly=True, cochera=True, wifi=False, piscina=True, patio_trasero=True, descripcion='Casa amplia', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop3 = Propiedad(nombre='Casa San Isidro', ubicacion='San Isidro, Buenos Aires', direccion='Av. del Libertador 16200, San Isidro, Buenos Aires', precio=320000, cantidad_habitaciones=5, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Amplia casa familiar con parque y pileta en zona norte.', superusuario=superuser, encargado=encargado, latitud=-34.4732, longitud=-58.5122)
         db.session.add(prop3)
-    prop4 = Propiedad.query.filter_by(nombre='Depto Sur').first()
+    else:
+        prop3.latitud = -34.4732
+        prop3.longitud = -58.5122
+    prop4 = Propiedad.query.filter_by(nombre='Depto Rosario Centro').first()
     if not prop4:
-        prop4 = Propiedad(nombre='Depto Sur', ubicacion='Avenida Siempreviva 123', precio=90000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=True, descripcion='Departamento acogedor', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop4 = Propiedad(nombre='Depto Rosario Centro', ubicacion='Rosario, Santa Fe', direccion='Córdoba 1200, Rosario, Santa Fe', precio=95000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento céntrico a metros del Monumento a la Bandera.', superusuario=superuser, encargado=encargado, latitud=-32.9468, longitud=-60.6393)
         db.session.add(prop4)
-    prop5 = Propiedad.query.filter_by(nombre='Casa Este').first()
+    else:
+        prop4.latitud = -32.9468
+        prop4.longitud = -60.6393
+    prop5 = Propiedad.query.filter_by(nombre='Casa Bariloche Lago').first()
     if not prop5:
-        prop5 = Propiedad(nombre='Casa Este', ubicacion='Calle Falsa 789', precio=110000, cantidad_habitaciones=3, limite_personas=5, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=False, descripcion='Casa con jardín', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop5 = Propiedad(nombre='Casa Bariloche Lago', ubicacion='San Carlos de Bariloche, Río Negro', direccion='Av. Bustillo Km 8, San Carlos de Bariloche, Río Negro', precio=400000, cantidad_habitaciones=6, limite_personas=10, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa de lujo con vista al lago Nahuel Huapi.', superusuario=superuser, encargado=encargado, latitud=-41.0999, longitud=-71.4196)
         db.session.add(prop5)
-    prop6 = Propiedad.query.filter_by(nombre='Depto Oeste').first()
+    else:
+        prop5.latitud = -41.0999
+        prop5.longitud = -71.4196
+    prop6 = Propiedad.query.filter_by(nombre='Depto Mendoza Centro').first()
     if not prop6:
-        prop6 = Propiedad(nombre='Depto Oeste', ubicacion='Avenida Siempreviva 456', precio=95000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento luminoso', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop6 = Propiedad(nombre='Depto Mendoza Centro', ubicacion='Mendoza', direccion='Av. San Martín 800, Mendoza', precio=110000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento moderno en pleno centro de Mendoza.', superusuario=superuser, encargado=encargado, latitud=-32.8908, longitud=-68.8447)
         db.session.add(prop6)
-    prop7 = Propiedad.query.filter_by(nombre='Casa Oeste').first()
+    else:
+        prop6.latitud = -32.8908
+        prop6.longitud = -68.8447
+    prop7 = Propiedad.query.filter_by(nombre='Casa Córdoba Nueva Córdoba').first()
     if not prop7:
-        prop7 = Propiedad(nombre='Casa Oeste', ubicacion='Calle Falsa 321', precio=130000, cantidad_habitaciones=5, limite_personas=7, pet_friendly=True, cochera=True, wifi=False, piscina=True, patio_trasero=True, descripcion='Casa con pileta', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop7 = Propiedad(nombre='Casa Córdoba Nueva Córdoba', ubicacion='Córdoba', direccion='Obispo Trejo 1200, Nueva Córdoba, Córdoba', precio=210000, cantidad_habitaciones=3, limite_personas=6, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=True, descripcion='Casa amplia cerca del Parque Sarmiento.', superusuario=superuser, encargado=encargado, latitud=-31.4273, longitud=-64.1830)
         db.session.add(prop7)
-    prop8 = Propiedad.query.filter_by(nombre='Depto Este').first()
+    else:
+        prop7.latitud = -31.4273
+        prop7.longitud = -64.1830
+    prop8 = Propiedad.query.filter_by(nombre='Depto Mar del Plata Playa').first()
     if not prop8:
-        prop8 = Propiedad(nombre='Depto Este', ubicacion='Avenida Siempreviva 789', precio=85000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=True, descripcion='Departamento pequeño', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop8 = Propiedad(nombre='Depto Mar del Plata Playa', ubicacion='Mar del Plata, Buenos Aires', direccion='Boulevard Marítimo 2200, Mar del Plata, Buenos Aires', precio=130000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento con vista al mar, a metros de Playa Bristol.', superusuario=superuser, encargado=encargado, latitud=-38.0055, longitud=-57.5426)
         db.session.add(prop8)
-    prop9 = Propiedad.query.filter_by(nombre='Casa Norte').first()
+    else:
+        prop8.latitud = -38.0055
+        prop8.longitud = -57.5426
+    prop9 = Propiedad.query.filter_by(nombre='Casa Tigre Delta').first()
     if not prop9:
-        prop9 = Propiedad(nombre='Casa Norte', ubicacion='Calle Falsa 654', precio=140000, cantidad_habitaciones=6, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=False, patio_trasero=False, descripcion='Casa moderna', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop9 = Propiedad(nombre='Casa Tigre Delta', ubicacion='Tigre, Buenos Aires', direccion='Río Sarmiento 300, Tigre, Buenos Aires', precio=270000, cantidad_habitaciones=4, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa isleña con muelle propio en el Delta de Tigre.', superusuario=superuser, encargado=encargado, latitud=-34.4089, longitud=-58.5796)
         db.session.add(prop9)
-    prop10 = Propiedad.query.filter_by(nombre='Depto Centro').first()
+    else:
+        prop9.latitud = -34.4089
+        prop9.longitud = -58.5796
+    prop10 = Propiedad.query.filter_by(nombre='Depto Salta Balcarce').first()
     if not prop10:
-        prop10 = Propiedad(nombre='Depto Centro', ubicacion='Avenida Siempreviva 321', precio=105000, cantidad_habitaciones=2, limite_personas=4, pet_friendly=False, cochera=False, wifi=True, piscina=True, patio_trasero=False, descripcion='Departamento céntrico', superusuario=superuser, encargado=encargado, latitud=-34.6037, longitud=-58.3816)
+        prop10 = Propiedad(nombre='Depto Salta Balcarce', ubicacion='Salta', direccion='Balcarce 500, Salta', precio=90000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento turístico en la zona de peñas y bares.', superusuario=superuser, encargado=encargado, latitud=-24.7883, longitud=-65.4106)
         db.session.add(prop10)
+    else:
+        prop10.latitud = -24.7883
+        prop10.longitud = -65.4106
     db.session.commit()
 
     # Relación muchos-a-muchos administradores-propiedades
@@ -239,6 +272,7 @@ def init_db():
         prop9.administradores.append(admin)
     if admin not in prop10.administradores:
         prop10.administradores.append(admin)
+    
         
     # Reservas
     fecha_inicio = '2025-6-24'	

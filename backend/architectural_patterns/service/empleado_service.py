@@ -1,6 +1,7 @@
 from architectural_patterns.repository.empleado_repository import EmpleadoRepository
 from models.rol import Rol
 from flask import session
+from sqlalchemy.exc import IntegrityError
 
 class EmpleadoService:
     def __init__(self, repository=None):
@@ -25,9 +26,9 @@ class EmpleadoService:
         if len(data["contrasena"]) < 6:
             return False, "Registro fallido. La contraseña debe tener 6 caracteres como minimo"
 
-        # Validación de unicidad del DNI
-        if self.repository.get_by_dni(data["dni"]):
-            return False, "Registro fallido. El dni ingresado ya se encuentra registrado"
+        # Validación de unicidad del DNI y nacionalidad
+        if self.repository.get_by_dni_and_nacionalidad(data["dni"], data["nacionalidad"]):
+            return False, "Registro fallido. El documento ya está registrado para esa nacionalidad"
 
         # Validación de unicidad del email
         if self.repository.get_by_email(data["email"]):
@@ -67,5 +68,7 @@ class EmpleadoService:
         try:
             self.repository.create_empleado(empleado_data)
             return True, "Registro exitoso"
+        except IntegrityError:
+            return False, "Registro fallido. El documento ya está registrado para esa nacionalidad"
         except Exception as e:
             return False, f"Error al registrar el empleado: {str(e)}" 

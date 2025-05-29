@@ -18,7 +18,7 @@
                     </div>
                 {% else %}
                     <h2 class="text-center mb-3">Propiedades</h2>
-                    {{ search_filter(url_for('main.ver_propiedades')) }}
+                    {# {{ search_filter(url_for('main.ver_propiedades')) }} #}
                     {% for propiedad in propiedades.items %}
                         {{ property_card(propiedad) }}
                     {% endfor %}

@@ -20,7 +20,7 @@
                                     {% endif %}
                                 </a>
                                 <form method="POST" action="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" style="position:absolute; top:10px; right:10px; z-index:2;">
-                                    <button type="submit" class="favorito-btn filled" title="Quitar de favoritos">❤️</button>
+                                    <button type="button" class="favorito-btn filled" title="Quitar de favoritos" onclick="mostrarConfirmacion(this, '¿Deseas quitar esta propiedad de tus favoritos?')">❤️</button>
                                 </form>
                                 <div class="card-body">
                                     <h5 class="card-title">{{ propiedad.nombre }}</h5>
