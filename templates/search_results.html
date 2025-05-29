@@ -9,6 +9,30 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
+    {% if ubicacion_no_encontrada %}
+        <form method="get" class="mb-4">
+            <div class="row align-items-center mb-3" style="margin-top:1.5rem;">
+                <div class="col-md-6 d-flex align-items-center mt-3">
+                    <label for="ubicacion" class="form-label mb-0 me-2"><i class="bi bi-geo-alt-fill"></i></label>
+                    <input class="form-control" type="search" name="ubicacion" id="ubicacion" placeholder="Ubicación" aria-label="Ubicación" value="{{ ubicacion }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-center mt-3">
+                    <button type="submit" class="btn btn-primary w-100" id="btn-buscar"><i class="bi bi-search me-2"></i>Buscar</button>
+                </div>
+            </div>
+        </form>
+        <!-- Solo se muestra el mensaje flash (fondo rojo), no el alert amarillo -->
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var btnBuscar = document.getElementById('btn-buscar');
+            var ubicacionInput = document.getElementById('ubicacion');
+            btnBuscar.disabled = false;
+            ubicacionInput.addEventListener('input', function() {
+              btnBuscar.disabled = ubicacionInput.value.trim() === '';
+            });
+          });
+        </script>
+    {% else %}
     <form method="get" class="mb-4">
         <div class="row align-items-center mb-3" style="margin-top:1.5rem;">
             <div class="col-md-6 d-flex align-items-center mt-3">
@@ -140,14 +164,15 @@
           </ul>
         </nav>
     {% endif %}
+    {% endif %}
 </div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Definir variables de inputs
-    const precioMinInput = document.getElementById('precio_min');
-    const precioMaxInput = document.getElementById('precio_max');
-    const ubicacionInput = document.getElementById('ubicacion');
-    const btnBuscar = document.getElementById('btn-buscar');
+    var precioMinInput = document.getElementById('precio_min');
+    var precioMaxInput = document.getElementById('precio_max');
+    var ubicacionInput = document.getElementById('ubicacion');
+    var btnBuscar = document.getElementById('btn-buscar');
 
     function toggleBuscarBtn() {
       btnBuscar.disabled = ubicacionInput.value.trim() === '' ||
@@ -173,18 +198,18 @@
 
     // Validación de fechas
     function setFechaFinMin() {
-      const fechaInicioInput = document.getElementById('fecha_inicio');
-      const fechaFinInput = document.getElementById('fecha_fin');
+      var fechaInicioInput = document.getElementById('fecha_inicio');
+      var fechaFinInput = document.getElementById('fecha_fin');
       // Establecer min de fecha de inicio a hoy
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
+      var today = new Date();
+      var todayStr = today.toISOString().split('T')[0];
       fechaInicioInput.min = todayStr;
       // Lógica existente para fecha fin
-      const fechaInicio = fechaInicioInput.value;
+      var fechaInicio = fechaInicioInput.value;
       if (fechaInicio) {
-        const minDate = new Date(fechaInicio);
+        var minDate = new Date(fechaInicio);
         minDate.setDate(minDate.getDate() + 1);
-        const minDateStr = minDate.toISOString().split('T')[0];
+        var minDateStr = minDate.toISOString().split('T')[0];
         fechaFinInput.min = minDateStr;
         if (fechaFinInput.value && fechaFinInput.value <= fechaInicio) {
           fechaFinInput.value = '';
@@ -198,8 +223,8 @@
 
     // Validación al enviar el formulario
     document.querySelector('form').addEventListener('submit', function(e) {
-      const fechaInicio = document.getElementById('fecha_inicio').value;
-      const fechaFin = document.getElementById('fecha_fin').value;
+      var fechaInicio = document.getElementById('fecha_inicio').value;
+      var fechaFin = document.getElementById('fecha_fin').value;
       if (fechaInicio && fechaFin && fechaFin <= fechaInicio) {
         alert('La fecha de fin debe ser mayor a la fecha de inicio.');
         e.preventDefault();
@@ -211,7 +236,7 @@
       }
     });
 
-    const fechaInputs = [document.getElementById('fecha_inicio'), document.getElementById('fecha_fin')];
+    var fechaInputs = [document.getElementById('fecha_inicio'), document.getElementById('fecha_fin')];
     fechaInputs.forEach(input => {
       input.addEventListener('keydown', function(e) {
         e.preventDefault();
@@ -222,8 +247,8 @@
     });
 
     // Habilitar/deshabilitar fecha_fin según fecha_inicio
-    const fechaInicioInput = document.getElementById('fecha_inicio');
-    const fechaFinInput = document.getElementById('fecha_fin');
+    var fechaInicioInput = document.getElementById('fecha_inicio');
+    var fechaFinInput = document.getElementById('fecha_fin');
     function toggleFechaFin() {
       fechaFinInput.disabled = !fechaInicioInput.value;
     }
