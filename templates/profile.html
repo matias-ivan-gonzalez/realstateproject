@@ -69,6 +69,10 @@
                                 <label for="tarjeta" class="form-label">Tarjeta (opcional)</label>
                                 <input type="text" class="form-control" id="tarjeta" name="tarjeta"
                                        value="{{ form_data.tarjeta or '' }}"
+                                       {% if reservas_activas %}readonly{% endif %}>
+                                {% if reservas_activas %}
+                                <small class="text-muted">No puedes modificar tu tarjeta mientras tengas reservas activas.</small>
+                                {% endif %}
                             </div>
                         </div>
                         {% else %}

@@ -115,7 +115,8 @@ class UserController:
                 'tarjeta': user.tarjeta
             })
         paises = user_service.get_paises()
-        return render_template('profile.html', user=user, paises=paises, form_data=form_data)
+        reservas_activas = user_service.tiene_reservas_activas(session['user_id']) if user.tipo == 'cliente' else False
+        return render_template('profile.html', user=user, paises=paises, form_data=form_data, reservas_activas=reservas_activas)
     
     
     def delete_account(self,session):

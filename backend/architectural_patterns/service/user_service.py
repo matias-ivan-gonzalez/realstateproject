@@ -70,6 +70,9 @@ class UserService:
 
         # Validar campos numéricos
         if data.get('tarjeta'):
+            # Verificar si hay reservas activas antes de permitir la actualización de la tarjeta
+            if self.tiene_reservas_activas(user_id):
+                return False, 'No puedes modificar tu tarjeta mientras tengas reservas activas.'
             if not is_numeric(data['tarjeta']):
                 return False, 'La tarjeta debe ser numérica.'
             if len(data['tarjeta']) != 16:
@@ -231,4 +234,14 @@ class UserService:
         user.contrasena = nueva_password
         from database import db
         db.session.commit()
-        return True 
+        return True
+
+    def tiene_reservas_activas(self, user_id):
+        from models.reserva import Reserva
+        from datetime import date
+        hoy = date.today()
+        reservas_activas = Reserva.query.filter(
+            Reserva.cliente_id == user_id,
+            Reserva.fecha_fin >= hoy
+        ).first()
+        return reservas_activas is not None 
