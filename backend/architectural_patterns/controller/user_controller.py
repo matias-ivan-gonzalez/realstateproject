@@ -231,7 +231,7 @@ class UserController:
             flash('Solo los clientes pueden ver favoritos.', 'danger')
             return redirect(url_for('main.index'))
         cliente = Cliente.query.get(user_id)
-        favoritos = cliente.favoritos
+        favoritos = [p for p in cliente.favoritos if not getattr(p, 'eliminado', False)]
         return render_template('favoritos.html', favoritos=favoritos)
 
     def eliminar_encargado(self, session, id):
