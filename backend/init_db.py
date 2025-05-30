@@ -294,17 +294,16 @@ def init_db():
 
     # Imagenes
    
-    img1 = Imagen(url='img/prop1/img1.jpeg', nombre_archivo='Primera foto', propiedad=prop1)
+    img1 = Imagen(carpeta='/static/img/prop1', propiedad=prop1)
     db.session.add(img1)
     prop1.imagenes.append(img1)
     
-    img2 = Imagen(url='img/prop2/Diseno-casa-familiar-el-bambu-3.jpg', nombre_archivo='img2.jpg', propiedad=prop2)
+    img2 = Imagen(carpeta='/static/img/prop2', propiedad=prop2)
     db.session.add(img2)
     prop2.imagenes.append(img2)
     
-    img3 = Imagen(url='img/prop3/download.jpeg', nombre_archivo='img3.jpg', propiedad=prop3)
+    img3 = Imagen(carpeta='/static/img/prop3', propiedad=prop3)
     db.session.add(img3)
     prop3.imagenes.append(img3)
-    
     
     db.session.commit() 

@@ -351,23 +351,18 @@
                     {% if propiedad.imagenes|length == 0 %}
                         <div class="text-muted w-100 text-center" style="padding: 2.5rem 0;">No hay imágenes para esta propiedad.</div>
                     {% else %}
+                        {% set imagenes = [] %}
+                        {% for imagen in propiedad.imagenes %}
+                            {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+                            {% for archivo in archivos %}
+                                {% set _ = imagenes.append(imagen.carpeta ~ '/' ~ archivo) %}
+                            {% endfor %}
+                        {% endfor %}
                         <div id="carouselFotosPropiedad" class="carousel slide" data-bs-ride="carousel">
                             <div class="carousel-inner">
-                                {% for imagen in propiedad.imagenes %}
+                                {% for img in imagenes %}
                                 <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                    <img src="{{ imagen.url }}" class="d-block w-100 rounded" style="max-height:340px; object-fit:cover; margin:auto;" alt="Imagen de {{ propiedad.nombre }}">
-                                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-bottom">
-                                        {% if session.rol in ['superusuario', 'administrador', 'encargado'] %}
-                                            <small>{{ imagen.nombre_archivo }}</small>
-                                        {% endif %}
-                                        {% if session.rol in ['superusuario', 'administrador', 'encargado'] %}
-                                        <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="display:inline;">
-                                            <button type="button" class="btn btn-sm btn-danger ms-2" title="Eliminar imagen" onclick="mostrarConfirmacion(this, '¿Deseas eliminar esta imagen?')">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </form>
-                                        {% endif %}
-                                    </div>
+                                    <img src="{{ img }}" class="d-block w-100 rounded" style="max-height:340px; object-fit:cover; margin:auto;" alt="Imagen de {{ propiedad.nombre }}">
                                 </div>
                                 {% endfor %}
                             </div>

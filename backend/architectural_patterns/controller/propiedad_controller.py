@@ -142,12 +142,15 @@ class PropiedadController:
             if not files:
                 flash('Solo se permiten archivos .jpg y .png.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
-            max_permitidas = 5 - len(propiedad.imagenes)
-            if max_permitidas <= 0 or len(files) > max_permitidas:
-                flash('La cantidad de imagenes totales supera 5', 'danger')
-                return redirect(url_for('main.detalle_propiedad', id=id))
+            
+            # Verificar si ya existe una entrada para esta carpeta
             carpeta_destino = os.path.join('static', 'img', f'prop{id}')
+            carpeta_url = '/static/img/prop' + str(id)
+            
+            # Crear la carpeta si no existe
             os.makedirs(carpeta_destino, exist_ok=True)
+            
+            # Guardar las imágenes en la carpeta
             for file in files:
                 filename = file.filename
                 ruta = os.path.join(carpeta_destino, filename)
@@ -159,9 +162,15 @@ class PropiedadController:
                     ruta = os.path.join(carpeta_destino, filename)
                     counter += 1
                 file.save(ruta)
-                imagen = Imagen(url='/' + ruta.replace('\\', '/').replace(os.sep, '/'), nombre_archivo=filename, propiedad=propiedad)
+            
+            # Verificar si ya existe una entrada para esta carpeta
+            imagen_existente = Imagen.query.filter_by(carpeta=carpeta_url, propiedad_id=id).first()
+            if not imagen_existente:
+                # Crear una nueva entrada para la carpeta
+                imagen = Imagen(carpeta=carpeta_url, propiedad=propiedad)
                 db.session.add(imagen)
-            db.session.commit()
+                db.session.commit()
+            
             flash('Las imágenes se han agregado correctamente a la propiedad.', 'success')
             return redirect(url_for('main.detalle_propiedad', id=id))
         return redirect(url_for('main.detalle_propiedad', id=id))
@@ -171,14 +180,15 @@ class PropiedadController:
         from database import db
         imagen = Imagen.query.get_or_404(imagen_id)
         propiedad_id = imagen.propiedad_id
-        # Eliminar archivo físico
-        if imagen.url:
-            ruta_archivo = os.path.join(os.getcwd(), imagen.url.lstrip('/').replace('/', os.sep))
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
+        # Eliminar carpeta física
+        if imagen.carpeta:
+            ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+            if os.path.exists(ruta_carpeta):
+                import shutil
+                shutil.rmtree(ruta_carpeta)
         db.session.delete(imagen)
         db.session.commit()
-        flash('Imagen eliminada correctamente.', 'success')
+        flash('Carpeta de imágenes eliminada correctamente.', 'success')
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     
     def ver_propiedades_asignar(self, session, encargado_id):
