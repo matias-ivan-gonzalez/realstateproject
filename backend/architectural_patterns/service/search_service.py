@@ -17,7 +17,6 @@ class SearchService:
             }
 
         propiedades_disponibles = propiedades
-        precios_totales = {}
         cantidad_noches = None
 
     # Filtrar por fechas
@@ -68,40 +67,20 @@ class SearchService:
     # Filtrar por precio
         propiedades_finales = []
         for propiedad in propiedades_filtradas_caracteristicas:
-            if cantidad_noches:
-                precio_total = round(propiedad.precio * cantidad_noches, 2)
-                precios_totales[propiedad.id] = precio_total
-
-                cumple_min = True
-                cumple_max = True
-                if data['precio_min']:
-                    try:
-                        cumple_min = precio_total >= float(data['precio_min'])
-                    except Exception:
-                        pass
-                if data['precio_max']:
-                    try:
-                        cumple_max = precio_total <= float(data['precio_max'])
-                    except Exception:
-                        pass
-                if cumple_min and cumple_max:
-                    propiedades_finales.append(propiedad)
-            else:
-                cumple_min = True
-                cumple_max = True
-                if data['precio_min']:
-                    try:
-                        cumple_min = propiedad.precio >= float(data['precio_min'])
-                    except Exception:
-                        pass
-                if data['precio_max']:
-                    try:
-                        cumple_max = propiedad.precio <= float(data['precio_max'])
-                    except Exception:
-                        pass
-                if cumple_min and cumple_max:
-                    propiedades_finales.append(propiedad)
-                precios_totales[propiedad.id] = None
+            cumple_min = True
+            cumple_max = True
+            if data['precio_min']:
+                try:
+                    cumple_min = propiedad.precio >= float(data['precio_min'])
+                except Exception:
+                    pass
+            if data['precio_max']:
+                try:
+                    cumple_max = propiedad.precio <= float(data['precio_max'])
+                except Exception:
+                    pass
+            if cumple_min and cumple_max:
+                propiedades_finales.append(propiedad)
 
         if not propiedades_finales:
             return {
@@ -137,6 +116,6 @@ class SearchService:
             "total_paginas": total_paginas,
             "total_propiedades": total_propiedades,
             "mensaje": "",
-            "cantidad_noches": cantidad_noches,
-            "precios_totales": precios_totales
+            "cantidad_noches": None,
+            "precios_totales": {}  # Ya no se usa, pero se deja vacío para compatibilidad
         }
