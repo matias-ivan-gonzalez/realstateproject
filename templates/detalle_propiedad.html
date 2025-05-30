@@ -19,11 +19,12 @@
         <!-- Botón de favoritos -->
         <div class="favoritos">
             {% if session.rol == 'cliente' %}
-                <form method="POST" style="display:inline;">
+                <form method="POST" action="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" style="display:inline;">
                     {% if propiedad in user_favoritos %}
-                        <button formaction="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn filled" title="Quitar de favoritos">❤️</button>
+                        <input type="hidden" name="from" value="detalle">
+                        <button class="favorito-btn filled" title="Quitar de favoritos" type="button" onclick="mostrarConfirmacion(this, '¿Deseas quitar esta propiedad de tus favoritos?')">❤️</button>
                     {% else %}
-                        <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn outline" title="Agregar a favoritos">🤍</button>
+                        <button formaction="{{ url_for('main.agregar_favorito', propiedad_id=propiedad.id) }}" class="favorito-btn outline" title="Agregar a favoritos" type="submit">🤍</button>
                     {% endif %}
                 </form>
             {% endif %}
@@ -296,5 +297,13 @@ document.addEventListener('DOMContentLoaded', function() {
         btnAgregar.disabled = !inputImagenes.files || inputImagenes.files.length === 0;
     }
 });
+
+function confirmarQuitarFavorito(e, btn) {
+    if (!confirm('¿Deseas quitar esta propiedad de tus favoritos?')) {
+        e.preventDefault();
+        return false;
+    }
+    return true;
+}
 </script>
 {% endblock %} 
