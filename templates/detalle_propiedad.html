@@ -87,13 +87,8 @@
                             <div class="alert alert-info mt-3">Has alcanzado el máximo de 5 imágenes para esta propiedad.</div>
                         {% else %}
                             <form method="POST" action="{{ url_for('main.agregar_imagen', id=propiedad.id) }}" enctype="multipart/form-data" class="mt-3 d-flex flex-column flex-md-row align-items-center gap-2">
-                                <input type="file" name="imagenes" accept="image/jpeg,image/png" multiple required class="form-control" style="max-width:500px; min-width:300px;">
-                                <button type="submit" class="btn btn-success">
-                                    Agregar imagen
-                                    {% if total_imagenes > 0 %}
-                                        ({{ 5 - total_imagenes }} restantes)
-                                    {% endif %}
-                                </button>
+                                <input type="file" name="imagenes" accept="image/jpeg,image/png" multiple required class="form-control" style="max-width:500px; min-width:300px;" id="input-imagenes">
+                                <button type="submit" class="btn btn-success" id="btn-agregar-imagen" disabled>Agregar imagen</button>
                             </form>
                         {% endif %}
                     {% endif %}
@@ -291,6 +286,15 @@ document.addEventListener('DOMContentLoaded', function() {
     controlesCarrusel.forEach(control => {
         control.style.display = totalImagenes > 1 ? 'flex' : 'none';
     });
+
+    var inputImagenes = document.getElementById('input-imagenes');
+    var btnAgregar = document.getElementById('btn-agregar-imagen');
+    if (inputImagenes && btnAgregar) {
+        inputImagenes.addEventListener('change', function() {
+            btnAgregar.disabled = !inputImagenes.files || inputImagenes.files.length === 0;
+        });
+        btnAgregar.disabled = !inputImagenes.files || inputImagenes.files.length === 0;
+    }
 });
 </script>
 {% endblock %} 

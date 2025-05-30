@@ -158,7 +158,7 @@ class PropiedadController:
 
             # Verificar el límite de 5 imágenes
             if total_imagenes >= 5:
-                flash('Has alcanzado el límite máximo de 5 imágenes para esta propiedad.', 'danger')
+                flash('No es posible agregar la cantidad de imágenes seleccionada. El máximo es 5.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
                 
             files = request.files.getlist('imagenes')
@@ -173,7 +173,7 @@ class PropiedadController:
             
             # Verificar que no se exceda el límite con las nuevas imágenes
             if total_imagenes + len(files) > 5:
-                flash(f'No se pueden agregar {len(files)} imágenes. Solo puedes agregar {5 - total_imagenes} imágenes más.', 'danger')
+                flash('No es posible agregar la cantidad de imágenes seleccionada. El máximo es 5.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
             
             # Verificar si ya existe una entrada para esta carpeta
@@ -204,7 +204,7 @@ class PropiedadController:
                 db.session.add(imagen)
                 db.session.commit()
             
-            flash('Las imágenes se han agregado correctamente a la propiedad.', 'success')
+            flash('La/las imágenes se ha/han agregado correctamente a la propiedad.', 'success')
             return redirect(url_for('main.detalle_propiedad', id=id))
         return redirect(url_for('main.detalle_propiedad', id=id))
     
