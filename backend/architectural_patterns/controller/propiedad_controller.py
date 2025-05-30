@@ -113,7 +113,23 @@ class PropiedadController:
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
                 user_favoritos = cliente.favoritos
-        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, request=request)
+
+        # Contar imágenes reales
+        total_imagenes = 0
+        for imagen in propiedad.imagenes:
+            ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+            if os.path.exists(ruta_carpeta):
+                archivos = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                total_imagenes += len(archivos)
+
+        # Guardar el total de imágenes en la sesión
+        session['total_imagenes_reales'] = total_imagenes
+
+        return render_template('detalle_propiedad.html', 
+                             propiedad=propiedad, 
+                             user_favoritos=user_favoritos, 
+                             request=request,
+                             total_imagenes_reales=total_imagenes)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -132,9 +148,17 @@ class PropiedadController:
         propiedad = Propiedad.query.get_or_404(id)
         
         if request.method == 'POST':
+            # Contar imágenes reales en todas las carpetas de la propiedad
+            total_imagenes = 0
+            for imagen in propiedad.imagenes:
+                ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+                if os.path.exists(ruta_carpeta):
+                    archivos = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                    total_imagenes += len(archivos)
+
             # Verificar el límite de 5 imágenes
-            if len(propiedad.imagenes) >= 5:
-                flash('Has alcanzado el límite máximo de 5 imágenes por propiedad.', 'danger')
+            if total_imagenes >= 5:
+                flash('Has alcanzado el límite máximo de 5 imágenes para esta propiedad.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
                 
             files = request.files.getlist('imagenes')
@@ -145,6 +169,11 @@ class PropiedadController:
             files = [f for f in files if f.filename.lower().endswith(('.jpg', '.jpeg', '.png'))]
             if not files:
                 flash('Solo se permiten archivos .jpg y .png.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=id))
+            
+            # Verificar que no se exceda el límite con las nuevas imágenes
+            if total_imagenes + len(files) > 5:
+                flash(f'No se pueden agregar {len(files)} imágenes. Solo puedes agregar {5 - total_imagenes} imágenes más.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
             
             # Verificar si ya existe una entrada para esta carpeta
@@ -197,21 +226,19 @@ class PropiedadController:
         # Verificar si el archivo existe y eliminarlo
         if os.path.exists(ruta_archivo):
             os.remove(ruta_archivo)
-            
-            # Verificar si quedan más archivos en la carpeta
-            ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
-            archivos_restantes = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-            
-            # Si no quedan más imágenes, eliminar la carpeta y el registro
-            if not archivos_restantes:
-                os.rmdir(ruta_carpeta)
-                db.session.delete(imagen)
-                db.session.commit()
-                flash('La última imagen ha sido eliminada.', 'success')
-            else:
-                flash('Imagen eliminada correctamente.', 'success')
+            flash('Imagen eliminada correctamente.', 'success')
         else:
             flash('No se encontró la imagen especificada.', 'warning')
+
+        # Verificar si quedan más archivos en la carpeta
+        ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+        archivos_restantes = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        
+        # Si no quedan más imágenes, eliminar la carpeta y el registro
+        if not archivos_restantes:
+            os.rmdir(ruta_carpeta)
+            db.session.delete(imagen)
+            db.session.commit()
 
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     
