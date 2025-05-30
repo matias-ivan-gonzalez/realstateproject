@@ -35,3 +35,6 @@ ENV/
 
 # Archivos de logs
 *.log
+
+# Imágenes de propiedades
+static/img/
