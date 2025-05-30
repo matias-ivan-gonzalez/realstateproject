@@ -190,3 +190,10 @@ def desasignar_propiedad(propiedad_id):
 def asignar_propiedad(propiedad_id, encargado_id):
     propiedad_controller = PropiedadController()
     return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)
+
+@main.route('/cambiar-contrasena', methods=['POST'])
+@login_required
+def cambiar_contrasena():
+    from architectural_patterns.controller.user_controller import UserController
+    user_controller = UserController()
+    return user_controller.cambiar_contrasena_perfil(request, session)

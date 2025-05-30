@@ -92,6 +92,25 @@
                             <button type="submit" class="btn btn-primary" id="btn-guardar" disabled>Guardar cambios</button>
                         </div>
                     </form>
+                    <!-- Sección para cambiar contraseña -->
+                    <div class="mt-4"> <!-- Espaciado extra arriba -->
+                        <h4 class="mb-1">Cambiar contraseña</h4>
+                        <form method="POST" action="{{ url_for('main.cambiar_contrasena') }}" id="formCambiarContrasena">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="contrasena_actual" class="form-label">Contraseña actual *</label>
+                                    <input type="password" class="form-control" id="contrasena_actual" name="contrasena_actual">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="nueva_contrasena" class="form-label">Nueva contraseña *</label>
+                                    <input type="password" class="form-control" id="nueva_contrasena" name="nueva_contrasena">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -121,6 +140,27 @@
   </div>
 </div>
 {% endif %}
+
+<!-- Modal de confirmación para cambiar contraseña -->
+<div id="modalCambiarContrasena" class="custom-modal" style="display:none;">
+  <div class="custom-modal-backdrop"></div>
+  <div class="custom-modal-content">
+    <form id="formConfirmarCambioContrasena">
+      <div class="mb-3">
+        <h5>Actualizar contraseña</h5>
+        <p class="mb-3 text-danger fw-bold">
+          ¿Está seguro que desea actualizar la contraseña?
+        </p>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <div class="w-100 d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary" id="cancelarCambioContrasena">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="confirmarCambioContrasena">Confirmar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -287,6 +327,45 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarjeta').addEventListener('input', verificarCampos);
     }
     verificarCampos();
+
+    // Habilitar/deshabilitar el botón de actualizar contraseña
+    var formCambiarContrasena = document.getElementById('formCambiarContrasena');
+    if (formCambiarContrasena) {
+        var inputActual = document.getElementById('contrasena_actual');
+        var inputNueva = document.getElementById('nueva_contrasena');
+        var btnActualizar = formCambiarContrasena.querySelector('button[type="submit"]');
+        function toggleBtnActualizar() {
+            btnActualizar.disabled = !inputActual.value.trim() || !inputNueva.value.trim();
+        }
+        inputActual.addEventListener('input', toggleBtnActualizar);
+        inputNueva.addEventListener('input', toggleBtnActualizar);
+        toggleBtnActualizar();
+
+        // Modal de confirmación para cambiar contraseña
+        var modalCambiar = document.getElementById('modalCambiarContrasena');
+        var cancelarCambio = document.getElementById('cancelarCambioContrasena');
+        var confirmarCambio = document.getElementById('confirmarCambioContrasena');
+        var backdropCambiar = modalCambiar.querySelector('.custom-modal-backdrop');
+
+        formCambiarContrasena.addEventListener('submit', function(e) {
+            e.preventDefault();
+            modalCambiar.style.display = 'flex';
+        });
+        cancelarCambio.addEventListener('click', function(e) {
+            e.preventDefault();
+            modalCambiar.style.display = 'none';
+        });
+        backdropCambiar.addEventListener('click', function(e) {
+            modalCambiar.style.display = 'none';
+        });
+        modalCambiar.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        confirmarCambio.addEventListener('click', function(e) {
+            modalCambiar.style.display = 'none';
+            formCambiarContrasena.submit();
+        });
+    }
 });
 </script>
-{% endblock %} 
+{% endblock %}
