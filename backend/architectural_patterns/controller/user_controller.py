@@ -218,12 +218,10 @@ class UserController:
             cliente.favoritos.remove(propiedad)
             db.session.commit()
             flash('Propiedad quitada de favoritos.', 'success')
-        # Si la petición viene de la página de favoritos, renderiza la plantilla actualizada
-        if request.referrer and 'ver-favoritos' in request.referrer:
-            favoritos = cliente.favoritos
-            return render_template('favoritos.html', favoritos=favoritos)
-        # Si no, redirige como antes
-        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        origen = request.form.get('from')
+        if origen == 'detalle':
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        return redirect(url_for('main.ver_favoritos'))
 
     def ver_favoritos(self, session):
         from models.user import Cliente
