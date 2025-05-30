@@ -168,7 +168,7 @@ def init_db():
     if not cliente:
         cliente = Cliente(
             nombre='Juan', apellido='López', dni='36123456', email='juan.lopez@cliente.com',
-            contrasena='clienteJL4', telefono='1167890123', nacionalidad='Argentina', rol=rol_cliente,
+            contrasena='clienteJL4', telefono='1167890123', nacionalidad='Argentina', rol=rol_cliente, tarjeta ='42748572649274638',
             direccion='Av. Corrientes 1234, CABA', fecha_nacimiento=date(1990, 5, 15)
         )
         db.session.add(cliente)
