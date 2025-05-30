@@ -107,7 +107,7 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+                                <button type="submit" class="btn btn-primary" disabled>Actualizar contraseña</button>
                             </div>
                         </form>
                     </div>
@@ -165,175 +165,177 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('modalEliminarCuentaCustom');
-    const abrirBtn = document.getElementById('abrirModalEliminarCuenta');
-    const cerrarBtn = document.getElementById('cerrarModalEliminarCuenta');
-    const backdrop = document.querySelector('.custom-modal-backdrop');
-    const form = document.getElementById('formEliminarCuenta');
-    const profileForm = document.getElementById('profileForm');
+    if (modal) {
+        const abrirBtn = document.getElementById('abrirModalEliminarCuenta');
+        const cerrarBtn = document.getElementById('cerrarModalEliminarCuenta');
+        const backdrop = modal.querySelector('.custom-modal-backdrop');
+        const form = document.getElementById('formEliminarCuenta');
+        const profileForm = document.getElementById('profileForm');
 
-    // Actualizar texto de ayuda según nacionalidad
-    var nacionalidadSelect = document.getElementById('nacionalidad');
-    var dniHelp = document.getElementById('dniHelp');
+        // Actualizar texto de ayuda según nacionalidad
+        var nacionalidadSelect = document.getElementById('nacionalidad');
+        var dniHelp = document.getElementById('dniHelp');
 
-    function actualizarAyudaDNI() {
-        var nacionalidad = nacionalidadSelect.value;
-        var textoAyuda = '';
-        
-        switch(nacionalidad) {
-            case 'Argentina':
-                textoAyuda = 'Ingrese su DNI';
-                break;
-            case 'Uruguay':
-                textoAyuda = 'Ingrese su CI';
-                break;
-            case 'Brasil':
-                textoAyuda = 'Ingrese su CPF';
-                break;
-            case 'Chile':
-                textoAyuda = 'Ingrese su RUT';
-                break;
-            case 'Colombia':
-                textoAyuda = 'Ingrese su Cédula';
-                break;
-            case 'México':
-                textoAyuda = 'Ingrese su INE';
-                break;
-            case 'Perú':
-                textoAyuda = 'Ingrese su DNI';
-                break;
-            case 'Venezuela':
-                textoAyuda = 'Ingrese su Cédula';
-                break;
-            case 'Estados Unidos':
-                textoAyuda = 'Ingrese su SSN';
-                break;
-            case 'Canadá':
-                textoAyuda = 'Ingrese su SIN';
-                break;
-            default:
-                textoAyuda = 'Ingrese su documento de identidad';
-        }
-        
-        dniHelp.textContent = textoAyuda;
-    }
-
-    nacionalidadSelect.addEventListener('change', actualizarAyudaDNI);
-    actualizarAyudaDNI(); // Llamar al inicio para establecer el texto inicial
-
-    // Función para abrir el modal
-    function abrirModal(e) {
-        e.preventDefault();
-        modal.style.display = 'flex';
-    }
-
-    // Función para cerrar el modal
-    function cerrarModal(e) {
-        e.preventDefault();
-        modal.style.display = 'none';
-        form.reset();
-    }
-
-    // Event listeners para el modal
-    abrirBtn.addEventListener('click', abrirModal);
-    cerrarBtn.addEventListener('click', cerrarModal);
-    backdrop.addEventListener('click', cerrarModal);
-
-    // Prevenir el envío del formulario de eliminar cuenta
-    // (eliminar e.preventDefault para permitir submit real)
-    // form.addEventListener('submit', function(e) {
-    //     e.preventDefault();
-    //     console.log('Formulario de eliminar cuenta enviado');
-    // });
-
-    // Prevenir el cierre al hacer clic dentro del contenido del modal
-    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-
-    // Manejar el envío del formulario de perfil
-    profileForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Si no es cliente, remover los campos específicos de cliente
-        if ('{{ user.tipo }}' !== 'cliente') {
-            const f_nac = document.getElementById('f_nac');
-            const domicilio = document.getElementById('domicilio');
-            const tarjeta = document.getElementById('tarjeta');
+        function actualizarAyudaDNI() {
+            var nacionalidad = nacionalidadSelect.value;
+            var textoAyuda = '';
             
-            if (f_nac) f_nac.removeAttribute('required');
-            if (domicilio) domicilio.removeAttribute('required');
-            if (tarjeta) tarjeta.removeAttribute('required');
-        }
-        
-        // Enviar el formulario
-        this.submit();
-    });
-
-    // Validación de mayoría de edad para fecha de nacimiento
-    var fNac = document.getElementById('f_nac');
-    if (fNac) {
-        var today = new Date();
-        var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-        fNac.max = maxDate.toISOString().split('T')[0];
-    }
-
-    // Deshabilitar el botón Guardar cambios si los campos requeridos no están completos o no se modificó ningún campo
-    const camposRequeridos = [
-        'nombre', 'apellido', 'telefono', 'dni', 'nacionalidad'
-    ];
-    if (document.getElementById('f_nac')) camposRequeridos.push('f_nac');
-    if (document.getElementById('domicilio')) camposRequeridos.push('domicilio');
-    const btnGuardar = document.getElementById('btn-guardar');
-
-    // Guardar valores originales
-    const valoresOriginales = {};
-    camposRequeridos.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) valoresOriginales[id] = el.value;
-    });
-    if (document.getElementById('tarjeta')) {
-        valoresOriginales['tarjeta'] = document.getElementById('tarjeta').value;
-    }
-
-    function verificarCampos() {
-        let todosConValor = camposRequeridos.every(id => {
-            const el = document.getElementById(id);
-            return el && el.value.trim() !== '';
-        });
-
-        // Verificar si algún campo cambió
-        let algunCambio = camposRequeridos.some(id => {
-            const el = document.getElementById(id);
-            return el && el.value !== valoresOriginales[id];
-        });
-        // También verificar tarjeta si existe
-        if (document.getElementById('tarjeta')) {
-            const el = document.getElementById('tarjeta');
-            if (el.value !== valoresOriginales['tarjeta']) {
-                algunCambio = true;
+            switch(nacionalidad) {
+                case 'Argentina':
+                    textoAyuda = 'Ingrese su DNI';
+                    break;
+                case 'Uruguay':
+                    textoAyuda = 'Ingrese su CI';
+                    break;
+                case 'Brasil':
+                    textoAyuda = 'Ingrese su CPF';
+                    break;
+                case 'Chile':
+                    textoAyuda = 'Ingrese su RUT';
+                    break;
+                case 'Colombia':
+                    textoAyuda = 'Ingrese su Cédula';
+                    break;
+                case 'México':
+                    textoAyuda = 'Ingrese su INE';
+                    break;
+                case 'Perú':
+                    textoAyuda = 'Ingrese su DNI';
+                    break;
+                case 'Venezuela':
+                    textoAyuda = 'Ingrese su Cédula';
+                    break;
+                case 'Estados Unidos':
+                    textoAyuda = 'Ingrese su SSN';
+                    break;
+                case 'Canadá':
+                    textoAyuda = 'Ingrese su SIN';
+                    break;
+                default:
+                    textoAyuda = 'Ingrese su documento de identidad';
             }
+            
+            dniHelp.textContent = textoAyuda;
         }
 
-        btnGuardar.disabled = !(todosConValor && algunCambio);
-    }
+        nacionalidadSelect.addEventListener('change', actualizarAyudaDNI);
+        actualizarAyudaDNI(); // Llamar al inicio para establecer el texto inicial
 
-    camposRequeridos.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('input', verificarCampos);
+        // Función para abrir el modal
+        function abrirModal(e) {
+            e.preventDefault();
+            modal.style.display = 'flex';
         }
-    });
-    if (document.getElementById('tarjeta')) {
-        document.getElementById('tarjeta').addEventListener('input', verificarCampos);
-    }
-    verificarCampos();
 
-    // Habilitar/deshabilitar el botón de actualizar contraseña
+        // Función para cerrar el modal
+        function cerrarModal(e) {
+            e.preventDefault();
+            modal.style.display = 'none';
+            form.reset();
+        }
+
+        // Event listeners para el modal
+        abrirBtn.addEventListener('click', abrirModal);
+        cerrarBtn.addEventListener('click', cerrarModal);
+        backdrop.addEventListener('click', cerrarModal);
+
+        // Prevenir el envío del formulario de eliminar cuenta
+        // (eliminar e.preventDefault para permitir submit real)
+        // form.addEventListener('submit', function(e) {
+        //     e.preventDefault();
+        //     console.log('Formulario de eliminar cuenta enviado');
+        // });
+
+        // Prevenir el cierre al hacer clic dentro del contenido del modal
+        modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Manejar el envío del formulario de perfil
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Si no es cliente, remover los campos específicos de cliente
+            if ('{{ user.tipo }}' !== 'cliente') {
+                const f_nac = document.getElementById('f_nac');
+                const domicilio = document.getElementById('domicilio');
+                const tarjeta = document.getElementById('tarjeta');
+                
+                if (f_nac) f_nac.removeAttribute('required');
+                if (domicilio) domicilio.removeAttribute('required');
+                if (tarjeta) tarjeta.removeAttribute('required');
+            }
+            
+            // Enviar el formulario
+            this.submit();
+        });
+
+        // Validación de mayoría de edad para fecha de nacimiento
+        var fNac = document.getElementById('f_nac');
+        if (fNac) {
+            var today = new Date();
+            var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+            fNac.max = maxDate.toISOString().split('T')[0];
+        }
+
+        // Deshabilitar el botón Guardar cambios si los campos requeridos no están completos o no se modificó ningún campo
+        const camposRequeridos = [
+            'nombre', 'apellido', 'telefono', 'dni', 'nacionalidad'
+        ];
+        if (document.getElementById('f_nac')) camposRequeridos.push('f_nac');
+        if (document.getElementById('domicilio')) camposRequeridos.push('domicilio');
+        const btnGuardar = document.getElementById('btn-guardar');
+
+        // Guardar valores originales
+        const valoresOriginales = {};
+        camposRequeridos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) valoresOriginales[id] = el.value;
+        });
+        if (document.getElementById('tarjeta')) {
+            valoresOriginales['tarjeta'] = document.getElementById('tarjeta').value;
+        }
+
+        function verificarCampos() {
+            let todosConValor = camposRequeridos.every(id => {
+                const el = document.getElementById(id);
+                return el && el.value.trim() !== '';
+            });
+
+            // Verificar si algún campo cambió
+            let algunCambio = camposRequeridos.some(id => {
+                const el = document.getElementById(id);
+                return el && el.value !== valoresOriginales[id];
+            });
+            // También verificar tarjeta si existe
+            if (document.getElementById('tarjeta')) {
+                const el = document.getElementById('tarjeta');
+                if (el.value !== valoresOriginales['tarjeta']) {
+                    algunCambio = true;
+                }
+            }
+
+            btnGuardar.disabled = !(todosConValor && algunCambio);
+        }
+
+        camposRequeridos.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', verificarCampos);
+            }
+        });
+        if (document.getElementById('tarjeta')) {
+            document.getElementById('tarjeta').addEventListener('input', verificarCampos);
+        }
+        verificarCampos();
+    }
+
+    // --- SIEMPRE: Lógica de cambio de contraseña ---
     var formCambiarContrasena = document.getElementById('formCambiarContrasena');
     if (formCambiarContrasena) {
         var inputActual = document.getElementById('contrasena_actual');
         var inputNueva = document.getElementById('nueva_contrasena');
-        var btnActualizar = formCambiarContrasena.querySelector('button[type="submit"]');
+        var btnActualizar = formCambiarContrasena.querySelector('button[type=\"submit\"]');
         function toggleBtnActualizar() {
             btnActualizar.disabled = !inputActual.value.trim() || !inputNueva.value.trim();
         }
