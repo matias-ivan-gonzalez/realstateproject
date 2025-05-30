@@ -1,11 +1,12 @@
-from architectural_patterns.service.propiedad_service import PropiedadService
+import os
+from flask import render_template, redirect, url_for, flash, request
+from database import db
 from models.propiedad import Propiedad
-from flask import render_template, redirect, url_for, flash
-from datetime import datetime
+from architectural_patterns.service.propiedad_service import PropiedadService
 from flask import session
 from models.user import Cliente
-import os
 from flask import request
+from sqlalchemy import desc
 
 class PropiedadController:
     
@@ -32,8 +33,6 @@ class PropiedadController:
             success, message = PropiedadService().crear_propiedad(data)
             if success:
                 # Obtener la propiedad recién creada para obtener su id
-                from models.propiedad import Propiedad
-                from sqlalchemy import desc
                 nueva_prop = Propiedad.query.order_by(desc(Propiedad.id)).first()
                 if nueva_prop:
                     img_dir = os.path.join('static', 'img', f'prop{nueva_prop.id}')
@@ -123,7 +122,6 @@ class PropiedadController:
             return redirect(url_for('main.ver_propiedades'))
         propiedad.eliminado = True
         propiedad.nombre = f'eliminated_{propiedad.id}'
-        from database import db
         db.session.commit()
         flash('Propiedad eliminada correctamente.', 'success')
         return redirect(url_for('main.ver_propiedades'))
@@ -186,15 +184,35 @@ class PropiedadController:
         from database import db
         imagen = Imagen.query.get_or_404(imagen_id)
         propiedad_id = imagen.propiedad_id
-        # Eliminar carpeta física
-        if imagen.carpeta:
+
+        # Obtener el nombre del archivo a eliminar de los parámetros
+        nombre_archivo = request.args.get('nombre_archivo')
+        if not nombre_archivo:
+            flash('No se especificó qué imagen eliminar.', 'danger')
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+
+        # Construir la ruta completa al archivo
+        ruta_archivo = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep), nombre_archivo)
+        
+        # Verificar si el archivo existe y eliminarlo
+        if os.path.exists(ruta_archivo):
+            os.remove(ruta_archivo)
+            
+            # Verificar si quedan más archivos en la carpeta
             ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
-            if os.path.exists(ruta_carpeta):
-                import shutil
-                shutil.rmtree(ruta_carpeta)
-        db.session.delete(imagen)
-        db.session.commit()
-        flash('Carpeta de imágenes eliminada correctamente.', 'success')
+            archivos_restantes = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            
+            # Si no quedan más imágenes, eliminar la carpeta y el registro
+            if not archivos_restantes:
+                os.rmdir(ruta_carpeta)
+                db.session.delete(imagen)
+                db.session.commit()
+                flash('La última imagen ha sido eliminada.', 'success')
+            else:
+                flash('Imagen eliminada correctamente.', 'success')
+        else:
+            flash('No se encontró la imagen especificada.', 'warning')
+
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     
     def ver_propiedades_asignar(self, session, encargado_id):

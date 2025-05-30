@@ -50,8 +50,8 @@
                                     <div style="position: relative; height: 340px;">
                                         <img src="{{ img.ruta }}" class="d-block w-100 rounded" style="height: 100%; object-fit: cover;" alt="Imagen de {{ propiedad.nombre }}">
                                         {% if session.rol in ['superusuario', 'administrador', 'encargado'] %}
-                                            <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=img.imagen_id) }}" style="position: absolute; top: 10px; right: 10px; z-index: 2;">
-                                                <button type="button" class="btn btn-danger" title="Eliminar imagen" onclick="mostrarConfirmacion(this, '¿Deseas eliminar esta carpeta de imágenes?')" style="padding: 0.25rem 0.5rem;">
+                                            <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=img.imagen_id, nombre_archivo=img.nombre) }}" style="position: absolute; top: 10px; right: 10px; z-index: 2;">
+                                                <button type="button" class="btn btn-danger" title="Eliminar imagen" onclick="mostrarConfirmacion(this, '¿Deseas eliminar esta imagen?')" style="padding: 0.25rem 0.5rem;">
                                                     <i class="fa fa-trash"></i>
                                                 </button>
                                             </form>
