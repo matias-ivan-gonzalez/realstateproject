@@ -132,7 +132,13 @@ class PropiedadController:
         from models.imagen import Imagen
         from database import db
         propiedad = Propiedad.query.get_or_404(id)
+        
         if request.method == 'POST':
+            # Verificar el límite de 5 imágenes
+            if len(propiedad.imagenes) >= 5:
+                flash('Has alcanzado el límite máximo de 5 imágenes por propiedad.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=id))
+                
             files = request.files.getlist('imagenes')
             if not files or files[0].filename == '':
                 flash('Debes seleccionar al menos una imagen.', 'danger')
