@@ -7,9 +7,12 @@ from werkzeug.security import generate_password_hash
 from datetime import date
 from flask_mail import Mail
 
+# Obtener la ruta absoluta del directorio actual
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 flask_params = {
-    'static_folder': os.path.join('..', 'static'),
-    'template_folder': os.path.join('..', 'templates')
+    'static_folder': os.path.join(BASE_DIR, '..', 'static'),
+    'template_folder': os.path.join(BASE_DIR, '..', 'templates')
 }
 
 mail = Mail()  # Instancia global

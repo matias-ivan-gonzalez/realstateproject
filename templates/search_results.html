@@ -3,11 +3,19 @@
 {% block title %}Resultados de búsqueda{% endblock %}
 
 {% block hero_content %}
-<!-- Leaflet CSS y JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+.fade-in-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.fade-in-card.visible {
+  opacity: 1;
+  transform: none;
+}
+</style>
 <div class="container d-flex flex-column flex-grow-1" style="min-height:60vh;">
     {% if ubicacion_no_encontrada %}
         <form method="get" class="mb-4">
@@ -105,7 +113,7 @@
     {% if propiedades %}
         <div class="row">
             {% for propiedad in propiedades %}
-                <div class="col-md-4 mb-3">
+                <div class="col-md-4 mb-3 fade-in-card">
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">
@@ -122,6 +130,24 @@
                                 {% if propiedad.cochera %}<i class="bi bi-car-front" title="Cochera"></i> {% endif %}
                                 {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
+                            </div>
+                            {% set imagenes = [] %}
+                            {% for imagen in propiedad.imagenes %}
+                                {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+                                {% for archivo in archivos %}
+                                    {% set _ = imagenes.append(imagen.carpeta ~ '/' ~ archivo) %}
+                                {% endfor %}
+                            {% endfor %}
+                            <div class="mb-2" style="height:220px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                {% if imagenes and imagenes|length > 0 %}
+                                    <img src="{{ imagenes[0] }}" alt="Imagen de {{ propiedad.nombre }}" 
+                                         style="height:100%; width:100%; object-fit:cover; object-position:center;" 
+                                         class="img-fluid rounded" loading="lazy" />
+                                {% else %}
+                                    <div class="d-flex justify-content-center align-items-center bg-light rounded" style="height:100%; width:100%;">
+                                        <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+                                    </div>
+                                {% endif %}
                             </div>
                             {% if propiedad and propiedad.imagenes and propiedad.imagenes|length > 0 %}
                                 <img src="{{ url_for('static', filename=propiedad.imagenes[0].url) }}" alt="Imagen de {{ propiedad.nombre }}" class="img-fluid rounded mb-2" />
@@ -162,93 +188,115 @@
     {% endif %}
 </div>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Definir variables de inputs
-    var precioMinInput = document.getElementById('precio_min');
-    var precioMaxInput = document.getElementById('precio_max');
-    var ubicacionInput = document.getElementById('ubicacion');
-    var btnBuscar = document.getElementById('btn-buscar');
+document.addEventListener('DOMContentLoaded', function() {
+  // Definir variables de inputs
+  var precioMinInput = document.getElementById('precio_min');
+  var precioMaxInput = document.getElementById('precio_max');
+  var ubicacionInput = document.getElementById('ubicacion');
+  var btnBuscar = document.getElementById('btn-buscar');
 
-    function toggleBuscarBtn() {
-      btnBuscar.disabled = ubicacionInput.value.trim() === '' ||
-        (precioMinInput.value !== '' && precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value));
-    }
+  function toggleBuscarBtn() {
+    btnBuscar.disabled = ubicacionInput.value.trim() === '' ||
+      (precioMinInput.value !== '' && precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value));
+  }
 
-    function updatePrecioMaxMin() {
-      if (precioMinInput.value !== '') {
-        precioMaxInput.min = parseInt(precioMinInput.value);
-        if (precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value)) {
-          precioMaxInput.value = '';
-        }
-      } else {
-        precioMaxInput.min = 0;
-      }
-      toggleBuscarBtn();
-    }
-
-    ubicacionInput.addEventListener('input', toggleBuscarBtn);
-    precioMinInput.addEventListener('input', updatePrecioMaxMin);
-    precioMaxInput.addEventListener('input', toggleBuscarBtn);
-    toggleBuscarBtn();
-
-    // Validación de fechas
-    function setFechaFinMin() {
-      var fechaInicioInput = document.getElementById('fecha_inicio');
-      var fechaFinInput = document.getElementById('fecha_fin');
-      // Establecer min de fecha de inicio a hoy
-      var today = new Date();
-      var todayStr = today.toISOString().split('T')[0];
-      fechaInicioInput.min = todayStr;
-      // Lógica existente para fecha fin
-      var fechaInicio = fechaInicioInput.value;
-      if (fechaInicio) {
-        var minDate = new Date(fechaInicio);
-        minDate.setDate(minDate.getDate() + 1);
-        var minDateStr = minDate.toISOString().split('T')[0];
-        fechaFinInput.min = minDateStr;
-        if (fechaFinInput.value && fechaFinInput.value <= fechaInicio) {
-          fechaFinInput.value = '';
-        }
-      } else {
-        fechaFinInput.min = '';
-      }
-    }
-    document.getElementById('fecha_inicio').addEventListener('input', setFechaFinMin);
-    setFechaFinMin();
-
-    // Validación al enviar el formulario
-    document.querySelector('form').addEventListener('submit', function(e) {
-      var fechaInicio = document.getElementById('fecha_inicio').value;
-      var fechaFin = document.getElementById('fecha_fin').value;
-      if (fechaInicio && fechaFin && fechaFin <= fechaInicio) {
-        alert('La fecha de fin debe ser mayor a la fecha de inicio.');
-        e.preventDefault();
-      }
-      if (precioMinInput.value !== '' && precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value)) {
+  function updatePrecioMaxMin() {
+    if (precioMinInput.value !== '') {
+      precioMaxInput.min = parseInt(precioMinInput.value);
+      if (precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value)) {
         precioMaxInput.value = '';
-        precioMaxInput.focus();
-        e.preventDefault();
       }
-    });
+    } else {
+      precioMaxInput.min = 0;
+    }
+    toggleBuscarBtn();
+  }
 
-    var fechaInputs = [document.getElementById('fecha_inicio'), document.getElementById('fecha_fin')];
-    fechaInputs.forEach(input => {
-      input.addEventListener('keydown', function(e) {
-        e.preventDefault();
-      });
-      input.addEventListener('paste', function(e) {
-        e.preventDefault();
-      });
-    });
+  ubicacionInput.addEventListener('input', toggleBuscarBtn);
+  precioMinInput.addEventListener('input', updatePrecioMaxMin);
+  precioMaxInput.addEventListener('input', toggleBuscarBtn);
+  toggleBuscarBtn();
 
-    // Habilitar/deshabilitar fecha_fin según fecha_inicio
+  // Validación de fechas
+  function setFechaFinMin() {
     var fechaInicioInput = document.getElementById('fecha_inicio');
     var fechaFinInput = document.getElementById('fecha_fin');
-    function toggleFechaFin() {
-      fechaFinInput.disabled = !fechaInicioInput.value;
+    // Establecer min de fecha de inicio a hoy
+    var today = new Date();
+    var todayStr = today.toISOString().split('T')[0];
+    fechaInicioInput.min = todayStr;
+    // Lógica existente para fecha fin
+    var fechaInicio = fechaInicioInput.value;
+    if (fechaInicio) {
+      var minDate = new Date(fechaInicio);
+      minDate.setDate(minDate.getDate() + 1);
+      var minDateStr = minDate.toISOString().split('T')[0];
+      fechaFinInput.min = minDateStr;
+      if (fechaFinInput.value && fechaFinInput.value <= fechaInicio) {
+        fechaFinInput.value = '';
+      }
+    } else {
+      fechaFinInput.min = '';
     }
-    fechaInicioInput.addEventListener('input', toggleFechaFin);
-    toggleFechaFin();
+  }
+  document.getElementById('fecha_inicio').addEventListener('input', setFechaFinMin);
+  setFechaFinMin();
+
+  // Validación al enviar el formulario
+  document.querySelector('form').addEventListener('submit', function(e) {
+    var fechaInicio = document.getElementById('fecha_inicio').value;
+    var fechaFin = document.getElementById('fecha_fin').value;
+    if (fechaInicio && fechaFin && fechaFin <= fechaInicio) {
+      alert('La fecha de fin debe ser mayor a la fecha de inicio.');
+      e.preventDefault();
+    }
+    if (precioMinInput.value !== '' && precioMaxInput.value !== '' && parseInt(precioMaxInput.value) < parseInt(precioMinInput.value)) {
+      precioMaxInput.value = '';
+      precioMaxInput.focus();
+      e.preventDefault();
+    }
   });
+
+  var fechaInputs = [document.getElementById('fecha_inicio'), document.getElementById('fecha_fin')];
+  fechaInputs.forEach(input => {
+    input.addEventListener('keydown', function(e) {
+      e.preventDefault();
+    });
+    input.addEventListener('paste', function(e) {
+      e.preventDefault();
+    });
+  });
+
+  // Habilitar/deshabilitar fecha_fin según fecha_inicio
+  var fechaInicioInput = document.getElementById('fecha_inicio');
+  var fechaFinInput = document.getElementById('fecha_fin');
+  function toggleFechaFin() {
+    fechaFinInput.disabled = !fechaInicioInput.value;
+  }
+  fechaInicioInput.addEventListener('input', toggleFechaFin);
+  toggleFechaFin();
+
+  const cards = document.querySelectorAll('.fade-in-card');
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add('visible');
+    }, 80 * i);
+  });
+
+  // Cargar Leaflet CSS y JS de forma asíncrona después de renderizar la página
+  function loadLeaflet() {
+    // CSS
+    var leafletCss = document.createElement('link');
+    leafletCss.rel = 'stylesheet';
+    leafletCss.href = 'https://unpkg.com/leaflet/dist/leaflet.css';
+    document.head.appendChild(leafletCss);
+    // JS
+    var leafletJs = document.createElement('script');
+    leafletJs.src = 'https://unpkg.com/leaflet/dist/leaflet.js';
+    leafletJs.async = true;
+    document.body.appendChild(leafletJs);
+  }
+  setTimeout(loadLeaflet, 0); // Ejecuta justo después de renderizar
+});
 </script>
 {% endblock %}

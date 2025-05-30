@@ -13,11 +13,20 @@
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 position-relative">
                                 <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id, from_='favoritos') }}" class="text-decoration-none text-primary">
-                                    {% if propiedad.imagenes and propiedad.imagenes|length > 0 %}
-                                        <img src="{{ url_for('static', filename='img/propiedades/' ~ propiedad.imagenes[0].nombre_archivo) }}" class="card-img-top" alt="Imagen de {{ propiedad.nombre }}">
-                                    {% else %}
-                                        <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="card-img-top" alt="Sin imagen">
-                                    {% endif %}
+                                    {% set imagenes = [] %}
+                                    {% for imagen in propiedad.imagenes %}
+                                        {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+                                        {% for archivo in archivos %}
+                                            {% set _ = imagenes.append(imagen.carpeta ~ '/' ~ archivo) %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    <div style="height:150px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                        {% if imagenes and imagenes|length > 0 %}
+                                            <img src="{{ imagenes[0] }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Imagen de {{ propiedad.nombre }}">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Sin imagen">
+                                        {% endif %}
+                                    </div>
                                 </a>
                                 <form method="POST" action="{{ url_for('main.quitar_favorito', propiedad_id=propiedad.id) }}" style="position:absolute; top:10px; right:10px; z-index:2;">
                                     <button type="button" class="favorito-btn filled" title="Quitar de favoritos" onclick="mostrarConfirmacion(this, '¿Deseas quitar esta propiedad de tus favoritos?')">❤️</button>

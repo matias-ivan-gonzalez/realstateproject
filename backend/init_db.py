@@ -293,18 +293,64 @@ def init_db():
     db.session.commit()
 
     # Imagenes
-   
-    img1 = Imagen(url='img/prop1/img1.jpeg', nombre_archivo='Primera foto', propiedad=prop1)
-    db.session.add(img1)
-    prop1.imagenes.append(img1)
-    
-    img2 = Imagen(url='img/prop2/Diseno-casa-familiar-el-bambu-3.jpg', nombre_archivo='img2.jpg', propiedad=prop2)
-    db.session.add(img2)
-    prop2.imagenes.append(img2)
-    
-    img3 = Imagen(url='img/prop3/download.jpeg', nombre_archivo='img3.jpg', propiedad=prop3)
-    db.session.add(img3)
-    prop3.imagenes.append(img3)
-    
+    img1 = Imagen.query.filter_by(carpeta='/static/img/prop1', propiedad=prop1).first()
+    if not img1:
+        img1 = Imagen(carpeta='/static/img/prop1', propiedad=prop1)
+        db.session.add(img1)
+        prop1.imagenes.append(img1)
+
+    img2 = Imagen.query.filter_by(carpeta='/static/img/prop2', propiedad=prop2).first()
+    if not img2:
+        img2 = Imagen(carpeta='/static/img/prop2', propiedad=prop2)
+        db.session.add(img2)
+        prop2.imagenes.append(img2)
+
+    img3 = Imagen.query.filter_by(carpeta='/static/img/prop3', propiedad=prop3).first()
+    if not img3:
+        img3 = Imagen(carpeta='/static/img/prop3', propiedad=prop3)
+        db.session.add(img3)
+        prop3.imagenes.append(img3)
+
+    img4 = Imagen.query.filter_by(carpeta='/static/img/prop4', propiedad=prop4).first()
+    if not img4:
+        img4 = Imagen(carpeta='/static/img/prop4', propiedad=prop4)
+        db.session.add(img4)
+        prop4.imagenes.append(img4)
+
+    img5 = Imagen.query.filter_by(carpeta='/static/img/prop5', propiedad=prop5).first()
+    if not img5:
+        img5 = Imagen(carpeta='/static/img/prop5', propiedad=prop5)
+        db.session.add(img5)
+        prop5.imagenes.append(img5)
+
+    img6 = Imagen.query.filter_by(carpeta='/static/img/prop6', propiedad=prop6).first()
+    if not img6:
+        img6 = Imagen(carpeta='/static/img/prop6', propiedad=prop6)
+        db.session.add(img6)
+        prop6.imagenes.append(img6)
+
+    img7 = Imagen.query.filter_by(carpeta='/static/img/prop7', propiedad=prop7).first()
+    if not img7:
+        img7 = Imagen(carpeta='/static/img/prop7', propiedad=prop7)
+        db.session.add(img7)
+        prop7.imagenes.append(img7)
+
+    img8 = Imagen.query.filter_by(carpeta='/static/img/prop8', propiedad=prop8).first()
+    if not img8:
+        img8 = Imagen(carpeta='/static/img/prop8', propiedad=prop8)
+        db.session.add(img8)
+        prop8.imagenes.append(img8)
+
+    img9 = Imagen.query.filter_by(carpeta='/static/img/prop9', propiedad=prop9).first()
+    if not img9:
+        img9 = Imagen(carpeta='/static/img/prop9', propiedad=prop9)
+        db.session.add(img9)
+        prop9.imagenes.append(img9)
+
+    img10 = Imagen.query.filter_by(carpeta='/static/img/prop10', propiedad=prop10).first()
+    if not img10:
+        img10 = Imagen(carpeta='/static/img/prop10', propiedad=prop10)
+        db.session.add(img10)
+        prop10.imagenes.append(img10)
     
     db.session.commit() 
