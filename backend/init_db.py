@@ -305,5 +305,9 @@ def init_db():
     img3 = Imagen(carpeta='/static/img/prop3', propiedad=prop3)
     db.session.add(img3)
     prop3.imagenes.append(img3)
+
+    img4 = Imagen(carpeta='/static/img/prop4', propiedad=prop4)
+    db.session.add(img4)
+    prop4.imagenes.append(img4)
     
     db.session.commit() 
