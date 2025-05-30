@@ -321,6 +321,51 @@
         padding: 2px 0;
         border-radius: 0 0 10px 10px;
     }
+    /* Estilos para el carrusel */
+    .carousel-item {
+        transition: transform 1s ease-in-out !important;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+
+    .carousel-inner {
+        position: relative;
+        width: 100%;
+        height: 340px;
+        overflow: hidden;
+    }
+
+    .carousel-item-next:not(.carousel-item-start),
+    .active.carousel-item-end {
+        transform: translateX(100%);
+    }
+
+    .carousel-item-prev:not(.carousel-item-end),
+    .active.carousel-item-start {
+        transform: translateX(-100%);
+    }
+
+    .carousel-item-next,
+    .carousel-item-prev,
+    .carousel-item.active {
+        display: block;
+    }
+
+    .carousel-item.active,
+    .carousel-item-next,
+    .carousel-item-prev {
+        position: absolute;
+        top: 0;
+        width: 100%;
+    }
+
+    .carousel-item-next.carousel-item-start,
+    .carousel-item-prev.carousel-item-end {
+        transform: translateX(0);
+    }
 </style>
 <div class="container mt-4 fade-in">
     <div class="detalle-grid">
@@ -348,26 +393,30 @@
                     {% if propiedad.imagenes|length == 0 %}
                         <div class="text-muted w-100 text-center" style="padding: 2.5rem 0;">No hay imágenes para esta propiedad.</div>
                     {% else %}
-                        <div id="carouselFotosPropiedad" class="carousel slide" data-bs-ride="carousel">
+                        {% set todas_imagenes = [] %}
+                        {% for imagen in propiedad.imagenes %}
+                            {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+                            {% for archivo in archivos %}
+                                {% set _ = todas_imagenes.append({'ruta': imagen.carpeta ~ '/' ~ archivo, 'nombre': archivo, 'imagen_id': imagen.id}) %}
+                            {% endfor %}
+                        {% endfor %}
+                        <div id="carouselFotosPropiedad" class="carousel slide" data-bs-ride="carousel" data-bs-interval="8000">
                             <div class="carousel-inner">
-                                {% for imagen in propiedad.imagenes %}
+                                {% for img in todas_imagenes %}
                                 <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                    {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
-                                    {% if archivos %}
-                                        <div style="position: relative;">
-                                            <img src="{{ imagen.carpeta }}/{{ archivos[0] }}" class="d-block w-100 rounded" style="max-height:340px; object-fit:cover; margin:auto;" alt="Imagen de {{ propiedad.nombre }}">
-                                            {% if session.rol in ['superusuario', 'administrador', 'encargado'] %}
-                                                <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=imagen.id) }}" style="position: absolute; top: 10px; right: 10px;">
-                                                    <button type="button" class="btn btn-danger" title="Eliminar imagen" onclick="mostrarConfirmacion(this, '¿Deseas eliminar esta carpeta de imágenes?')" style="padding: 0.25rem 0.5rem;">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                                <div class="d-none d-md-block" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 5px 10px; border-radius: 0 0 0.25rem 0.25rem;">
-                                                    <small>{{ archivos[0] }}</small>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
+                                    <div style="position: relative; height: 340px;">
+                                        <img src="{{ img.ruta }}" class="d-block w-100 rounded" style="height: 100%; object-fit: cover;" alt="Imagen de {{ propiedad.nombre }}">
+                                        {% if session.rol in ['superusuario', 'administrador', 'encargado'] %}
+                                            <form method="POST" action="{{ url_for('main.eliminar_imagen', imagen_id=img.imagen_id) }}" style="position: absolute; top: 10px; right: 10px; z-index: 2;">
+                                                <button type="button" class="btn btn-danger" title="Eliminar imagen" onclick="mostrarConfirmacion(this, '¿Deseas eliminar esta carpeta de imágenes?')" style="padding: 0.25rem 0.5rem;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            <div class="d-none d-md-block" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 5px 10px; border-radius: 0 0 0.25rem 0.25rem;">
+                                                <small>{{ img.nombre }}</small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 {% endfor %}
                             </div>
