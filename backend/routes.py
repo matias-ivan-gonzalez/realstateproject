@@ -8,10 +8,6 @@ from architectural_patterns.controller.propiedad_controller import PropiedadCont
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
 
-
-
-
-
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
 
@@ -202,3 +198,9 @@ def get_archivos_carpeta(carpeta):
 
 # Registrar la función en el contexto de Jinja2
 main.add_app_template_global(get_archivos_carpeta)
+@main.route('/cambiar-contrasena', methods=['POST'])
+@login_required
+def cambiar_contrasena():
+    from architectural_patterns.controller.user_controller import UserController
+    user_controller = UserController()
+    return user_controller.cambiar_contrasena_perfil(request, session)

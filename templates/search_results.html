@@ -94,11 +94,11 @@
         <div class="row align-items-center mb-3" style="margin-top:-4.5rem;">
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_min" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
-                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" step="1" value="{{ precio_min or '' }}" placeholder="Precio mín." inputmode="numeric" pattern="[0-9]*" onkeydown="return event.key >= '0' && event.key <= '9' || event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';">
+                <input type="number" class="form-control" id="precio_min" name="precio_min" min="0" step="1" value="{{ precio_min or '' }}" placeholder="Precio mín noche" inputmode="numeric" pattern="[0-9]*" onkeydown="return event.key >= '0' && event.key <= '9' || event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="precio_max" class="form-label mb-0 me-2"><i class="bi bi-currency-dollar"></i></label>
-                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" step="1" value="{{ precio_max or '' }}" placeholder="Precio máx." inputmode="numeric" pattern="[0-9]*" onkeydown="return event.key >= '0' && event.key <= '9' || event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';">
+                <input type="number" class="form-control" id="precio_max" name="precio_max" min="0" step="1" value="{{ precio_max or '' }}" placeholder="Precio máx noche" inputmode="numeric" pattern="[0-9]*" onkeydown="return event.key >= '0' && event.key <= '9' || event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';">
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;"></span></label>
@@ -123,9 +123,6 @@
                             </h5>
                             <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
                             <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
-                            {% if cantidad_noches %}
-                                <p class="card-text">Total ({{ cantidad_noches }} noches): ${{ precios_totales[propiedad.id] }}</p>
-                            {% endif %}
                             <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
                             <div class="mb-2">
                                 {% if propiedad.wifi %}<i class="bi bi-wifi" title="WiFi"></i> {% endif %}
@@ -134,7 +131,6 @@
                                 {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
                             </div>
-
                             {% set imagenes = [] %}
                             {% for imagen in propiedad.imagenes %}
                                 {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
@@ -153,6 +149,13 @@
                                     </div>
                                 {% endif %}
                             </div>
+                            {% if propiedad and propiedad.imagenes and propiedad.imagenes|length > 0 %}
+                                <img src="{{ url_for('static', filename=propiedad.imagenes[0].url) }}" alt="Imagen de {{ propiedad.nombre }}" class="img-fluid rounded mb-2" />
+                            {% else %}
+                                <div class="d-flex justify-content-center align-items-center bg-light rounded mb-2" style="height:200px; width:100%;">
+                                    <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+                                </div>
+                            {% endif %}
                             <div class="d-grid gap-2 mt-2">
                                 <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-outline-primary btn-sm">Ver detalle</a>
                             </div>

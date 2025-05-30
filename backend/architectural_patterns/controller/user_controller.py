@@ -270,3 +270,22 @@ class UserController:
         else:
             flash('No se pudo eliminar el administrador.', 'danger')
         return redirect(url_for('main.ver_administradores'))
+
+    def cambiar_contrasena_perfil(self, request, session):
+        user_service = UserService()
+        user = user_service.get_user_by_id(session['user_id'])
+        if request.method == 'POST':
+            contrasena_actual = request.form.get('contrasena_actual')
+            nueva_contrasena = request.form.get('nueva_contrasena')
+            # Validar contraseña actual
+            if user.contrasena != contrasena_actual:
+                flash('La contraseña actual es incorrecta.', 'danger')
+                return redirect(url_for('main.perfil'))
+            if len(nueva_contrasena) < 6:
+                flash('La nueva contraseña debe tener al menos 6 caracteres.', 'danger')
+                return redirect(url_for('main.perfil'))
+            # Ya no se valida que la nueva sea diferente a la actual
+            user_service.actualizar_password(user, nueva_contrasena)
+            flash('Contraseña modificada', 'success')
+            return redirect(url_for('main.perfil'))
+        return redirect(url_for('main.perfil'))
