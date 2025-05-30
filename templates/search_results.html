@@ -127,9 +127,15 @@
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
                             </div>
 
-
-                            {% if propiedad and propiedad.imagenes and propiedad.imagenes|length > 0 %}
-                                <img src="{{ url_for('static', filename=propiedad.imagenes[0].url) }}" alt="Imagen de {{ propiedad.nombre }}" class="img-fluid rounded mb-2" />
+                            {% set imagenes = [] %}
+                            {% for imagen in propiedad.imagenes %}
+                                {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+                                {% for archivo in archivos %}
+                                    {% set _ = imagenes.append(imagen.carpeta ~ '/' ~ archivo) %}
+                                {% endfor %}
+                            {% endfor %}
+                            {% if imagenes and imagenes|length > 0 %}
+                                <img src="{{ imagenes[0] }}" alt="Imagen de {{ propiedad.nombre }}" class="img-fluid rounded mb-2" />
                             {% else %}
                                 <div class="d-flex justify-content-center align-items-center bg-light rounded mb-2" style="height:200px; width:100%;">
                                     <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
