@@ -193,10 +193,11 @@ def asignar_propiedad(propiedad_id, encargado_id):
     return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)
 
 def get_archivos_carpeta(carpeta):
-    """Obtiene la lista de archivos de una carpeta."""
+    """Obtiene la lista de archivos de una carpeta ordenados alfabéticamente."""
     ruta_carpeta = os.path.join(os.getcwd(), carpeta.lstrip('/').replace('/', os.sep))
     if os.path.exists(ruta_carpeta):
-        return [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        archivos = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        return sorted(archivos)
     return []
 
 # Registrar la función en el contexto de Jinja2
