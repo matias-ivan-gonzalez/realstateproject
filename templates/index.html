@@ -1,4 +1,5 @@
 {# templates/index.html #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 {% extends "base_hero.html" %}
 
 {% block title %}Alquilando{% endblock %}
@@ -21,7 +22,9 @@
             {% if imagenes and imagenes|length > 0 %}
               <img src="{{ imagenes[0] }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Imagen de {{ propiedad.nombre }}">
             {% else %}
-              <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Sin imagen">
+              <div class="d-flex justify-content-center align-items-center bg-light rounded" style="height:100%; width:100%;">
+                <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+              </div>
             {% endif %}
           </div>
           <div class="card-body p-2" style="font-size:0.98em;">
