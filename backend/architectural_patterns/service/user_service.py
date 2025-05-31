@@ -183,7 +183,7 @@ class UserService:
         if self.email_exists(data['email']):
             return False, 'El email ya está registrado.'
         if self.dni_exists(data['dni'], data['nacionalidad']):
-            return False, f'Ya existe un usuario con ese documento de identidad para la nacionalidad {data["nacionalidad"]}.'
+            return False, f'Ya existe un usuario con ese documento de identidad para la nacionalidad seleccionada.'
         fecha_nacimiento = self.parse_fecha_nacimiento(data.get('f_nac'))
         if data.get('f_nac') and not fecha_nacimiento:
             return False, 'Fecha de nacimiento inválida.'

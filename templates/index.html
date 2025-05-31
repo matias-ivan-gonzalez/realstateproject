@@ -1,28 +1,45 @@
 {# templates/index.html #}
-{% extends "base_hero.html" %}
 
+{% extends "base_hero.html" %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 {% block title %}Alquilando{% endblock %}
 
 {% block hero_content %}
-<div class="container mt-4">
-  <h1 class="display-5 text-secondary mb-4" style="margin-top: 2rem;">Alquilando, cada estadía una experiencia única</h1>
+<div class="container mt-2" style="max-width:1200px;">
+  <h1 class="display-6 text-secondary mb-3" style="margin-top: 1rem; margin-bottom:1.2rem;">Alquilando, cada estadía una experiencia única</h1>
   <div class="row">
     {% for propiedad in propiedades_random %}
-      <div class="col-md-4 mb-3">
-        <div class="card h-100 card-appear-3d" style="animation-delay: {{ loop.index0 * 0.12 }}s;">
-          <div class="card-body">
-            <h5 class="card-title">{{ propiedad.nombre }}</h5>
-            <p class="card-text">Ubicación: {{ propiedad.ubicacion }}</p>
-            <p class="card-text">Precio por noche: ${{ propiedad.precio }}</p>
-            <p class="card-text">Límite de personas: {{ propiedad.limite_personas }}</p>
-            <div class="mb-2">
+      <div class="col-md-4 mb-2">
+        <div class="card h-100 card-appear-3d" style="animation-delay: {{ loop.index0 * 0.12 }}s; min-height:340px;">
+          {% set imagenes = [] %}
+          {% for imagen in propiedad.imagenes %}
+            {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+            {% for archivo in archivos %}
+              {% set _ = imagenes.append(imagen.carpeta ~ '/' ~ archivo) %}
+            {% endfor %}
+          {% endfor %}
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            {% if imagenes and imagenes|length > 0 %}
+              <img src="{{ imagenes[0] }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Imagen de {{ propiedad.nombre }}">
+            {% else %}
+              <div class="d-flex justify-content-center align-items-center bg-light rounded" style="height:100%; width:100%;">
+                <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+              </div>
+            {% endif %}
+          </div>
+          <div class="card-body p-2" style="font-size:0.98em;">
+            <h5 class="card-title mb-1" style="font-size:1.1em;">{{ propiedad.nombre }}</h5>
+            <p class="card-text mb-1">Ubicación: {{ propiedad.ubicacion }}</p>
+            <p class="card-text mb-1">Precio por noche: ${{ propiedad.precio }}</p>
+            <p class="card-text mb-1">Límite de personas: {{ propiedad.limite_personas }}</p>
+            <div class="mb-1">
               {% if propiedad.wifi %}<i class="bi bi-wifi" title="WiFi"></i> {% endif %}
               {% if propiedad.piscina %}<i class="bi bi-water" title="Pileta"></i> {% endif %}
               {% if propiedad.cochera %}<i class="bi bi-car-front" title="Cochera"></i> {% endif %}
               {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
               {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
             </div>
-            <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-primary">Ver detalle</a>
+            <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-outline-primary btn-sm w-100 mt-1">Ver detalle</a>
           </div>
         </div>
       </div>

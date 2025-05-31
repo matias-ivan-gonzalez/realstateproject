@@ -1,11 +1,12 @@
-from architectural_patterns.service.propiedad_service import PropiedadService
+import os
+from flask import render_template, redirect, url_for, flash, request
+from database import db
 from models.propiedad import Propiedad
-from flask import render_template, redirect, url_for, flash
-from datetime import datetime
+from architectural_patterns.service.propiedad_service import PropiedadService
 from flask import session
 from models.user import Cliente
-import os
 from flask import request
+from sqlalchemy import desc
 
 class PropiedadController:
     
@@ -32,8 +33,6 @@ class PropiedadController:
             success, message = PropiedadService().crear_propiedad(data)
             if success:
                 # Obtener la propiedad recién creada para obtener su id
-                from models.propiedad import Propiedad
-                from sqlalchemy import desc
                 nueva_prop = Propiedad.query.order_by(desc(Propiedad.id)).first()
                 if nueva_prop:
                     img_dir = os.path.join('static', 'img', f'prop{nueva_prop.id}')
@@ -114,7 +113,23 @@ class PropiedadController:
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
                 user_favoritos = cliente.favoritos
-        return render_template('detalle_propiedad.html', propiedad=propiedad, user_favoritos=user_favoritos, request=request)
+
+        # Contar imágenes reales
+        total_imagenes = 0
+        for imagen in propiedad.imagenes:
+            ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+            if os.path.exists(ruta_carpeta):
+                archivos = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                total_imagenes += len(archivos)
+
+        # Guardar el total de imágenes en la sesión
+        session['total_imagenes_reales'] = total_imagenes
+
+        return render_template('detalle_propiedad.html', 
+                             propiedad=propiedad, 
+                             user_favoritos=user_favoritos, 
+                             request=request,
+                             total_imagenes_reales=total_imagenes)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -123,7 +138,6 @@ class PropiedadController:
             return redirect(url_for('main.ver_propiedades'))
         propiedad.eliminado = True
         propiedad.nombre = f'eliminated_{propiedad.id}'
-        from database import db
         db.session.commit()
         flash('Propiedad eliminada correctamente.', 'success')
         return redirect(url_for('main.ver_propiedades'))
@@ -132,7 +146,21 @@ class PropiedadController:
         from models.imagen import Imagen
         from database import db
         propiedad = Propiedad.query.get_or_404(id)
+        
         if request.method == 'POST':
+            # Contar imágenes reales en todas las carpetas de la propiedad
+            total_imagenes = 0
+            for imagen in propiedad.imagenes:
+                ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+                if os.path.exists(ruta_carpeta):
+                    archivos = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                    total_imagenes += len(archivos)
+
+            # Verificar el límite de 5 imágenes
+            if total_imagenes >= 5:
+                flash('No es posible agregar la cantidad de imágenes seleccionada. El máximo es 5.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=id))
+                
             files = request.files.getlist('imagenes')
             if not files or files[0].filename == '':
                 flash('Debes seleccionar al menos una imagen.', 'danger')
@@ -142,12 +170,20 @@ class PropiedadController:
             if not files:
                 flash('Solo se permiten archivos .jpg y .png.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
-            max_permitidas = 5 - len(propiedad.imagenes)
-            if max_permitidas <= 0 or len(files) > max_permitidas:
-                flash('La cantidad de imagenes totales supera 5', 'danger')
+            
+            # Verificar que no se exceda el límite con las nuevas imágenes
+            if total_imagenes + len(files) > 5:
+                flash('No es posible agregar la cantidad de imágenes seleccionada. El máximo es 5.', 'danger')
                 return redirect(url_for('main.detalle_propiedad', id=id))
+            
+            # Verificar si ya existe una entrada para esta carpeta
             carpeta_destino = os.path.join('static', 'img', f'prop{id}')
+            carpeta_url = '/static/img/prop' + str(id)
+            
+            # Crear la carpeta si no existe
             os.makedirs(carpeta_destino, exist_ok=True)
+            
+            # Guardar las imágenes en la carpeta
             for file in files:
                 filename = file.filename
                 ruta = os.path.join(carpeta_destino, filename)
@@ -159,10 +195,16 @@ class PropiedadController:
                     ruta = os.path.join(carpeta_destino, filename)
                     counter += 1
                 file.save(ruta)
-                imagen = Imagen(url='/' + ruta.replace('\\', '/').replace(os.sep, '/'), nombre_archivo=filename, propiedad=propiedad)
+            
+            # Verificar si ya existe una entrada para esta carpeta
+            imagen_existente = Imagen.query.filter_by(carpeta=carpeta_url, propiedad_id=id).first()
+            if not imagen_existente:
+                # Crear una nueva entrada para la carpeta
+                imagen = Imagen(carpeta=carpeta_url, propiedad=propiedad)
                 db.session.add(imagen)
-            db.session.commit()
-            flash('Las imágenes se han agregado correctamente a la propiedad.', 'success')
+                db.session.commit()
+            
+            flash('La/las imágenes se ha/han agregado correctamente a la propiedad.', 'success')
             return redirect(url_for('main.detalle_propiedad', id=id))
         return redirect(url_for('main.detalle_propiedad', id=id))
     
@@ -171,14 +213,33 @@ class PropiedadController:
         from database import db
         imagen = Imagen.query.get_or_404(imagen_id)
         propiedad_id = imagen.propiedad_id
-        # Eliminar archivo físico
-        if imagen.url:
-            ruta_archivo = os.path.join(os.getcwd(), imagen.url.lstrip('/').replace('/', os.sep))
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
-        db.session.delete(imagen)
-        db.session.commit()
-        flash('Imagen eliminada correctamente.', 'success')
+
+        # Obtener el nombre del archivo a eliminar de los parámetros
+        nombre_archivo = request.args.get('nombre_archivo')
+        if not nombre_archivo:
+            flash('No se especificó qué imagen eliminar.', 'danger')
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+
+        # Construir la ruta completa al archivo
+        ruta_archivo = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep), nombre_archivo)
+        
+        # Verificar si el archivo existe y eliminarlo
+        if os.path.exists(ruta_archivo):
+            os.remove(ruta_archivo)
+            flash('Imagen eliminada correctamente.', 'success')
+        else:
+            flash('No se encontró la imagen especificada.', 'warning')
+
+        # Verificar si quedan más archivos en la carpeta
+        ruta_carpeta = os.path.join(os.getcwd(), imagen.carpeta.lstrip('/').replace('/', os.sep))
+        archivos_restantes = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        
+        # Si no quedan más imágenes, eliminar la carpeta y el registro
+        if not archivos_restantes:
+            os.rmdir(ruta_carpeta)
+            db.session.delete(imagen)
+            db.session.commit()
+
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     
     def ver_propiedades_asignar(self, session, encargado_id):

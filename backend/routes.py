@@ -6,10 +6,7 @@ from architectural_patterns.controller.user_controller import UserController
 from architectural_patterns.controller.empleado_controller import EmpleadoController
 from architectural_patterns.controller.propiedad_controller import PropiedadController
 from architectural_patterns.controller.busqueda_controller import SearchController
-
-
-
-
+import os
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -190,3 +187,20 @@ def desasignar_propiedad(propiedad_id):
 def asignar_propiedad(propiedad_id, encargado_id):
     propiedad_controller = PropiedadController()
     return propiedad_controller.asignar_propiedad(session, propiedad_id, encargado_id)
+
+def get_archivos_carpeta(carpeta):
+    """Obtiene la lista de archivos de una carpeta ordenados alfabéticamente."""
+    ruta_carpeta = os.path.join(os.getcwd(), carpeta.lstrip('/').replace('/', os.sep))
+    if os.path.exists(ruta_carpeta):
+        archivos = [f for f in os.listdir(ruta_carpeta) if os.path.isfile(os.path.join(ruta_carpeta, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        return sorted(archivos)
+    return []
+
+# Registrar la función en el contexto de Jinja2
+main.add_app_template_global(get_archivos_carpeta)
+@main.route('/cambiar-contrasena', methods=['POST'])
+@login_required
+def cambiar_contrasena():
+    from architectural_patterns.controller.user_controller import UserController
+    user_controller = UserController()
+    return user_controller.cambiar_contrasena_perfil(request, session)
