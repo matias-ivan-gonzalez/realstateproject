@@ -20,10 +20,8 @@
                         {% set ubicacion_msg = ' en esta ubicación' if ubicacion else '' %}
                         {% if session['rol'] == 'encargado' %}
                             <p class="lead">No tenes propiedades asignadas{{ ubicacion_msg }}</p>
-                        {% elif session['rol'] in ['administrador', 'superusuario'] %}
-                            <p class="lead">No hay propiedades cargadas{{ ubicacion_msg }}</p>
                         {% else %}
-                            <p class="lead">No hay propiedades disponibles{{ ubicacion_msg }}</p>
+                            <p class="lead">No hay propiedades cargadas{{ ubicacion_msg }}</p>
                         {% endif %}
                     </div>
                 {% else %}
