@@ -2,11 +2,22 @@
 <div class="col-12">
     <div class="card compact-propiedad">
         <div class="row g-0 align-items-center flex-nowrap">
-            <div class="col-3 col-md-2">
-                {% if propiedad.imagenes %}
-                <img src="{{ propiedad.imagenes[0].url }}" class="img-fluid rounded-start" alt="{{ propiedad.nombre }}">
+            {% set imagenes = [] %}
+            {% for imagen in propiedad.imagenes %}
+                {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
+                {% for archivo in archivos %}
+                    {% set _ = imagenes.append(imagen.carpeta ~ '/' ~ archivo) %}
+                {% endfor %}
+            {% endfor %}
+            <div class="mb-2" style="height:120px; width:180px; min-width:180px; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-left:auto;">
+                {% if imagenes and imagenes|length > 0 %}
+                    <img src="{{ imagenes[0] }}" alt="Imagen de {{ propiedad.nombre }}" 
+                    style="height:100%; width:100%; object-fit:cover; object-position:center;" 
+                    class="img-fluid rounded" loading="lazy" />
                 {% else %}
-                <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="img-fluid rounded-start" alt="Sin imagen">
+                    <div class="d-flex justify-content-center align-items-center bg-light rounded" style="height:100%; width:100%;">
+                        <i class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></i>
+                    </div>
                 {% endif %}
             </div>
             <div class="col-9 col-md-10">
@@ -25,4 +36,4 @@
         </div>
     </div>
 </div>
-{% endmacro %} 
+{% endmacro %}
