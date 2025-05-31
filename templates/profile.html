@@ -70,11 +70,17 @@
                                 <input type="text" class="form-control" id="tarjeta" name="tarjeta"
                                        value="{{ form_data.tarjeta or '' }}"
                                        {% if reservas_activas %}readonly{% endif %}>
-                                {% if reservas_activas %}
-                                <small class="text-muted">No puedes modificar tu tarjeta mientras tengas reservas activas.</small>
-                                {% endif %}
                             </div>
                         </div>
+                        {% if reservas_activas %}
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <small class="text-muted d-block text-center mt-2">
+                                    No puedes modificar tu tarjeta ni eliminar tu cuenta mientras tengas reservas activas.
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% else %}
                         <input type="hidden" name="f_nac" value="">
                         <input type="hidden" name="domicilio" value="">
@@ -85,7 +91,7 @@
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
                             {% if user.tipo == 'cliente' %}
-                            <button class="btn btn-outline-danger" id="abrirModalEliminarCuenta">
+                            <button class="btn btn-outline-danger" id="abrirModalEliminarCuenta" {% if reservas_activas %}disabled{% endif %}>
                                 Eliminar cuenta
                             </button>
                             {% endif %}

@@ -176,6 +176,10 @@ def init_db():
     if not encargado2:
         encargado2 = Encargado(nombre='Marcos', apellido='Silva', dni='35123456', email='marcos.silva@encargado.com', contrasena='encargMS4', telefono='1178901234', nacionalidad='Argentina', rol=rol_encargado)
         db.session.add(encargado2)
+    encargado3 = Encargado.query.filter_by(email='carla.gomez@encargado.com').first()
+    if not encargado3:
+        encargado3 = Encargado(nombre='Carla', apellido='Gómez', dni='36123457', email='carla.gomez@encargado.com', contrasena='encargCG5', telefono='1189012345', nacionalidad='Argentina', rol=rol_encargado)
+        db.session.add(encargado3)
     db.session.commit()
 
     # Propiedades
