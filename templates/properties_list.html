@@ -10,8 +10,6 @@
 <div class="container-fluid px-0">
     <div class="row justify-content-center">
         <div class="col-12" style="max-width: 95vw;">
-            <!-- Filtro de búsqueda -->
-            {{ search_filter(url_for('main.ver_propiedades')) }}
             <!-- Lista de propiedades -->
             <div class="row g-2">
                 {% if propiedades.items|length == 0 %}
