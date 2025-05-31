@@ -38,10 +38,11 @@ class PropiedadController:
                     img_dir = os.path.join('static', 'img', f'prop{nueva_prop.id}')
                     os.makedirs(img_dir, exist_ok=True)
                 flash(message, 'success')
+                return render_template('nueva_propiedad.html', form_data={})
             else:
                 flash(message, 'danger')
-            return render_template('nueva_propiedad.html')
-        return render_template('nueva_propiedad.html')
+                return render_template('nueva_propiedad.html', form_data=data)
+        return render_template('nueva_propiedad.html', form_data={})
     
     def update_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)

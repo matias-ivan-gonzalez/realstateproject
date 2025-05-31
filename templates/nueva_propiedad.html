@@ -13,11 +13,11 @@
             <div class="row mb-2">
                 <div class="col-md-6">
                     <label for="nombre" class="form-label text-secondary">Nombre de la Propiedad*</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required value="{{ form_data.nombre or '' }}">
                 </div>
                 <div class="col-md-6">
                     <label for="ubicacion" class="form-label text-secondary">Ubicación*</label>
-                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required>
+                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required value="{{ form_data.ubicacion or '' }}">
                 </div>
             </div>
 
@@ -26,30 +26,30 @@
                     <label for="precio" class="form-label text-secondary">Precio*</label>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
+                        <input type="number" class="form-control" id="precio" name="precio" step="0.01" required value="{{ form_data.precio or '' }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <label for="cantidad_habitaciones" class="form-label text-secondary">Cantidad de Habitaciones*</label>
-                    <input type="number" class="form-control" id="cantidad_habitaciones" name="cantidad_habitaciones" min="1" required>
+                    <input type="number" class="form-control" id="cantidad_habitaciones" name="cantidad_habitaciones" min="1" required value="{{ form_data.cantidad_habitaciones or '' }}">
                 </div>
                 <div class="col-md-4">
                     <label for="limite_personas" class="form-label text-secondary">Límite de Personas*</label>
-                    <input type="number" class="form-control" id="limite_personas" name="limite_personas" min="1" required>
+                    <input type="number" class="form-control" id="limite_personas" name="limite_personas" min="1" required value="{{ form_data.limite_personas or '' }}">
                 </div>
             </div>
             <div class="mb-2">
                 <label for="direccion" class="form-label text-secondary">Dirección*</label>
-                <input type="text" class="form-control" id="direccion" name="direccion" required>
+                <input type="text" class="form-control" id="direccion" name="direccion" required value="{{ form_data.direccion or '' }}">
             </div>
             <div class="row mb-2">
                 <div class="col-md-4">
                     <label for="latitud" class="form-label text-secondary">Latitud*</label>
-                    <input type="number" class="form-control" id="latitud" name="latitud" step="any" required>
+                    <input type="number" class="form-control" id="latitud" name="latitud" step="any" required value="{{ form_data.latitud or '' }}">
                 </div>
                 <div class="col-md-4">
                     <label for="longitud" class="form-label text-secondary">Longitud*</label>
-                    <input type="number" class="form-control" id="longitud" name="longitud" step="any" required>
+                    <input type="number" class="form-control" id="longitud" name="longitud" step="any" required value="{{ form_data.longitud or '' }}">
                 </div>
             </div>
             <div class="row mb-2 align-items-end">
@@ -57,27 +57,27 @@
                     <label class="form-label text-secondary mb-1">Características</label>
                     <div class="d-flex flex-wrap gap-3">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="pet_friendly" name="pet_friendly">
+                            <input type="checkbox" class="form-check-input" id="pet_friendly" name="pet_friendly" {% if form_data.pet_friendly %}checked{% endif %}>
                             <label class="form-check-label text-secondary" for="pet_friendly">Pet Friendly</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="cochera" name="cochera">
+                            <input type="checkbox" class="form-check-input" id="cochera" name="cochera" {% if form_data.cochera %}checked{% endif %}>
                             <label class="form-check-label text-secondary" for="cochera">Cochera</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="wifi" name="wifi">
+                            <input type="checkbox" class="form-check-input" id="wifi" name="wifi" {% if form_data.wifi %}checked{% endif %}>
                             <label class="form-check-label text-secondary" for="wifi">WiFi</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="piscina" name="piscina">
+                            <input type="checkbox" class="form-check-input" id="piscina" name="piscina" {% if form_data.piscina %}checked{% endif %}>
                             <label class="form-check-label text-secondary" for="piscina">Piscina</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="patio_trasero" name="patio_trasero">
+                            <input type="checkbox" class="form-check-input" id="patio_trasero" name="patio_trasero" {% if form_data.patio_trasero %}checked{% endif %}>
                             <label class="form-check-label text-secondary" for="patio_trasero">Patio Trasero</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable">
+                            <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable" {% if form_data.reembolsable %}checked{% endif %}>
                             <label class="form-check-label text-secondary" for="reembolsable">Reembolsable</label>
                         </div>
                     </div>
@@ -86,7 +86,7 @@
 
             <div class="mb-3">
                 <label for="descripcion" class="form-label text-secondary">Descripción</label>
-                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Descripción de la propiedad..."></textarea>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Descripción de la propiedad...">{{ form_data.descripcion or '' }}</textarea>
             </div>
 
             <div class="d-grid gap-2">
