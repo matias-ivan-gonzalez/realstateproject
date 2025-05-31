@@ -1,4 +1,7 @@
 @echo off
+REM Restaurar imágenes desde backup antes de iniciar el servidor
+call restore_images_from_backup.bat
+
 REM Borrar la base de datos
 call borrarDB.bat
 

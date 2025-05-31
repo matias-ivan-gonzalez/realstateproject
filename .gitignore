@@ -37,3 +37,4 @@ ENV/
 *.log
 
 # Imágenes de propiedades
+static/img/
