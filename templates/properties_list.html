@@ -16,7 +16,15 @@
             <div class="row g-2">
                 {% if propiedades.items|length == 0 %}
                     <div class="col-12 text-center" style="margin-top: 4rem;">
-                        <p class="lead">No tenes propiedades asignadas</p>
+                        {% set ubicacion = request.args.get('ubicacion', '') %}
+                        {% set ubicacion_msg = ' en esta ubicación' if ubicacion else '' %}
+                        {% if session['rol'] == 'encargado' %}
+                            <p class="lead">No tenes propiedades asignadas{{ ubicacion_msg }}</p>
+                        {% elif session['rol'] in ['administrador', 'superusuario'] %}
+                            <p class="lead">No hay propiedades cargadas{{ ubicacion_msg }}</p>
+                        {% else %}
+                            <p class="lead">No hay propiedades disponibles{{ ubicacion_msg }}</p>
+                        {% endif %}
                     </div>
                 {% else %}
                     <h2 class="text-center mb-3">Propiedades</h2>
