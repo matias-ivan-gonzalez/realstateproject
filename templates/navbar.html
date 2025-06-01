@@ -13,7 +13,7 @@
     <div class="container">
       <div class="collapse navbar-collapse" id="navContent">
         <form class="d-flex ms-auto me-3" action="/search" method="get">
-          <input class="form-control me-2" type="search" name="q" id="navbar-q" placeholder="Buscar..." aria-label="Buscar" value="{{ q if q is defined else request.args.get('q', '') }}" {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>
+          <input class="form-control me-2" type="search" name="ubicacion" id="navbar-q" placeholder="Buscar por ubicación..." aria-label="Buscar" value="{{ ubicacion if ubicacion is defined else request.args.get('ubicacion', '') }}" {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>
           <button class="btn btn-outline-light" type="submit" id="buscar-btn" disabled {% if hide_navbar_search_btn %}style="display:none;"{% endif %}>Buscar</button>
         </form>
         <ul class="navbar-nav mb-2 mb-lg-0">
