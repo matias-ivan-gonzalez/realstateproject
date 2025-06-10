@@ -126,11 +126,27 @@ class PropiedadController:
         # Guardar el total de imágenes en la sesión
         session['total_imagenes_reales'] = total_imagenes
 
+        # Obtener fechas ocupadas y reservadas
+        fechas_ocupadas = []
+        for ocup in propiedad.ocupaciones:
+            fechas_ocupadas.append({
+                'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+            })
+        fechas_reservadas = []
+        for res in propiedad.reservas:
+            fechas_reservadas.append({
+                'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                'fin': res.fecha_fin.strftime('%Y-%m-%d')
+            })
+
         return render_template('detalle_propiedad.html', 
                              propiedad=propiedad, 
                              user_favoritos=user_favoritos, 
                              request=request,
-                             total_imagenes_reales=total_imagenes)
+                             total_imagenes_reales=total_imagenes,
+                             fechas_ocupadas=fechas_ocupadas,
+                             fechas_reservadas=fechas_reservadas)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -274,6 +290,46 @@ class PropiedadController:
         db.session.commit()
         flash('Propiedad desasignada correctamente.', 'success')
         return redirect(url_for('main.ver_encargados'))
-    
-    
-    
+
+    def ocupar_propiedad(self, request, session, propiedad_id):
+        from models.ocupacion import Ocupacion
+        from database import db
+        from datetime import datetime
+        # Solo administradores pueden ocupar
+        if session.get('rol') != 'administrador':
+            flash('Solo los administradores pueden ocupar una propiedad.', 'danger')
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        if request.method == 'POST':
+            fecha_inicio = request.form.get('fecha_inicio')
+            fecha_fin = request.form.get('fecha_fin')
+            if not fecha_inicio or not fecha_fin:
+                flash('Debes ingresar ambas fechas.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+            try:
+                fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+                fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Formato de fecha inválido.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+            if fecha_fin_dt < fecha_inicio_dt:
+                flash('La fecha de fin no puede ser anterior a la de inicio.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+            # Validar solapamiento de ocupaciones
+            ocupaciones_existentes = Ocupacion.query.filter_by(propiedad_id=propiedad_id).all()
+            for ocup in ocupaciones_existentes:
+                if not (fecha_fin_dt < ocup.fecha_inicio or fecha_inicio_dt > ocup.fecha_fin):
+                    flash('Ya existe una ocupación en ese rango de fechas.', 'danger')
+                    return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+            ocupacion = Ocupacion(
+                fecha_inicio=fecha_inicio_dt,
+                fecha_fin=fecha_fin_dt,
+                administrador_id=session['user_id'],
+                propiedad_id=propiedad_id
+            )
+            db.session.add(ocupacion)
+            db.session.commit()
+            flash('Propiedad ocupada correctamente.', 'success')
+            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+
+

@@ -210,3 +210,9 @@ def cambiar_contrasena():
 def ver_reservas():
     user_controller = UserController()
     return user_controller.ver_reservas(session)
+
+@main.route('/propiedad/ocupar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def ocupar_propiedad(propiedad_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.ocupar_propiedad(request, session, propiedad_id)

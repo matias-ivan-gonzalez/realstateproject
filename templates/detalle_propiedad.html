@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='customCss/styles.css') }}">
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <div class="container mt-4 fade-in">
     <div class="detalle-grid">
@@ -201,6 +203,30 @@
             <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
         {% endif %}
     </div>
+    {% if session.rol == 'administrador' %}
+        <div class="mt-4">
+            <div class="card shadow">
+                <div class="card-header">Ocupar propiedad</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.ocupar_propiedad', propiedad_id=propiedad.id) }}">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="fecha_fin" class="form-label">Fecha de fin</label>
+                                <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Ocupar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 </div>
 <script>
 function initMapDetalle() {
@@ -296,6 +322,105 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         btnAgregar.disabled = !inputImagenes.files || inputImagenes.files.length === 0;
     }
+
+    // --- Deshabilitar fechas ocupadas/reservadas en los inputs de fecha ---
+    var fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
+    var fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
+    var fechasBloqueadas = [];
+    function getFechasEnRango(inicio, fin) {
+        var fechas = [];
+        var current = new Date(inicio);
+        var end = new Date(fin);
+        while (current <= end) {
+            fechas.push(current.toISOString().slice(0,10));
+            current.setDate(current.getDate() + 1);
+        }
+        return fechas;
+    }
+    fechasOcupadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    fechasReservadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    var fechasUnicas = Array.from(new Set(fechasBloqueadas));
+    function disableDates(input) {
+        input.addEventListener('input', function() {
+            if (fechasUnicas.includes(this.value)) {
+                this.setCustomValidity('Esta fecha está ocupada o reservada.');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && fechasUnicas.includes(this.value)) {
+                e.preventDefault();
+            }
+        });
+    }
+    var inputInicio = document.getElementById('fecha_inicio');
+    var inputFin = document.getElementById('fecha_fin');
+    if (inputInicio && inputFin) {
+        disableDates(inputInicio);
+        disableDates(inputFin);
+        inputInicio.addEventListener('focus', function() {
+            this.setAttribute('min', new Date().toISOString().slice(0,10));
+        });
+        inputFin.addEventListener('focus', function() {
+            this.setAttribute('min', new Date().toISOString().slice(0,10));
+        });
+    }
+
+    // Limitar fechas a partir de hoy
+    var inputInicio = document.getElementById('fecha_inicio');
+    var inputFin = document.getElementById('fecha_fin');
+    if (inputInicio && inputFin) {
+        var today = new Date();
+        var minDate = today.toISOString().split('T')[0];
+        inputInicio.min = minDate;
+        inputFin.min = minDate;
+    }
+    // Bloquear fechas ocupadas/reservadas
+    var fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
+    var fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
+    var fechasBloqueadas = [];
+    function getFechasEnRango(inicio, fin) {
+        var fechas = [];
+        var current = new Date(inicio);
+        var end = new Date(fin);
+        while (current <= end) {
+            fechas.push(current.toISOString().slice(0,10));
+            current.setDate(current.getDate() + 1);
+        }
+        return fechas;
+    }
+    fechasOcupadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    fechasReservadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    var fechasUnicas = Array.from(new Set(fechasBloqueadas));
+    function disableBlockedDates(input) {
+        input.addEventListener('input', function() {
+            if (fechasUnicas.includes(this.value)) {
+                this.value = '';
+                this.setCustomValidity('Esta fecha está ocupada o reservada.');
+                this.reportValidity();
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        input.addEventListener('blur', function() {
+            if (fechasUnicas.includes(this.value)) {
+                this.value = '';
+            }
+        });
+    }
+    if (inputInicio && inputFin) {
+        disableBlockedDates(inputInicio);
+        disableBlockedDates(inputFin);
+    }
 });
 
 function confirmarQuitarFavorito(e, btn) {
@@ -306,4 +431,11 @@ function confirmarQuitarFavorito(e, btn) {
     return true;
 }
 </script>
-{% endblock %} 
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    window.fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
+    window.fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
+</script>
+<script src="{{ url_for('static', filename='js/detalle_propiedad_flatpickr.js') }}"></script>
+{% endblock %}
