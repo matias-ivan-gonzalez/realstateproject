@@ -287,3 +287,14 @@ class UserController:
             flash('Contraseña modificada', 'success')
             return redirect(url_for('main.perfil'))
         return redirect(url_for('main.perfil'))
+
+    def ver_reservas(self, session):
+        from models.user import Cliente
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo != 'cliente':
+            flash('Solo los clientes pueden ver sus reservas.', 'danger')
+            return redirect(url_for('main.index'))
+        cliente = Cliente.query.get(user_id)
+        reservas = cliente.reservas if cliente else []
+        return render_template('reservas.html', reservas=reservas)

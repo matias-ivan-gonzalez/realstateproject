@@ -204,3 +204,9 @@ def cambiar_contrasena():
     from architectural_patterns.controller.user_controller import UserController
     user_controller = UserController()
     return user_controller.cambiar_contrasena_perfil(request, session)
+
+@main.route('/ver-reservas')
+@login_required
+def ver_reservas():
+    user_controller = UserController()
+    return user_controller.ver_reservas(session)

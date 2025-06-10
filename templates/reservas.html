@@ -1,0 +1,41 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Mis Reservas - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h2 class="mb-4 text-center">Mi Historial de Reservas</h2>
+            <div class="row g-3">
+                {% if reservas and reservas|length > 0 %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Propiedad</th>
+                                <th>Dirección</th>
+                                <th>Fecha Inicio</th>
+                                <th>Fecha Fin</th>
+                                <th>Cantidad de Personas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reserva in reservas %}
+                                <tr>
+                                    <td>{{ reserva.propiedad.nombre }}</td>
+                                    <td>{{ reserva.propiedad.direccion }}</td>
+                                    <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ reserva.cantidad_personas }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info text-center">No tienes reservas realizadas.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
