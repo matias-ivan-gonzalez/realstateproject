@@ -203,11 +203,16 @@
             <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
         {% endif %}
     </div>
-    {% if session.rol in ['administrador', 'superusuario'] %}
+    {% if session.rol in ['administrador', 'superusuario'] or (session.rol == 'encargado' and propiedad.encargado_id == session.user_id) %}
         <div class="mt-4">
             <div class="card shadow">
                 <div class="card-header">Ocupar propiedad</div>
                 <div class="card-body">
+                    {% if session.rol == 'encargado' and propiedad.encargado_id == session.user_id and dias_ocupados_encargado is not none %}
+                        <div class="alert alert-info text-center my-3" style="font-size:1.1rem;">
+                            <strong>Días ocupados este año:</strong> {{ dias_ocupados_encargado }} / 15
+                        </div>
+                    {% endif %}
                     <form method="POST" action="{{ url_for('main.ocupar_propiedad', propiedad_id=propiedad.id) }}">
                         <div class="row g-2 align-items-end">
                             <div class="col-md-5">

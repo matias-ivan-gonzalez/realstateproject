@@ -139,14 +139,26 @@ class PropiedadController:
                 'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
                 'fin': res.fecha_fin.strftime('%Y-%m-%d')
             })
-
+        # Mostrar días ocupados si es encargado y la propiedad está asignada
+        dias_ocupados_encargado = None
+        if session.get('rol') == 'encargado' and propiedad.encargado_id == session.get('user_id'):
+            from models.ocupacion import Ocupacion
+            from datetime import date
+            year = date.today().year
+            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id')).all()
+            dias_ocupados = 0
+            for ocup in ocupaciones_encargado:
+                if ocup.fecha_inicio.year == year:
+                    dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
+            dias_ocupados_encargado = dias_ocupados
         return render_template('detalle_propiedad.html', 
                              propiedad=propiedad, 
                              user_favoritos=user_favoritos, 
                              request=request,
                              total_imagenes_reales=total_imagenes,
                              fechas_ocupadas=fechas_ocupadas,
-                             fechas_reservadas=fechas_reservadas)
+                             fechas_reservadas=fechas_reservadas,
+                             dias_ocupados_encargado=dias_ocupados_encargado)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -294,11 +306,20 @@ class PropiedadController:
     def ocupar_propiedad(self, request, session, propiedad_id):
         from models.ocupacion import Ocupacion
         from database import db
-        from datetime import datetime
-        # Solo administradores o superusuarios pueden ocupar
-        if session.get('rol') not in ['administrador', 'superusuario']:
-            flash('Solo los administradores o superusuarios pueden ocupar una propiedad.', 'danger')
+        from datetime import datetime, timedelta
+        from models.propiedad import Propiedad
+        # Permitir a administradores, superusuarios y encargados
+        rol = session.get('rol')
+        user_id = session.get('user_id')
+        if rol not in ['administrador', 'superusuario', 'encargado']:
+            flash('No tienes permisos para ocupar una propiedad.', 'danger')
             return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        # Restricciones para encargado
+        if rol == 'encargado':
+            if propiedad.encargado_id != user_id:
+                flash('Solo puedes ocupar propiedades que tienes asignadas.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
         if request.method == 'POST':
             fecha_inicio = request.form.get('fecha_inicio')
             fecha_fin = request.form.get('fecha_fin')
@@ -320,15 +341,28 @@ class PropiedadController:
                 if not (fecha_fin_dt < ocup.fecha_inicio or fecha_inicio_dt > ocup.fecha_fin):
                     flash('Ya existe una ocupación en ese rango de fechas.', 'danger')
                     return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+            # Restricción de 15 días por año para encargados
+            if rol == 'encargado':
+                year = fecha_inicio_dt.year
+                ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=user_id).all()
+                dias_ocupados = 0
+                for ocup in ocupaciones_encargado:
+                    # Solo contar ocupaciones del mismo año
+                    if ocup.fecha_inicio.year == year:
+                        dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
+                dias_nueva_ocupacion = (fecha_fin_dt - fecha_inicio_dt).days + 1
+                if dias_ocupados + dias_nueva_ocupacion > 15:
+                    flash(f'No puedes ocupar más de 15 días por año.', 'danger')
+                    return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
             ocupacion = Ocupacion(
                 fecha_inicio=fecha_inicio_dt,
                 fecha_fin=fecha_fin_dt,
-                administrador_id=session['user_id'],
+                administrador_id=user_id,
                 propiedad_id=propiedad_id
             )
             db.session.add(ocupacion)
             db.session.commit()
-            flash('Propiedad ocupada correctamente.', 'success')
+            flash('Ocupación exitosa.', 'success')
             return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
 
