@@ -26,7 +26,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Flatpickr config
     const blockedDates = getBlockedDates();
     const today = new Date().toISOString().slice(0,10);
-    const flatpickrOptions = {
+    const flatpickrOptionsInicio = {
+        dateFormat: 'Y-m-d',
+        minDate: today,
+        disable: blockedDates,
+        locale: 'es',
+        allowInput: false,
+        onChange: function(selectedDates, dateStr, instance) {
+            if (window.flatpickrFin) {
+                window.flatpickrFin.set('minDate', dateStr);
+            }
+        }
+    };
+    const flatpickrOptionsFin = {
         dateFormat: 'Y-m-d',
         minDate: today,
         disable: blockedDates,
@@ -35,10 +47,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     // Init flatpickr on both date inputs if present
     if (document.getElementById('fecha_inicio')) {
-        flatpickr('#fecha_inicio', flatpickrOptions);
+        window.flatpickrInicio = flatpickr('#fecha_inicio', flatpickrOptionsInicio);
     }
     if (document.getElementById('fecha_fin')) {
-        flatpickr('#fecha_fin', flatpickrOptions);
+        window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptionsFin);
     }
 });
 
@@ -68,7 +80,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Flatpickr config
     const blockedDates = getBlockedDates();
     const today = new Date().toISOString().slice(0,10);
-    const flatpickrOptions = {
+    const flatpickrOptionsInicio = {
+        dateFormat: 'Y-m-d',
+        minDate: today,
+        disable: blockedDates,
+        locale: 'es',
+        allowInput: false,
+        onChange: function(selectedDates, dateStr, instance) {
+            if (window.flatpickrFin) {
+                window.flatpickrFin.set('minDate', dateStr);
+            }
+        }
+    };
+    const flatpickrOptionsFin = {
         dateFormat: 'Y-m-d',
         minDate: today,
         disable: blockedDates,
@@ -77,9 +101,35 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     // Inicializar flatpickr en los inputs de fecha
     if (document.getElementById('fecha_inicio')) {
-        flatpickr('#fecha_inicio', flatpickrOptions);
+        window.flatpickrInicio = flatpickr('#fecha_inicio', flatpickrOptionsInicio);
     }
     if (document.getElementById('fecha_fin')) {
-        flatpickr('#fecha_fin', flatpickrOptions);
+        window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptionsFin);
     }
 });
+
+// --- Enable/disable Ocupar button for admin/superuser ---
+var btnOcupar = document.getElementById('btn-ocupar-admin');
+var inputInicio = document.getElementById('fecha_inicio');
+var inputFin = document.getElementById('fecha_fin');
+function checkOcuparButtonState() {
+    if (!btnOcupar || !inputInicio || !inputFin) return;
+    const valInicio = inputInicio.value;
+    const valFin = inputFin.value;
+    if (valInicio && valFin) {
+        // Check date validity
+        const start = new Date(valInicio);
+        const end = new Date(valFin);
+        if (end >= start) {
+            btnOcupar.disabled = false;
+            return;
+        }
+    }
+    btnOcupar.disabled = true;
+}
+if (btnOcupar && inputInicio && inputFin) {
+    inputInicio.addEventListener('change', checkOcuparButtonState);
+    inputFin.addEventListener('change', checkOcuparButtonState);
+    // Also check on page load in case of autofill
+    checkOcuparButtonState();
+}

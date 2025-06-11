@@ -203,7 +203,7 @@
             <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
         {% endif %}
     </div>
-    {% if session.rol == 'administrador' %}
+    {% if session.rol in ['administrador', 'superusuario'] %}
         <div class="mt-4">
             <div class="card shadow">
                 <div class="card-header">Ocupar propiedad</div>
@@ -219,14 +219,14 @@
                                 <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" required>
                             </div>
                             <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100">Ocupar</button>
+                                <button type="submit" class="btn btn-primary w-100" id="btn-ocupar-admin" disabled>Ocupar</button>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-        {% endif %}
+    {% endif %}
 </div>
 <script>
 function initMapDetalle() {

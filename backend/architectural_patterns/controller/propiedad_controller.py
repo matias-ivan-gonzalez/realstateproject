@@ -295,9 +295,9 @@ class PropiedadController:
         from models.ocupacion import Ocupacion
         from database import db
         from datetime import datetime
-        # Solo administradores pueden ocupar
-        if session.get('rol') != 'administrador':
-            flash('Solo los administradores pueden ocupar una propiedad.', 'danger')
+        # Solo administradores o superusuarios pueden ocupar
+        if session.get('rol') not in ['administrador', 'superusuario']:
+            flash('Solo los administradores o superusuarios pueden ocupar una propiedad.', 'danger')
             return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
         if request.method == 'POST':
             fecha_inicio = request.form.get('fecha_inicio')
