@@ -339,7 +339,7 @@ class UserController:
         estrellas_vista = int(form.get('estrellas_vista'))
         estrellas_ubicacion = int(form.get('estrellas_ubicacion'))
         estrellas_limpieza = int(form.get('estrellas_limpieza'))
-        descripcion = form.get('descripcion')
+        descripcion = form.get('descripcion') or ''
         calificacion = Calificacion(
             reserva_id=reserva.id,
             cliente_id=cliente.id,
@@ -352,4 +352,35 @@ class UserController:
         db.session.add(calificacion)
         db.session.commit()
         flash('Calificación realizada correctamente!', 'success')
+        return redirect(url_for('main.ver_reservas'))
+
+    def mostrar_formulario_editar_calificacion(self, session, calificacion_id):
+        from models.calificacion import Calificacion
+        from datetime import date
+        calificacion = Calificacion.query.get_or_404(calificacion_id)
+        reserva = calificacion.reserva
+        hoy = date.today()
+        dias_diferencia = (hoy - reserva.fecha_fin).days
+        if dias_diferencia > 30:
+            flash('Solo puedes editar la calificación hasta 30 días después de la estadía.', 'warning')
+            return redirect(url_for('main.ver_reservas'))
+        return render_template('calificar_propiedad.html', reserva=reserva, calificacion=calificacion, editar=True)
+
+    def procesar_edicion_calificacion(self, session, calificacion_id, form):
+        from models.calificacion import Calificacion
+        from database import db
+        from datetime import date
+        calificacion = Calificacion.query.get_or_404(calificacion_id)
+        reserva = calificacion.reserva
+        hoy = date.today()
+        dias_diferencia = (hoy - reserva.fecha_fin).days
+        if dias_diferencia > 30:
+            flash('Solo puedes editar la calificación hasta 30 días después de la estadía.', 'warning')
+            return redirect(url_for('main.ver_reservas'))
+        calificacion.estrellas_vista = int(form.get('estrellas_vista'))
+        calificacion.estrellas_ubicacion = int(form.get('estrellas_ubicacion'))
+        calificacion.estrellas_limpieza = int(form.get('estrellas_limpieza'))
+        calificacion.descripcion = form.get('descripcion') or ''
+        db.session.commit()
+        flash('Calificación modificada con éxito', 'success')
         return redirect(url_for('main.ver_reservas'))

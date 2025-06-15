@@ -36,6 +36,11 @@
                                             <a href="{{ url_for('main.calificar_propiedad', reserva_id=reserva.id) }}" class="btn btn-warning btn-sm">Calificar Propiedad</a>
                                         {% elif reserva.calificacion is not none %}
                                             <span class="badge bg-success">Calificada</span>
+                                            {% if (current_date - reserva.fecha_fin).days <= 30 %}
+                                                <a href="{{ url_for('main.editar_calificacion', calificacion_id=reserva.calificacion.id) }}" class="btn btn-primary btn-sm ms-2">Editar calificación</a>
+                                            {% endif %}
+                                        {% elif reserva.calificacion is none and reserva.fecha_fin < current_date and (current_date - reserva.fecha_fin).days > 30 %}
+                                            <span class="badge bg-danger">No calificada</span>
                                         {% endif %}
                                     </td>
                                 </tr>
