@@ -232,3 +232,9 @@ def editar_calificacion(calificacion_id):
         return user_controller.procesar_edicion_calificacion(session, calificacion_id, request.form)
     else:
         return user_controller.mostrar_formulario_editar_calificacion(session, calificacion_id)
+
+@main.route('/borrar-calificacion/<int:calificacion_id>', methods=['POST'])
+@login_required
+def borrar_calificacion(calificacion_id):
+    user_controller = UserController()
+    return user_controller.borrar_calificacion(session, calificacion_id)
