@@ -223,3 +223,12 @@ def calificar_propiedad(reserva_id):
         return user_controller.procesar_calificacion(session, reserva_id, request.form)
     else:
         return user_controller.mostrar_formulario_calificacion(session, reserva_id)
+
+@main.route('/editar-calificacion/<int:calificacion_id>', methods=['GET', 'POST'])
+@login_required
+def editar_calificacion(calificacion_id):
+    user_controller = UserController()
+    if request.method == 'POST':
+        return user_controller.procesar_edicion_calificacion(session, calificacion_id, request.form)
+    else:
+        return user_controller.mostrar_formulario_editar_calificacion(session, calificacion_id)

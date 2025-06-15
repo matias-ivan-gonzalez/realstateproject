@@ -1,6 +1,6 @@
 {% extends "base_hero.html" %}
 
-{% block title %}Calificar Propiedad{% endblock %}
+{% block title %}{{ 'Editar Calificación' if editar else 'Calificar Propiedad' }}{% endblock %}
 
 {% block hero_content %}
 <style>
@@ -27,13 +27,13 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h2 class="mb-4 text-center">Calificar Propiedad: {{ reserva.propiedad.nombre }}</h2>
+            <h2 class="mb-4 text-center">{{ 'Editar Calificación' if editar else 'Calificar Propiedad: ' ~ reserva.propiedad.nombre }}</h2>
             <form method="POST">
                 <div class="mb-3">
                     <label class="form-label">Vista al exterior</label><br>
                     <div class="rating">
                         {% for i in range(5, 0, -1) %}
-                        <input type="radio" id="vista{{ i }}" name="estrellas_vista" value="{{ i }}" required>
+                        <input type="radio" id="vista{{ i }}" name="estrellas_vista" value="{{ i }}" required {% if calificacion and calificacion.estrellas_vista == i %}checked{% endif %}>
                         <label for="vista{{ i }}">&#9733;</label>
                         {% endfor %}
                     </div>
@@ -42,7 +42,7 @@
                     <label class="form-label">Ubicación</label><br>
                     <div class="rating">
                         {% for i in range(5, 0, -1) %}
-                        <input type="radio" id="ubicacion{{ i }}" name="estrellas_ubicacion" value="{{ i }}" required>
+                        <input type="radio" id="ubicacion{{ i }}" name="estrellas_ubicacion" value="{{ i }}" required {% if calificacion and calificacion.estrellas_ubicacion == i %}checked{% endif %}>
                         <label for="ubicacion{{ i }}">&#9733;</label>
                         {% endfor %}
                     </div>
@@ -51,18 +51,18 @@
                     <label class="form-label">Limpieza</label><br>
                     <div class="rating">
                         {% for i in range(5, 0, -1) %}
-                        <input type="radio" id="limpieza{{ i }}" name="estrellas_limpieza" value="{{ i }}" required>
+                        <input type="radio" id="limpieza{{ i }}" name="estrellas_limpieza" value="{{ i }}" required {% if calificacion and calificacion.estrellas_limpieza == i %}checked{% endif %}>
                         <label for="limpieza{{ i }}">&#9733;</label>
                         {% endfor %}
                     </div>
                 </div>
                 <div class="mb-3">
                     <label for="descripcion" class="form-label">Opinión</label>
-                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="500" placeholder="Escribe tu opinión..." required></textarea>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="500" placeholder="Escribe tu opinión...">{{ calificacion.descripcion if calificacion else '' }}</textarea>
                 </div>
                 <div class="d-flex justify-content-between">
                     <a href="{{ url_for('main.ver_reservas') }}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                    <button type="submit" class="btn btn-primary">{{ 'Confirmar cambios' if editar else 'Confirmar' }}</button>
                 </div>
             </form>
         </div>

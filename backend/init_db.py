@@ -302,6 +302,16 @@ def init_db():
         reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2)
         db.session.add(reserva2)
     
+    # Tercera reserva en el pasado para probar 'No calificada'
+    fecha_inicio3 = '2024-05-01'
+    fecha_fin3 = '2024-05-05'
+    fecha_inicio_convertida3 = datetime.strptime(fecha_inicio3, '%Y-%m-%d')
+    fecha_fin_convertida3 = datetime.strptime(fecha_fin3, '%Y-%m-%d')
+    reserva3 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3).first()
+    if not reserva3:
+        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2)
+        db.session.add(reserva3)
+    
     db.session.commit()
 
     # Favoritos
