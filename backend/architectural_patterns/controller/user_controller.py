@@ -2,6 +2,7 @@ from flask import  render_template,  redirect, url_for, flash, request
 from architectural_patterns.service.user_service import UserService
 from flask_mail import Message
 from models.user import Administrador, Encargado
+from datetime import date
 
 class UserController:
 
@@ -297,4 +298,58 @@ class UserController:
             return redirect(url_for('main.index'))
         cliente = Cliente.query.get(user_id)
         reservas = cliente.reservas if cliente else []
-        return render_template('reservas.html', reservas=reservas)
+        current_date = date.today()
+        return render_template('reservas.html', reservas=reservas, current_date=current_date)
+
+    def mostrar_formulario_calificacion(self, session, reserva_id):
+        from models.reserva import Reserva
+        reserva = Reserva.query.get_or_404(reserva_id)
+        hoy = date.today()
+        dias_diferencia = (hoy - reserva.fecha_fin).days
+        # Reglas de negocio
+        if reserva.calificacion is not None:
+            flash('Esta reserva ya fue calificada.', 'info')
+            return redirect(url_for('main.ver_reservas'))
+        if hoy <= reserva.fecha_fin:
+            flash('Solo puedes calificar una vez finalizada la estadía.', 'warning')
+            return redirect(url_for('main.ver_reservas'))
+        if dias_diferencia > 30:
+            flash('Solo puedes calificar hasta 30 días después de la estadía.', 'warning')
+            return redirect(url_for('main.ver_reservas'))
+        return render_template('calificar_propiedad.html', reserva=reserva)
+
+    def procesar_calificacion(self, session, reserva_id, form):
+        from models.reserva import Reserva
+        from models.calificacion import Calificacion
+        from database import db
+        reserva = Reserva.query.get_or_404(reserva_id)
+        cliente = reserva.cliente
+        hoy = date.today()
+        dias_diferencia = (hoy - reserva.fecha_fin).days
+        # Reglas de negocio
+        if reserva.calificacion is not None:
+            flash('Esta reserva ya fue calificada.', 'info')
+            return redirect(url_for('main.ver_reservas'))
+        if hoy <= reserva.fecha_fin:
+            flash('Solo puedes calificar una vez finalizada la estadía.', 'warning')
+            return redirect(url_for('main.ver_reservas'))
+        if dias_diferencia > 30:
+            flash('Solo puedes calificar hasta 30 días después de la estadía.', 'warning')
+            return redirect(url_for('main.ver_reservas'))
+        estrellas_vista = int(form.get('estrellas_vista'))
+        estrellas_ubicacion = int(form.get('estrellas_ubicacion'))
+        estrellas_limpieza = int(form.get('estrellas_limpieza'))
+        descripcion = form.get('descripcion')
+        calificacion = Calificacion(
+            reserva_id=reserva.id,
+            cliente_id=cliente.id,
+            propiedad_id=reserva.propiedad.id,
+            estrellas_vista=estrellas_vista,
+            estrellas_ubicacion=estrellas_ubicacion,
+            estrellas_limpieza=estrellas_limpieza,
+            descripcion=descripcion
+        )
+        db.session.add(calificacion)
+        db.session.commit()
+        flash('Calificación realizada correctamente!', 'success')
+        return redirect(url_for('main.ver_reservas'))

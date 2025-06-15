@@ -1,5 +1,6 @@
 from database import db  
 from .favoritos import favoritos
+from .calificacion import Calificacion
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'
@@ -38,6 +39,7 @@ class Cliente(Usuario):
     fecha_nacimiento = db.Column(db.Date, nullable=True)
     direccion = db.Column(db.String(200), nullable=True)
     reservas = db.relationship("Reserva", back_populates="cliente", cascade="all, delete-orphan")
+    calificaciones = db.relationship('Calificacion', back_populates='cliente', cascade='all, delete-orphan')
 
     favoritos = db.relationship('Propiedad', secondary=favoritos, backref='clientes_favoritos')
     __mapper_args__ = {

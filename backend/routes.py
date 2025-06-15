@@ -7,6 +7,9 @@ from architectural_patterns.controller.empleado_controller import EmpleadoContro
 from architectural_patterns.controller.propiedad_controller import PropiedadController
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
+from datetime import datetime, date
+from models.calificacion import Calificacion
+
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -210,3 +213,13 @@ def cambiar_contrasena():
 def ver_reservas():
     user_controller = UserController()
     return user_controller.ver_reservas(session)
+
+# Ruta para calificar propiedad
+@main.route('/calificar/<int:reserva_id>', methods=['GET', 'POST'])
+@login_required
+def calificar_propiedad(reserva_id):
+    user_controller = UserController()
+    if request.method == 'POST':
+        return user_controller.procesar_calificacion(session, reserva_id, request.form)
+    else:
+        return user_controller.mostrar_formulario_calificacion(session, reserva_id)
