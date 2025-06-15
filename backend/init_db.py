@@ -11,6 +11,10 @@ from datetime import datetime, date
 
 
 def init_db():
+    # Limpiar reservas existentes
+    Reserva.query.delete()
+    db.session.commit()
+    
     # Roles
     rol_superusuario = Rol.query.filter_by(nombre='superusuario').first()
     if not rol_superusuario:
@@ -287,7 +291,16 @@ def init_db():
     if not reserva1:
         reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3)
         db.session.add(reserva1)
-        
+    
+    # Segunda reserva para pruebas de calificación
+    fecha_inicio2 = '2025-6-01'
+    fecha_fin2 = '2025-6-04'
+    fecha_inicio_convertida2 = datetime.strptime(fecha_inicio2, '%Y-%m-%d')
+    fecha_fin_convertida2 = datetime.strptime(fecha_fin2, '%Y-%m-%d')
+    reserva2 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2).first()
+    if not reserva2:
+        reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2)
+        db.session.add(reserva2)
     
     db.session.commit()
 

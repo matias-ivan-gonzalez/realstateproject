@@ -17,6 +17,7 @@
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -27,6 +28,16 @@
                                     <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
                                     <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
                                     <td>{{ reserva.cantidad_personas }}</td>
+                                    <td>
+                                        {% set hoy = namespace(value=cycler['now']) %}
+                                        {% set fecha_fin = reserva.fecha_fin %}
+                                        {% set dias_diferencia = (fecha_fin - fecha_fin).days %} {# dummy, se reemplazará en backend #}
+                                        {% if reserva.calificacion is none and reserva.fecha_fin < current_date and (current_date - reserva.fecha_fin).days <= 30 %}
+                                            <a href="{{ url_for('main.calificar_propiedad', reserva_id=reserva.id) }}" class="btn btn-warning btn-sm">Calificar Propiedad</a>
+                                        {% elif reserva.calificacion is not none %}
+                                            <span class="badge bg-success">Calificada</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
