@@ -93,6 +93,10 @@ class SearchService:
             propiedades_finales.sort(key=lambda p: p.precio)
         elif data.get('orden_precio') == 'desc':
             propiedades_finales.sort(key=lambda p: p.precio, reverse=True)
+        elif data.get('orden_precio') == 'calif_asc':
+            propiedades_finales.sort(key=lambda p: (p.promedio_calificacion() if p.promedio_calificacion() is not None else -1))
+        elif data.get('orden_precio') == 'calif_desc':
+            propiedades_finales.sort(key=lambda p: (p.promedio_calificacion() if p.promedio_calificacion() is not None else -1), reverse=True)
 
     # Paginación
         pagina = int(data.get('pagina', 1))

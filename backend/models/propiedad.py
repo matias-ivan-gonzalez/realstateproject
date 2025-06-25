@@ -57,5 +57,19 @@ class Propiedad(db.Model):
             'direccion': self.direccion,
             'reembolsable': self.reembolsable,
             'eliminado': self.eliminado,
-            'imagenes': [img.to_dict() for img in self.imagenes]
+            'imagenes': [img.to_dict() for img in self.imagenes],
+            'promedio_calificacion': self.promedio_calificacion()
         }
+    
+    def promedio_calificacion(self):
+        if not self.calificaciones:
+            return None
+        total = 0
+        for c in self.calificaciones:
+            try:
+                total += c.promedio_estrellas() 
+            except Exception:
+                return None
+        return round(total / len(self.calificaciones), 2)
+
+    
