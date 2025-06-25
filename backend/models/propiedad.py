@@ -33,6 +33,7 @@ class Propiedad(db.Model):
 
     reservas = db.relationship('Reserva', back_populates='propiedad', cascade='all, delete-orphan')
     ocupaciones = db.relationship('Ocupacion', back_populates='propiedad', cascade='all, delete-orphan')
+    calificaciones = db.relationship('Calificacion', back_populates='propiedad', cascade='all, delete-orphan')
     # clientes_favoritos: relación inversa de favoritos, definida en Cliente con backref
 
     def __repr__(self):
