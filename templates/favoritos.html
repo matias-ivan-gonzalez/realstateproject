@@ -3,6 +3,7 @@
 {% block title %}Mis Favoritos - Alquilando{% endblock %}
 
 {% block hero_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-10">
@@ -24,7 +25,9 @@
                                         {% if imagenes and imagenes|length > 0 %}
                                             <img src="{{ imagenes[0] }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Imagen de {{ propiedad.nombre }}">
                                         {% else %}
-                                            <img src="{{ url_for('static', filename='img/no-image.jpg') }}" class="card-img-top" style="height:100%; width:100%; object-fit:cover; object-position:center;" alt="Sin imagen">
+                                            <div class="d-flex justify-content-center align-items-center bg-light rounded w-100 h-100" style="height:150px; width:100%;">
+                                                <span class="bi bi-house-door" style="font-size:3rem; color:#bbb;"></span>
+                                            </div>
                                         {% endif %}
                                     </div>
                                 </a>

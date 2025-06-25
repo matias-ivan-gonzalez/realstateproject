@@ -11,6 +11,10 @@ from datetime import datetime, date
 
 
 def init_db():
+    # Limpiar reservas existentes
+    Reserva.query.delete()
+    db.session.commit()
+    
     # Roles
     rol_superusuario = Rol.query.filter_by(nombre='superusuario').first()
     if not rol_superusuario:
@@ -176,6 +180,10 @@ def init_db():
     if not encargado2:
         encargado2 = Encargado(nombre='Marcos', apellido='Silva', dni='35123456', email='marcos.silva@encargado.com', contrasena='encargMS4', telefono='1178901234', nacionalidad='Argentina', rol=rol_encargado)
         db.session.add(encargado2)
+    encargado3 = Encargado.query.filter_by(email='carla.gomez@encargado.com').first()
+    if not encargado3:
+        encargado3 = Encargado(nombre='Carla', apellido='Gómez', dni='36123457', email='carla.gomez@encargado.com', contrasena='encargCG5', telefono='1189012345', nacionalidad='Argentina', rol=rol_encargado)
+        db.session.add(encargado3)
     db.session.commit()
 
     # Propiedades
@@ -283,7 +291,26 @@ def init_db():
     if not reserva1:
         reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3)
         db.session.add(reserva1)
-        
+    
+    # Segunda reserva para pruebas de calificación
+    fecha_inicio2 = '2025-6-01'
+    fecha_fin2 = '2025-6-04'
+    fecha_inicio_convertida2 = datetime.strptime(fecha_inicio2, '%Y-%m-%d')
+    fecha_fin_convertida2 = datetime.strptime(fecha_fin2, '%Y-%m-%d')
+    reserva2 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2).first()
+    if not reserva2:
+        reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2)
+        db.session.add(reserva2)
+    
+    # Tercera reserva en el pasado para probar 'No calificada'
+    fecha_inicio3 = '2024-05-01'
+    fecha_fin3 = '2024-05-05'
+    fecha_inicio_convertida3 = datetime.strptime(fecha_inicio3, '%Y-%m-%d')
+    fecha_fin_convertida3 = datetime.strptime(fecha_fin3, '%Y-%m-%d')
+    reserva3 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3).first()
+    if not reserva3:
+        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2)
+        db.session.add(reserva3)
     
     db.session.commit()
 

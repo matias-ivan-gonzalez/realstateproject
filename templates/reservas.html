@@ -1,0 +1,64 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Mis Reservas - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h2 class="mb-4 text-center">Mi Historial de Reservas</h2>
+            <div class="row g-3">
+                {% if reservas and reservas|length > 0 %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Propiedad</th>
+                                <th>Dirección</th>
+                                <th>Fecha Inicio</th>
+                                <th>Fecha Fin</th>
+                                <th>Cantidad de Personas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reserva in reservas %}
+                                <tr>
+                                    <td>{{ reserva.propiedad.nombre }}</td>
+                                    <td>{{ reserva.propiedad.direccion }}</td>
+                                    <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ reserva.cantidad_personas }}</td>
+                                    <td>
+                                        {% set hoy = namespace(value=cycler['now']) %}
+                                        {% set fecha_fin = reserva.fecha_fin %}
+                                        {% set dias_diferencia = (fecha_fin - fecha_fin).days %} {# dummy, se reemplazará en backend #}
+                                        {% if reserva.calificacion is none and reserva.fecha_fin < current_date and (current_date - reserva.fecha_fin).days <= 30 %}
+                                            <a href="{{ url_for('main.calificar_propiedad', reserva_id=reserva.id) }}" class="btn btn-warning btn-sm">Calificar Propiedad</a>
+                                        {% elif reserva.calificacion is not none %}
+                                            <span class="badge bg-success">Calificada</span>
+                                            {% if (current_date - reserva.fecha_fin).days <= 30 %}
+                                                <a href="{{ url_for('main.editar_calificacion', calificacion_id=reserva.calificacion.id) }}" class="btn btn-primary btn-sm ms-2">Editar calificación</a>
+                                                <form method="POST" action="{{ url_for('main.borrar_calificacion', calificacion_id=reserva.calificacion.id) }}" style="display:inline;">
+                                                    <button type="button" class="btn btn-danger btn-sm ms-2" onclick="mostrarConfirmacion(this, '¿Estás seguro de que deseas borrar la calificación?')">Borrar calificación</button>
+                                                </form>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if reserva.calificacion is none and reserva.fecha_fin < current_date and (current_date - reserva.fecha_fin).days > 30 %}
+                                            <span class="badge bg-danger">No calificada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info text-center">No tienes reservas realizadas.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Script de Bootstrap solo para esta vista -->
+<script src="/static/js/bootstrap.bundle.min.js"></script>
