@@ -266,9 +266,11 @@
                                     </div>
                                     <div class="mb-1 d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center w-100 justify-content-center position-relative">
+                                            {% if total_paginas_calif > 1 %}
                                             <a href="?{% for key, value in request.args.items() if key != 'pagina_calif' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina_calif={{ pagina_calif-1 if pagina_calif > 1 else total_paginas_calif }}#calificaciones" class="btn btn-link p-0 calif-arrow calif-arrow-izq" id="calif-prev" title="Anterior">
                                                 <i class="fa-solid fa-chevron-left"></i>
                                             </a>
+                                            {% endif %}
                                             <span class="text-secondary mx-2">Limpieza:</span>
                                             {% set val = calificacion.estrellas_limpieza %}
                                             <span title="{{ val }} de 5" class="d-inline-block" id="calif-stars">
@@ -279,9 +281,11 @@
                                                 {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
                                                 {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
                                             </span>
+                                            {% if total_paginas_calif > 1 %}
                                             <a href="?{% for key, value in request.args.items() if key != 'pagina_calif' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina_calif={{ pagina_calif+1 if pagina_calif < total_paginas_calif else 1 }}#calificaciones" class="btn btn-link p-0 calif-arrow calif-arrow-der" id="calif-next" title="Siguiente">
                                                 <i class="fa-solid fa-chevron-right"></i>
                                             </a>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="mb-1">
