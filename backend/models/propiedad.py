@@ -58,5 +58,53 @@ class Propiedad(db.Model):
             'direccion': self.direccion,
             'reembolsable': self.reembolsable,
             'eliminado': self.eliminado,
-            'imagenes': [img.to_dict() for img in self.imagenes]
+            'imagenes': [img.to_dict() for img in self.imagenes],
+            'promedio_calificacion': self.promedio_calificacion()
         }
+    
+    def promedio_calificacion(self):
+        if not self.calificaciones:
+            return None
+        total = 0
+        for c in self.calificaciones:
+            try:
+                total += c.promedio_estrellas() 
+            except Exception:
+                return None
+        return round(total / len(self.calificaciones), 2)
+
+    def promedio_limpieza(self):
+        if not self.calificaciones:
+            return None
+        total = 0
+        count = 0
+        for c in self.calificaciones:
+            if c.estrellas_limpieza is not None:
+                total += c.estrellas_limpieza
+                count += 1
+        return round(total / count, 2) if count > 0 else None
+
+    def promedio_ubicacion(self):
+        if not self.calificaciones:
+            return None
+        total = 0
+        count = 0
+        for c in self.calificaciones:
+            if c.estrellas_ubicacion is not None:
+                total += c.estrellas_ubicacion
+                count += 1
+        return round(total / count, 2) if count > 0 else None
+
+    def promedio_vista(self):
+        if not self.calificaciones:
+            return None
+        total = 0
+        count = 0
+        for c in self.calificaciones:
+            if c.estrellas_vista is not None:
+                total += c.estrellas_vista
+                count += 1
+        return round(total / count, 2) if count > 0 else None
+
+
+

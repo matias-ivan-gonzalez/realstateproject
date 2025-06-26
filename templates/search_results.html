@@ -102,10 +102,12 @@
             </div>
             <div class="col-md-2 d-flex align-items-center mt-2">
                 <label for="orden_precio" class="form-label mb-0 me-2">Ordenar <span style="font-size:1.2em;"></span></label>
-                <select class="form-select" id="orden_precio" name="orden_precio" style="min-width: 220px;">
+                <select class="form-select" id="orden_precio" name="orden_precio" style="min-width: 320px; width: 100%; max-width: 400px;">
                     <option value="" {% if not orden_precio %}selected{% endif %}>---</option>
                     <option value="asc" {% if orden_precio == 'asc' %}selected{% endif %}>Precio - Menor a Mayor</option>
                     <option value="desc" {% if orden_precio == 'desc' %}selected{% endif %}>Precio - Mayor a Menor</option>
+                    <option value="calif_asc" {% if orden_precio == 'calif_asc' %}selected{% endif %}>Calificación - Menor a Mayor</option>
+                    <option value="calif_desc" {% if orden_precio == 'calif_desc' %}selected{% endif %}>Calificación - Mayor a Menor</option>
                 </select>
             </div>
         </div>
@@ -131,6 +133,25 @@
                                 {% if propiedad.pet_friendly %}<i class="fa-solid fa-cat" title="Apto mascotas"></i> {% endif %}
                                 {% if propiedad.patio_trasero %}<i class="bi bi-tree" title="Patio trasero"></i> {% endif %}
                             </div>
+                            <p class="card-text mb-1">
+                                {% set promedio = propiedad.promedio_calificacion %}
+                                {% if promedio is not none %}
+                                    <span title="{{ promedio|round(2) }} de 5">
+                                        {% set full_stars = promedio|int %}
+                                        {% set half_star = 1 if promedio - full_stars >= 0.25 and promedio - full_stars < 0.75 else 0 %}
+                                        {% set empty_stars = 5 - full_stars - half_star %}
+                                        {% for _ in range(full_stars) %}
+                                            <i class="fa-solid fa-star" style="color: #222;"></i>
+                                        {% endfor %}
+                                        {% if half_star %}
+                                            <i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>
+                                        {% endif %}
+                                        {% for _ in range(empty_stars) %}
+                                            <i class="fa-regular fa-star" style="color: #222;"></i>
+                                        {% endfor %}
+                                    </span>
+                                {% endif %}
+                            </p>
                             {% set imagenes = [] %}
                             {% for imagen in propiedad.imagenes %}
                                 {% set archivos = get_archivos_carpeta(imagen.carpeta) %}
