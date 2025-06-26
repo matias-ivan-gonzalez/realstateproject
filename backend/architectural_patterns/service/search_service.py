@@ -1,5 +1,6 @@
 from architectural_patterns.repository.propiedad_repository import PropiedadRepository
 from architectural_patterns.repository.reserva_repository import ReservaRepository
+from architectural_patterns.repository.ocupacion_repository import OcupacionRepository
 from datetime import datetime
 
 
@@ -29,8 +30,11 @@ class SearchService:
                     cantidad_noches = 1
 
                 repo_res = ReservaRepository()
-                propiedades_ocupadas_ids = repo_res.get_propiedades_reservadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
-                propiedades_disponibles = [p for p in propiedades_disponibles if p.id not in propiedades_ocupadas_ids]
+                repo_ocup = OcupacionRepository()
+                propiedades_reservadas_ids = repo_res.get_propiedades_reservadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
+                propiedades_ocupadas_ids = repo_ocup.get_propiedades_ocupadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
+                propiedades_no_disponibles = set(propiedades_reservadas_ids) | set(propiedades_ocupadas_ids)
+                propiedades_disponibles = [p for p in propiedades_disponibles if p.id not in propiedades_no_disponibles]
             except Exception:
                 cantidad_noches = None
 
@@ -93,6 +97,10 @@ class SearchService:
             propiedades_finales.sort(key=lambda p: p.precio)
         elif data.get('orden_precio') == 'desc':
             propiedades_finales.sort(key=lambda p: p.precio, reverse=True)
+        elif data.get('orden_precio') == 'calif_asc':
+            propiedades_finales.sort(key=lambda p: (p.promedio_calificacion() if p.promedio_calificacion() is not None else -1))
+        elif data.get('orden_precio') == 'calif_desc':
+            propiedades_finales.sort(key=lambda p: (p.promedio_calificacion() if p.promedio_calificacion() is not None else -1), reverse=True)
 
     # Paginación
         pagina = int(data.get('pagina', 1))

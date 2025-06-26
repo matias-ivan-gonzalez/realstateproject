@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='customCss/styles.css') }}">
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <div class="container mt-4 fade-in">
     <div class="detalle-grid">
@@ -106,6 +108,52 @@
                     <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
                     <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
                     <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
+                    <hr>
+                    <div>
+                        <strong>Promedio de calificaciones:</strong>
+                        <div class="mb-1 mt-2">
+                            <span>Limpieza:</span>
+                            {% set promedio_limpieza = propiedad.promedio_limpieza() %}
+                            {% if promedio_limpieza is not none %}
+                                <span title="{{ promedio_limpieza|round(2) }} de 5">
+                                    {% set full_stars = promedio_limpieza|int %}
+                                    {% set half_star = 1 if promedio_limpieza - full_stars >= 0.25 and promedio_limpieza - full_stars < 0.75 else 0 %}
+                                    {% set empty_stars = 5 - full_stars - half_star %}
+                                    {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                    {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                    {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                </span>
+                            {% else %}<span class="text-muted">Sin calificación</span>{% endif %}
+                        </div>
+                        <div class="mb-1">
+                            <span>Vista:</span>
+                            {% set promedio_vista = propiedad.promedio_vista() %}
+                            {% if promedio_vista is not none %}
+                                <span title="{{ promedio_vista|round(2) }} de 5">
+                                    {% set full_stars = promedio_vista|int %}
+                                    {% set half_star = 1 if promedio_vista - full_stars >= 0.25 and promedio_vista - full_stars < 0.75 else 0 %}
+                                    {% set empty_stars = 5 - full_stars - half_star %}
+                                    {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                    {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                    {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                </span>
+                            {% else %}<span class="text-muted">Sin calificación</span>{% endif %}
+                        </div>
+                        <div class="mb-1">
+                            <span>Ubicación:</span>
+                            {% set promedio_ubicacion = propiedad.promedio_ubicacion() %}
+                            {% if promedio_ubicacion is not none %}
+                                <span title="{{ promedio_ubicacion|round(2) }} de 5">
+                                    {% set full_stars = promedio_ubicacion|int %}
+                                    {% set half_star = 1 if promedio_ubicacion - full_stars >= 0.25 and promedio_ubicacion - full_stars < 0.75 else 0 %}
+                                    {% set empty_stars = 5 - full_stars - half_star %}
+                                    {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                    {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                    {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                </span>
+                            {% else %}<span class="text-muted">Sin calificación</span>{% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,8 +191,8 @@
             </div>
         </div>
         <!-- Características y Descripción -->
-        <div class="caracteristicas-descripcion-row">
-            <div class="caracteristicas">
+        <div class="caracteristicas-descripcion-row row g-3 mt-3">
+            <div class="caracteristicas col-12 col-md-4 col-lg-3">
                 <div class="card shadow h-100" style="width: fit-content;">
                     <div class="card-header text-center">CARACTERISTICAS</div>
                     <div class="card-body p-2">
@@ -183,7 +231,7 @@
                     </div>
                 </div>
             </div>
-            <div class="descripcion">
+            <div class="descripcion col-12 col-md-8 col-lg-5">
                 <div class="card shadow h-100" style="height: 100%;">
                     <div class="card-header text-center">DESCRIPCION</div>
                     <div class="card-body">
@@ -191,16 +239,142 @@
                     </div>
                 </div>
             </div>
+            <div class="calificaciones col-12 col-lg-4 mt-3 mt-lg-0">
+                {% set calificaciones = propiedad.calificaciones or [] %}
+                {% set pagina_calif = request.args.get('pagina_calif', 1) | int %}
+                {% set por_pagina = 1 %}
+                {% set total_calif = calificaciones|length %}
+                {% set total_paginas_calif = (total_calif // por_pagina) + (1 if total_calif % por_pagina > 0 else 0) %}
+                {% set inicio = (pagina_calif - 1) * por_pagina %}
+                {% set fin = inicio + por_pagina %}
+                {% set calificaciones_pagina = calificaciones[inicio:fin] %}
+                <div class="card shadow h-100">
+                    <div class="card-header text-center">
+                        CALIFICACIONES
+                        {% if total_paginas_calif > 0 %}
+                            <span class="text-secondary" style="font-size:0.98em;">({{ pagina_calif }} / {{ total_paginas_calif }})</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                {% if calificaciones_pagina and calificaciones_pagina|length > 0 %}
+                    <div class="row" id="calificacion-auto-slide">
+                        {% for calificacion in calificaciones_pagina %}
+                            <div class="col-12 mb-4 d-flex">
+                                <div class="w-100 border-bottom pb-2">
+                                    <div class="fw-bold mb-1">
+                                        <i class="fa-solid fa-user me-1" style="color: #222;"></i>
+                                        {{ calificacion.cliente.nombre }} {{ calificacion.cliente.apellido }}
+                                        <span class="text-muted" style="font-size:0.95em;">({{ calificacion.fecha_calificacion.strftime('%d/%m/%Y') if calificacion.fecha_calificacion else '' }})</span>
+                                    </div>
+                                    <div class="mb-1 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center w-100 justify-content-center position-relative">
+                                            {% if total_paginas_calif > 1 %}
+                                            <a href="?{% for key, value in request.args.items() if key != 'pagina_calif' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina_calif={{ pagina_calif-1 if pagina_calif > 1 else total_paginas_calif }}#calificaciones" class="btn btn-link p-0 calif-arrow calif-arrow-izq" id="calif-prev" title="Anterior">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </a>
+                                            {% endif %}
+                                            <span class="text-secondary mx-2">Limpieza:</span>
+                                            {% set val = calificacion.estrellas_limpieza %}
+                                            <span title="{{ val }} de 5" class="d-inline-block" id="calif-stars">
+                                                {% set full_stars = val|int %}
+                                                {% set half_star = 1 if val - full_stars >= 0.25 and val - full_stars < 0.75 else 0 %}
+                                                {% set empty_stars = 5 - full_stars - half_star %}
+                                                {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                                {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                                {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                            </span>
+                                            {% if total_paginas_calif > 1 %}
+                                            <a href="?{% for key, value in request.args.items() if key != 'pagina_calif' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina_calif={{ pagina_calif+1 if pagina_calif < total_paginas_calif else 1 }}#calificaciones" class="btn btn-link p-0 calif-arrow calif-arrow-der" id="calif-next" title="Siguiente">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="mb-1">
+                                        <span class="text-secondary">Vista:</span>
+                                        {% set val = calificacion.estrellas_vista %}
+                                        <span title="{{ val }} de 5">
+                                            {% set full_stars = val|int %}
+                                            {% set half_star = 1 if val - full_stars >= 0.25 and val - full_stars < 0.75 else 0 %}
+                                            {% set empty_stars = 5 - full_stars - half_star %}
+                                            {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                            {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                            {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                        </span>
+                                    </div>
+                                    <div class="mb-1">
+                                        <span class="text-secondary">Ubicación:</span>
+                                        {% set val = calificacion.estrellas_ubicacion %}
+                                        <span title="{{ val }} de 5">
+                                            {% set full_stars = val|int %}
+                                            {% set half_star = 1 if val - full_stars >= 0.25 and val - full_stars < 0.75 else 0 %}
+                                            {% set empty_stars = 5 - full_stars - half_star %}
+                                            {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                            {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                            {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                        </span>
+                                    </div>
+                                    {% if calificacion.descripcion %}
+                                    <div class="mt-2"><span class="text-secondary">Comentario:</span> {{ calificacion.descripcion }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center">Esta propiedad aún no tiene calificaciones.</div>
+                {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="text-center mb-2">
-        {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
-            <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
-        {% endif %}
-        {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
-            <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
-        {% endif %}
-    </div>
+    {% if session.rol in ['administrador', 'superusuario'] or (session.rol == 'encargado' and propiedad.encargado_id == session.user_id) %}
+        <div class="mt-4">
+            <div class="card shadow">
+                <div class="card-header">Ocupar propiedad</div>
+                <div class="card-body">
+                    {% if session.rol == 'encargado' and propiedad.encargado_id == session.user_id and dias_ocupados_encargado is not none %}
+                        <div class="alert alert-info text-center my-3" style="font-size:1.1rem;">
+                            <strong>Días ocupados este año:</strong> {{ dias_ocupados_encargado }} / 15
+                        </div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('main.ocupar_propiedad', propiedad_id=propiedad.id) }}">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="fecha_fin" class="form-label">Fecha de fin</label>
+                                <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100" id="btn-ocupar-admin" disabled>Ocupar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mb-2 mt-3">
+            {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+            {% endif %}
+            {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+                <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center mb-2">
+            {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+            {% endif %}
+            {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+                <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 <script>
 function initMapDetalle() {
@@ -296,6 +470,116 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         btnAgregar.disabled = !inputImagenes.files || inputImagenes.files.length === 0;
     }
+
+    // Efecto visual al cambiar calificación
+    const califArrows = document.querySelectorAll('.calif-arrow');
+    califArrows.forEach(function(arrow) {
+        arrow.addEventListener('click', function(e) {
+            const stars = document.getElementById('calif-stars');
+            if (stars) {
+                stars.classList.add('calif-fade');
+            }
+        });
+    });
+
+    // --- Deshabilitar fechas ocupadas/reservadas en los inputs de fecha ---
+    var fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
+    var fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
+    var fechasBloqueadas = [];
+    function getFechasEnRango(inicio, fin) {
+        var fechas = [];
+        var current = new Date(inicio);
+        var end = new Date(fin);
+        while (current <= end) {
+            fechas.push(current.toISOString().slice(0,10));
+            current.setDate(current.getDate() + 1);
+        }
+        return fechas;
+    }
+    fechasOcupadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    fechasReservadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    var fechasUnicas = Array.from(new Set(fechasBloqueadas));
+    function disableDates(input) {
+        input.addEventListener('input', function() {
+            if (fechasUnicas.includes(this.value)) {
+                this.setCustomValidity('Esta fecha está ocupada o reservada.');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && fechasUnicas.includes(this.value)) {
+                e.preventDefault();
+            }
+        });
+    }
+    var inputInicio = document.getElementById('fecha_inicio');
+    var inputFin = document.getElementById('fecha_fin');
+    if (inputInicio && inputFin) {
+        disableDates(inputInicio);
+        disableDates(inputFin);
+        inputInicio.addEventListener('focus', function() {
+            this.setAttribute('min', new Date().toISOString().slice(0,10));
+        });
+        inputFin.addEventListener('focus', function() {
+            this.setAttribute('min', new Date().toISOString().slice(0,10));
+        });
+    }
+
+    // Limitar fechas a partir de hoy
+    var inputInicio = document.getElementById('fecha_inicio');
+    var inputFin = document.getElementById('fecha_fin');
+    if (inputInicio && inputFin) {
+        var today = new Date();
+        var minDate = today.toISOString().split('T')[0];
+        inputInicio.min = minDate;
+        inputFin.min = minDate;
+    }
+    // Bloquear fechas ocupadas/reservadas
+    var fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
+    var fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
+    var fechasBloqueadas = [];
+    function getFechasEnRango(inicio, fin) {
+        var fechas = [];
+        var current = new Date(inicio);
+        var end = new Date(fin);
+        while (current <= end) {
+            fechas.push(current.toISOString().slice(0,10));
+            current.setDate(current.getDate() + 1);
+        }
+        return fechas;
+    }
+    fechasOcupadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    fechasReservadas.forEach(function(r) {
+        getFechasEnRango(r.inicio, r.fin).forEach(function(f) { fechasBloqueadas.push(f); });
+    });
+    var fechasUnicas = Array.from(new Set(fechasBloqueadas));
+    function disableBlockedDates(input) {
+        input.addEventListener('input', function() {
+            if (fechasUnicas.includes(this.value)) {
+                this.value = '';
+                this.setCustomValidity('Esta fecha está ocupada o reservada.');
+                this.reportValidity();
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        input.addEventListener('blur', function() {
+            if (fechasUnicas.includes(this.value)) {
+                this.value = '';
+            }
+        });
+    }
+    if (inputInicio && inputFin) {
+        disableBlockedDates(inputInicio);
+        disableBlockedDates(inputFin);
+    }
 });
 
 function confirmarQuitarFavorito(e, btn) {
@@ -306,4 +590,38 @@ function confirmarQuitarFavorito(e, btn) {
     return true;
 }
 </script>
-{% endblock %} 
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    window.fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
+    window.fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
+</script>
+<script src="{{ url_for('static', filename='js/detalle_propiedad_flatpickr.js') }}"></script>
+<style>
+.calif-fade {
+    animation: califFadeOutIn 0.5s;
+}
+@keyframes califFadeOutIn {
+    0% { opacity: 1; }
+    40% { opacity: 0; transform: translateX(20px); }
+    60% { opacity: 0; transform: translateX(-20px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+.calif-arrow-izq {
+    position: absolute;
+    left: -38px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.calif-arrow-der {
+    position: absolute;
+    right: -38px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+@media (max-width: 600px) {
+    .calif-arrow-izq { left: -18px; }
+    .calif-arrow-der { right: -18px; }
+}
+</style>
+{% endblock %}

@@ -4,6 +4,7 @@ from models.permiso import Permiso
 from models.user import Cliente, Administrador, Encargado, SuperUsuario
 from models.propiedad import Propiedad
 from models.imagen import Imagen
+from models.calificacion import Calificacion
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
 from models.reserva import Reserva
@@ -311,7 +312,79 @@ def init_db():
     if not reserva3:
         reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2)
         db.session.add(reserva3)
+        
+        
+    fecha_inicio4 = '2025-7-01'
+    fecha_fin4 = '2025-7-05'
+    fecha_inicio_convertida4 = datetime.strptime(fecha_inicio4, '%Y-%m-%d')
+    fecha_fin_convertida4 = datetime.strptime(fecha_fin4, '%Y-%m-%d')
+    reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop2.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
+    if not reserva4:
+        reserva4 = Reserva(cliente=cliente, propiedad=prop2, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2)
+        db.session.add(reserva4)
     
+    db.session.commit()
+    
+    
+    # Calificaciones
+    
+    estrella_vista = 5
+    estrella_ubicacion = 5
+    estrella_limpieza = 5
+    descripcion_calificacion = 'Excelente experiencia, la casa es hermosa y muy cómoda.'
+    calificacion1 = Calificacion.query.filter_by(reserva_id = reserva1.id).first()  
+    if not calificacion1:
+        calificacion1 = Calificacion(
+            reserva=reserva1, cliente=cliente, propiedad=prop1,
+            estrellas_vista=estrella_vista, estrellas_ubicacion=estrella_ubicacion,
+            estrellas_limpieza=estrella_limpieza, descripcion=descripcion_calificacion
+        )
+        db.session.add(calificacion1)
+        
+    estrella_vista2 = 4
+    estrella_ubicacion2 = 4
+    estrella_limpieza2 = 4
+    descripcion_calificacion2 = 'Muy buena estadía, la ubicación es excelente pero podría mejorar la limpieza.'
+    calificacion2 = Calificacion.query.filter_by(reserva_id = reserva2.id).first()
+    if not calificacion2:
+        calificacion2 = Calificacion(
+            reserva=reserva2, cliente=cliente, propiedad=prop1,
+            estrellas_vista=estrella_vista2, estrellas_ubicacion=estrella_ubicacion2,
+            estrellas_limpieza=estrella_limpieza2, descripcion=descripcion_calificacion2
+        )
+        db.session.add(calificacion2)
+        
+        
+    estrella_vista3 = 3
+    estrella_ubicacion3 = 3
+    estrella_limpieza3 = 1
+    descripcion_calificacion3 = 'La casa es bonita pero la limpieza fue deficiente y había problemas con el wifi.'
+    calificacion3 = Calificacion.query.filter_by(reserva_id = reserva3.id).first()
+    if not calificacion3:
+        calificacion3 = Calificacion(
+            reserva=reserva3, cliente=cliente, propiedad=prop1,
+            estrellas_vista=estrella_vista3, estrellas_ubicacion=estrella_ubicacion3,
+            estrellas_limpieza=estrella_limpieza3, descripcion=descripcion_calificacion3
+        )
+        db.session.add(calificacion3)
+        
+    estrella_vista4 = 1
+    estrella_ubicacion4 = 1
+    estrella_limpieza4 = 1
+    descripcion_calificacion4 = 'Muy mala experiencia, la casa estaba sucia y no funcionaba el aire acondicionado.'
+    calificacion4 = Calificacion.query.filter_by(reserva_id = reserva4.id).first()
+    if not calificacion4:
+        calificacion4 = Calificacion(
+            reserva=reserva4, cliente=cliente, propiedad=prop2,
+            estrellas_vista=estrella_vista4, estrellas_ubicacion=estrella_ubicacion4,
+            estrellas_limpieza=estrella_limpieza4, descripcion=descripcion_calificacion4
+        )
+        db.session.add(calificacion4)
+        
+        
+    
+        
+        
     db.session.commit()
 
     # Favoritos
