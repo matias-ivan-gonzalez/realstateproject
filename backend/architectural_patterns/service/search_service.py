@@ -1,5 +1,6 @@
 from architectural_patterns.repository.propiedad_repository import PropiedadRepository
 from architectural_patterns.repository.reserva_repository import ReservaRepository
+from architectural_patterns.repository.ocupacion_repository import OcupacionRepository
 from datetime import datetime
 
 
@@ -29,8 +30,11 @@ class SearchService:
                     cantidad_noches = 1
 
                 repo_res = ReservaRepository()
-                propiedades_ocupadas_ids = repo_res.get_propiedades_reservadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
-                propiedades_disponibles = [p for p in propiedades_disponibles if p.id not in propiedades_ocupadas_ids]
+                repo_ocup = OcupacionRepository()
+                propiedades_reservadas_ids = repo_res.get_propiedades_reservadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
+                propiedades_ocupadas_ids = repo_ocup.get_propiedades_ocupadas_entre_fechas(fecha_inicio_dt, fecha_fin_dt)
+                propiedades_no_disponibles = set(propiedades_reservadas_ids) | set(propiedades_ocupadas_ids)
+                propiedades_disponibles = [p for p in propiedades_disponibles if p.id not in propiedades_no_disponibles]
             except Exception:
                 cantidad_noches = None
 
