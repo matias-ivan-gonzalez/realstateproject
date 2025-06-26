@@ -16,7 +16,7 @@ class Reserva(db.Model):
     # Relaciones
     propiedad = db.relationship('Propiedad', back_populates='reservas')
     cliente = db.relationship('Cliente', back_populates='reservas')
-
+    calificacion = db.relationship('Calificacion', back_populates='reserva', uselist=False)
 
     def __repr__(self):
         return f"<Reserva {self.id} de {self.cliente.nombre} para {self.propiedad.direccion}>"

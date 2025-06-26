@@ -7,6 +7,9 @@ from architectural_patterns.controller.empleado_controller import EmpleadoContro
 from architectural_patterns.controller.propiedad_controller import PropiedadController
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
+from datetime import datetime, date
+from models.calificacion import Calificacion
+
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -204,3 +207,40 @@ def cambiar_contrasena():
     from architectural_patterns.controller.user_controller import UserController
     user_controller = UserController()
     return user_controller.cambiar_contrasena_perfil(request, session)
+
+@main.route('/ver-reservas')
+@login_required
+def ver_reservas():
+    user_controller = UserController()
+    return user_controller.ver_reservas(session)
+
+@main.route('/propiedad/ocupar/<int:propiedad_id>', methods=['POST'])
+@login_required
+def ocupar_propiedad(propiedad_id):
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.ocupar_propiedad(request, session, propiedad_id)
+
+# Ruta para calificar propiedad
+@main.route('/calificar/<int:reserva_id>', methods=['GET', 'POST'])
+@login_required
+def calificar_propiedad(reserva_id):
+    user_controller = UserController()
+    if request.method == 'POST':
+        return user_controller.procesar_calificacion(session, reserva_id, request.form)
+    else:
+        return user_controller.mostrar_formulario_calificacion(session, reserva_id)
+
+@main.route('/editar-calificacion/<int:calificacion_id>', methods=['GET', 'POST'])
+@login_required
+def editar_calificacion(calificacion_id):
+    user_controller = UserController()
+    if request.method == 'POST':
+        return user_controller.procesar_edicion_calificacion(session, calificacion_id, request.form)
+    else:
+        return user_controller.mostrar_formulario_editar_calificacion(session, calificacion_id)
+
+@main.route('/borrar-calificacion/<int:calificacion_id>', methods=['POST'])
+@login_required
+def borrar_calificacion(calificacion_id):
+    user_controller = UserController()
+    return user_controller.borrar_calificacion(session, calificacion_id)
