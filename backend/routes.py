@@ -244,3 +244,11 @@ def editar_calificacion(calificacion_id):
 def borrar_calificacion(calificacion_id):
     user_controller = UserController()
     return user_controller.borrar_calificacion(session, calificacion_id)
+
+@main.route('/propiedad/<int:propiedad_id>/reservas')
+@login_required
+def ver_reservas_propiedad(propiedad_id):
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    reservas = propiedad.reservas
+    return render_template('reservas_propiedad.html', reservas=reservas, propiedad=propiedad)
