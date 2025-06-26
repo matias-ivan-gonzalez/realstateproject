@@ -200,69 +200,8 @@
         {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
             <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
         {% endif %}
-        {% if session.rol == 'cliente' %}
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReservar">
-                Reservar
-            </button>
-        {% endif %}
     </div>
 </div>
-
-<!-- Modal de Reserva -->
-<div class="modal fade" id="modalReservar" tabindex="-1" aria-labelledby="modalReservarLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="POST" action="{{ url_for('main.reservar_propiedad', propiedad_id=propiedad.id) }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalReservarLabel">Reservar {{ propiedad.nombre }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-2">
-            <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
-          </div>
-          <div class="mb-2">
-            <label for="fecha_fin" class="form-label">Fecha de fin</label>
-            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
-          </div>
-          <div class="mb-2">
-            <label for="huespedes" class="form-label">Cantidad de huéspedes</label>
-            <input type="number" class="form-control" id="huespedes" name="huespedes" min="1" max="{{ propiedad.limite_personas }}" required>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Precio total</label>
-            <input type="text" class="form-control" value="${{ propiedad.precio }}" readonly>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Porcentaje a abonar ahora</label>
-            <input type="text" class="form-control" value="{{ propiedad.porcentaje_pago_reserva }}%" readonly>
-          </div>
-          <div class="mb-2">
-            <label for="tarjeta" class="form-label">Número de tarjeta (prueba)</label>
-            <input type="text" class="form-control" id="tarjeta" name="tarjeta" placeholder="4242 4242 4242 4242" required>
-            <div class="form-text">Usa una tarjeta de prueba (Stripe: 4242 4242 4242 4242)</div>
-          </div>
-          <div class="mb-2 d-flex gap-2">
-            <div>
-              <label for="exp" class="form-label">Vencimiento</label>
-              <input type="text" class="form-control" id="exp" name="exp" placeholder="MM/AA" required>
-            </div>
-            <div>
-              <label for="cvc" class="form-label">CVC</label>
-              <input type="text" class="form-control" id="cvc" name="cvc" placeholder="123" required>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Confirmar reserva</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
 <script>
 function initMapDetalle() {
     var coords = [Number('{{ propiedad.latitud if propiedad.latitud is not none else 0 }}'), Number('{{ propiedad.longitud if propiedad.longitud is not none else 0 }}')];

@@ -7,10 +7,6 @@ from architectural_patterns.controller.empleado_controller import EmpleadoContro
 from architectural_patterns.controller.propiedad_controller import PropiedadController
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
-from models.reserva import Reserva
-from models.user import Cliente
-from datetime import datetime
-from database import db
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -208,85 +204,3 @@ def cambiar_contrasena():
     from architectural_patterns.controller.user_controller import UserController
     user_controller = UserController()
     return user_controller.cambiar_contrasena_perfil(request, session)
-
-@main.route('/propiedad/<int:propiedad_id>/reservar', methods=['POST'])
-@login_required
-def reservar_propiedad(propiedad_id):
-    propiedad = Propiedad.query.get_or_404(propiedad_id)
-    cliente = Cliente.query.get(session['user_id'])
-    if not cliente:
-        flash('Usuario no válido.', 'danger')
-        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
-
-    # Obtener datos del formulario
-    fecha_inicio = request.form.get('fecha_inicio')
-    fecha_fin = request.form.get('fecha_fin')
-    cantidad_huespedes = int(request.form.get('huespedes', 1))
-    tarjeta = request.form.get('tarjeta')
-    exp = request.form.get('exp')
-    cvc = request.form.get('cvc')
-
-    # Validar fechas
-    try:
-        fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
-        if fecha_fin_dt <= fecha_inicio_dt:
-            flash('La fecha de fin debe ser posterior a la de inicio.', 'danger')
-            return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
-    except Exception:
-        flash('Fechas inválidas.', 'danger')
-        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
-
-    # Validar cantidad de huéspedes
-    if cantidad_huespedes < 1 or cantidad_huespedes > propiedad.limite_personas:
-        flash('Cantidad de huéspedes fuera de rango.', 'danger')
-        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
-
-    # Verificar disponibilidad (no debe haber reservas solapadas)
-    reservas_solapadas = Reserva.query.filter(
-        Reserva.propiedad_id == propiedad_id,
-        Reserva.fecha_fin > fecha_inicio_dt,
-        Reserva.fecha_inicio < fecha_fin_dt
-    ).all()
-    if reservas_solapadas:
-        flash('Reserva fallida por indisponibilidad de la propiedad', 'danger')
-        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
-
-    # Calcular monto y porcentaje
-    noches = (fecha_fin_dt - fecha_inicio_dt).days
-    if noches < 1:
-        noches = 1
-    monto_total = propiedad.precio * noches
-    porcentaje = propiedad.porcentaje_pago_reserva
-    monto_a_cobrar = monto_total * (porcentaje / 100)
-
-    # Mock de pago tipo Stripe test
-    pago_exitoso = True
-    mensaje_pago = ''
-    if porcentaje > 0:
-        # Simular validación de tarjeta de test
-        if tarjeta.replace(' ', '') == '4242424242424242' and len(cvc) == 3 and '/' in exp:
-            pago_exitoso = True
-            mensaje_pago = f'Reserva exitosa {porcentaje}% abonado'
-        else:
-            pago_exitoso = False
-            mensaje_pago = 'Error en el pago: tarjeta de prueba inválida'
-    else:
-        mensaje_pago = 'Reserva exitosa 0% abonado'
-
-    if not pago_exitoso:
-        flash(mensaje_pago, 'danger')
-        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
-
-    # Registrar reserva
-    reserva = Reserva(
-        cliente_id=cliente.id,
-        propiedad_id=propiedad.id,
-        fecha_inicio=fecha_inicio_dt,
-        fecha_fin=fecha_fin_dt,
-        cantidad_personas=cantidad_huespedes
-    )
-    db.session.add(reserva)
-    db.session.commit()
-    flash(mensaje_pago, 'success')
-    return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
