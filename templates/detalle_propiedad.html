@@ -329,6 +329,13 @@
             </div>
         </div>
     </div>
+    {% if session.rol in ['administrador', 'superusuario'] %}
+        <div class="text-end mb-3">
+            <a href="{{ url_for('main.estadisticas_propiedad', propiedad_id=propiedad.id) }}" class="btn btn-info">
+                <i class="fa-solid fa-chart-column me-1"></i> Ver estadísticas
+            </a>
+        </div>
+    {% endif %}
     {% if session.rol in ['administrador', 'superusuario'] or (session.rol == 'encargado' and propiedad.encargado_id == session.user_id) %}
         <div class="mt-4">
             <div class="card shadow">

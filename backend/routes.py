@@ -1,4 +1,3 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 from models.propiedad import Propiedad
 from sqlalchemy.sql.expression import func
@@ -7,12 +6,80 @@ from architectural_patterns.controller.empleado_controller import EmpleadoContro
 from architectural_patterns.controller.propiedad_controller import PropiedadController
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
-from datetime import datetime, date
 from models.calificacion import Calificacion
-
+def estadisticas_propiedad(propiedad_id):
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Parámetros de mes y año
+    mes = request.args.get('mes', datetime.now().month, type=int)
+    anio = request.args.get('anio', datetime.now().year, type=int)
+    reservas = Reserva.query.filter_by(propiedad_id=propiedad_id).all()
+    # Filtrar reservas del mes/año
+    reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
+    reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
+    reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
+    total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
+    promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
+    # Porcentaje de ocupación
+    dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
+    porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
+    # Ingresos estimados
+    ingresos_estimados = round(total_noches * propiedad.precio, 2)
+def estadisticas_propiedad(propiedad_id):
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Parámetros de mes y año
+    mes = request.args.get('mes', datetime.now().month, type=int)
+    anio = request.args.get('anio', datetime.now().year, type=int)
+    reservas = Reserva.query.filter_by(propiedad_id=propiedad_id).all()
+    # Filtrar reservas del mes/año
+    reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
+    reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
+    reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
+    total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
+    promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
+    # Porcentaje de ocupación
+    dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
+    porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
+    # Ingresos estimados
+    ingresos_estimados = round(total_noches * propiedad.precio, 2)
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from datetime import datetime, date
+from models.reserva import Reserva
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
+
+@main.route('/propiedad/<int:propiedad_id>/estadisticas')
+def estadisticas_propiedad(propiedad_id):
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Parámetros de mes y año
+    mes = request.args.get('mes', datetime.now().month, type=int)
+    anio = request.args.get('anio', datetime.now().year, type=int)
+    reservas = Reserva.query.filter_by(propiedad_id=propiedad_id).all()
+    # Filtrar reservas del mes/año
+    reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
+    reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
+    reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
+    total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
+    promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
+    # Porcentaje de ocupación
+    dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
+    porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
+    # Ingresos estimados
+    ingresos_estimados = round(total_noches * propiedad.precio, 2)
+    reservas_anio = len([r for r in reservas if r.fecha_inicio.year == anio and r.estado == 'concretada'])
+    anio_actual = datetime.now().year
+    return render_template('estadisticas_propiedad.html', propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
+        reservas_concretadas=reservas_concretadas, reservas_canceladas=reservas_canceladas, promedio_dias_reserva=promedio_dias_reserva,
+        total_noches=total_noches, porcentaje_ocupacion=porcentaje_ocupacion, ingresos_estimados=ingresos_estimados, reservas_anio=reservas_anio)
+    reservas_anio = len([r for r in reservas if r.fecha_inicio.year == anio and r.estado == 'concretada'])
+    anio_actual = datetime.now().year
+    return render_template('estadisticas_propiedad.html', propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
+        reservas_concretadas=reservas_concretadas, reservas_canceladas=reservas_canceladas, promedio_dias_reserva=promedio_dias_reserva,
+        total_noches=total_noches, porcentaje_ocupacion=porcentaje_ocupacion, ingresos_estimados=ingresos_estimados, reservas_anio=reservas_anio)
+
 
 def login_required(f):
     @wraps(f)
