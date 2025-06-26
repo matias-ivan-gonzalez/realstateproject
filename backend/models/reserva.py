@@ -7,8 +7,8 @@ class Reserva(db.Model):
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
     cantidad_personas = db.Column(db.Integer, nullable=False)
-    #estado = db.Column(db.String(50), nullable=False)  ver si hacemos patron state # Ej: 'pendiente', 'confirmada', 'cancelada'
-    
+    estado = db.Column(db.String(50), nullable=False, default='pendiente')  # Ej: 'pendiente', 'concretada', 'cancelada'
+
     # Claves foráneas
     cliente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     propiedad_id = db.Column(db.Integer, db.ForeignKey('propiedad.id'), nullable=False)
