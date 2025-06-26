@@ -195,14 +195,6 @@
             </div>
         </div>
     </div>
-    <div class="text-center mb-2">
-        {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
-            <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
-        {% endif %}
-        {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
-            <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
-        {% endif %}
-    </div>
     {% if session.rol in ['administrador', 'superusuario'] or (session.rol == 'encargado' and propiedad.encargado_id == session.user_id) %}
         <div class="mt-4">
             <div class="card shadow">
@@ -230,6 +222,23 @@
                     </form>
                 </div>
             </div>
+        </div>
+        <div class="text-center mb-2 mt-3">
+            {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+            {% endif %}
+            {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+                <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center mb-2">
+            {% if session.rol in ['encargado', 'administrador', 'superusuario'] %}
+                <a href="{{ url_for('main.ver_propiedades') }}" class="btn btn-secondary">Volver al listado</a>
+            {% endif %}
+            {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
+                <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
+            {% endif %}
         </div>
     {% endif %}
 </div>
