@@ -239,9 +239,53 @@
             {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
                 <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
             {% endif %}
+            {% if session.rol == 'cliente' %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReservar">
+                    Reservar
+                </button>
+            {% endif %}
         </div>
     {% endif %}
 </div>
+
+<!-- Modal de Reserva -->
+<div class="modal fade" id="modalReservar" tabindex="-1" aria-labelledby="modalReservarLabel" aria-hidden="true" data-bs-backdrop="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalReservarLabel">Reservar {{ propiedad.nombre }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
+        </div>
+        <div class="mb-2">
+          <label for="fecha_fin" class="form-label">Fecha de fin</label>
+          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
+        </div>
+        <div class="mb-2">
+          <label for="huespedes" class="form-label">Cantidad de huéspedes</label>
+          <input type="number" class="form-control" id="huespedes" name="huespedes" min="1" max="{{ propiedad.limite_personas }}" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Precio total</label>
+          <input type="text" class="form-control" id="precio_total" value="${{ propiedad.precio }}" readonly>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Porcentaje a abonar ahora</label>
+          <input type="text" class="form-control" id="porcentaje_pago" value="{{ propiedad.porcentaje_pago_reserva }}%" readonly>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="btn-reservar-pagar">Reservar y pagar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 function initMapDetalle() {
     var coords = [Number('{{ propiedad.latitud if propiedad.latitud is not none else 0 }}'), Number('{{ propiedad.longitud if propiedad.longitud is not none else 0 }}')];
@@ -452,4 +496,84 @@ function confirmarQuitarFavorito(e, btn) {
     window.fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
 </script>
 <script src="{{ url_for('static', filename='js/detalle_propiedad_flatpickr.js') }}"></script>
+<script>
+(function() {
+  let porcentajePago = parseFloat('{{ propiedad.porcentaje_pago_reserva|default(0) }}');
+  let precioNoche = parseFloat('{{ propiedad.precio|default(0) }}');
+  let propiedadId = parseInt('{{ propiedad.id|default(0) }}');
+
+  function calcularMonto() {
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin = document.getElementById('fecha_fin').value;
+    let noches = 1;
+    if (fechaInicio && fechaFin) {
+      const d1 = new Date(fechaInicio);
+      const d2 = new Date(fechaFin);
+      noches = (d2 - d1) / (1000*60*60*24);
+      if (noches < 1) noches = 1;
+    }
+    const total = precioNoche * noches;
+    document.getElementById('precio_total').value = `$${total}`;
+    const monto = Math.round(total * (porcentajePago/100));
+    return monto;
+  }
+
+  document.getElementById('fecha_inicio').addEventListener('change', calcularMonto);
+  document.getElementById('fecha_fin').addEventListener('change', calcularMonto);
+
+  document.getElementById('btn-reservar-pagar').onclick = async function() {
+    const fecha_inicio = document.getElementById('fecha_inicio').value;
+    const fecha_fin = document.getElementById('fecha_fin').value;
+    const huespedes = document.getElementById('huespedes').value;
+    if (!fecha_inicio || !fecha_fin || !huespedes) {
+      alert('Completa todos los campos de la reserva.');
+      return;
+    }
+    if (fecha_fin <= fecha_inicio) {
+      alert('La fecha de fin debe ser mayor a la de inicio.');
+      return;
+    }
+    if (porcentajePago > 0) {
+      // Checkout Pro
+      const resp = await fetch('/crear_preferencia_checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propiedad_id: propiedadId,
+          fecha_inicio,
+          fecha_fin,
+          huespedes
+        })
+      });
+      const data = await resp.json();
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert('Error al generar el pago.');
+      }
+    } else {
+      // Reserva sin pago
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/propiedad/${propiedadId}/reservar`;
+      form.style.display = 'none';
+      [
+        ['fecha_inicio', fecha_inicio],
+        ['fecha_fin', fecha_fin],
+        ['huespedes', huespedes]
+      ].forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    }
+  };
+
+  calcularMonto();
+})();
+</script>
 {% endblock %}

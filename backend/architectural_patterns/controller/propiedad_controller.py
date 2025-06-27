@@ -7,6 +7,7 @@ from flask import session
 from models.user import Cliente
 from flask import request
 from sqlalchemy import desc
+from config import MERCADOPAGO_PUBLIC_KEY
 
 class PropiedadController:
     
@@ -158,7 +159,8 @@ class PropiedadController:
                              total_imagenes_reales=total_imagenes,
                              fechas_ocupadas=fechas_ocupadas,
                              fechas_reservadas=fechas_reservadas,
-                             dias_ocupados_encargado=dias_ocupados_encargado)
+                             dias_ocupados_encargado=dias_ocupados_encargado,
+                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
