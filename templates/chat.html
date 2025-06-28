@@ -2,7 +2,7 @@
 {% block title %}Chat Cliente-Administradores{% endblock %}
 {% block hero_content %}
 <script>
-  window.isAdmin = {{ (session.rol in ['administrador', 'superusuario']) | tojson }};
+  window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
   window.username = {{ (session.nombre or 'Invitado') | tojson }};
 </script>
@@ -35,17 +35,14 @@
             } else if(window.isAdmin) {
                 socket.emit('admin_mensaje', data);
             }
-            // Mostrar el mensaje localmente para feedback inmediato
-            var div = document.createElement('div');
-            div.innerHTML = '<b>' + (window.username || 'Invitado') + ':</b> ' + msg;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            // No mostrar el mensaje localmente, solo limpiar el input
             chatInput.value = '';
         }
     };
 
     // Mostrar todos los mensajes (cliente y admin)
     socket.on('chat_mensaje', function(data) {
+        console.log('Mensaje recibido:', data);
         var div = document.createElement('div');
         div.innerHTML = '<b>' + (data.user || 'Invitado') + ':</b> ' + data.msg;
         chatBox.appendChild(div);
