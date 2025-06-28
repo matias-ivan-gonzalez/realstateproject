@@ -21,15 +21,82 @@
     var chatInput = document.getElementById('chat-input');
 
 
-    if (window.isAdmin) {
-        socket.emit('join_admins');
+
+
+    // --- CHAT POR CONVERSACION ---
+    var conversacionId = null;
+
+    // Cliente: solo puede iniciar su conversación y ver su propio chat
+    if (window.isCliente) {
+        socket.emit('join_chat', {});
+        socket.emit('get_chat_history');
     }
 
-    // Solicitar historial al conectar
-    socket.emit('get_chat_history');
+    // Admin: ver listado de conversaciones y acceder a cada una
+    if (window.isAdmin) {
+        // Ocultar el formulario de chat hasta que se seleccione una conversación
+        chatForm.style.display = 'none';
+
+        // Crear contenedor para el listado
+        var listaDiv = document.createElement('div');
+        listaDiv.id = 'conversaciones-lista';
+        listaDiv.className = 'mb-3';
+        chatForm.parentNode.insertBefore(listaDiv, chatForm);
+
+        // Pedir listado al conectar
+        socket.emit('listar_conversaciones');
+
+        socket.on('conversaciones_list', function(convs) {
+            listaDiv.innerHTML = '<b>Conversaciones activas:</b>';
+            if (convs.length === 0) {
+                listaDiv.innerHTML += '<div class="text-muted">No hay conversaciones activas.</div>';
+                return;
+            }
+            convs.forEach(function(c) {
+                var row = document.createElement('div');
+                row.className = 'd-flex align-items-center gap-2 mb-1';
+                row.innerHTML = '<span>Conversación #' + c.id + ' (Cliente: ' + c.cliente_id + ')</span>';
+                var btn = document.createElement('button');
+                btn.textContent = 'Ver chat';
+                btn.className = 'btn btn-sm btn-outline-primary';
+                btn.onclick = function() {
+                    conversacionId = c.id;
+                    chatBox.innerHTML = '';
+                    chatForm.style.display = '';
+                    socket.emit('join_chat', {conversacion_id: conversacionId});
+                    socket.emit('get_chat_history', {conversacion_id: conversacionId});
+                };
+                row.appendChild(btn);
+                listaDiv.appendChild(row);
+            });
+        });
+    }
+
+    // --- Refrescar la página cada 2 segundos hasta que el admin responda por primera vez ---
+    var adminRespondio = false;
+    var refreshInterval = null;
+if (window.isCliente) {
+    var isTyping = false;
+    chatInput.addEventListener('focus', function() { isTyping = true; });
+    chatInput.addEventListener('blur', function() { isTyping = false; });
+    refreshInterval = setInterval(function() {
+        if (!adminRespondio && !isTyping) {
+            window.location.reload();
+        }
+    }, 2000);
+}
 
     socket.on('chat_history', function(history) {
         chatBox.innerHTML = '';
+        // Detectar si el admin ya respondió alguna vez
+        if (window.isCliente) {
+            adminRespondio = history.some(function(data) {
+                return data.rol === 'administrador' || data.rol === 'superusuario';
+            });
+            if (adminRespondio && refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        }
         history.forEach(function(data) {
             renderChatMessage(data);
         });
@@ -71,11 +138,16 @@
         if(msg) {
             var data = {msg: msg, user: window.username};
             if(window.isCliente) {
+                // Solo emitir, el mensaje se mostrará cuando llegue del servidor para evitar duplicados
                 socket.emit('cliente_mensaje', data);
             } else if(window.isAdmin) {
-                socket.emit('admin_mensaje', data);
+                if (conversacionId) {
+                    data.conversacion_id = conversacionId;
+                    socket.emit('admin_mensaje', data);
+                } else {
+                    alert('Selecciona una conversación para chatear');
+                }
             }
-            // No mostrar el mensaje localmente, solo limpiar el input
             chatInput.value = '';
         }
     };
