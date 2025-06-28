@@ -209,11 +209,13 @@
                         <div class="row g-2 align-items-end">
                             <div class="col-md-5">
                                 <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-                                <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
+                                <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
+                                <div id="msg_fecha_inicio" class="text-danger small"></div>
                             </div>
                             <div class="col-md-5">
                                 <label for="fecha_fin" class="form-label">Fecha de fin</label>
-                                <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" required>
+                                <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
+                                <div id="msg_fecha_fin" class="text-danger small"></div>
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary w-100" id="btn-ocupar-admin" disabled>Ocupar</button>
@@ -259,11 +261,13 @@
       <div class="modal-body">
         <div class="mb-2">
           <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
+          <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
+          <div id="msg_fecha_inicio" class="text-danger small"></div>
         </div>
         <div class="mb-2">
           <label for="fecha_fin" class="form-label">Fecha de fin</label>
-          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
+          <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
+          <div id="msg_fecha_fin" class="text-danger small"></div>
         </div>
         <div class="mb-2">
           <label for="huespedes" class="form-label">Cantidad de huéspedes</label>

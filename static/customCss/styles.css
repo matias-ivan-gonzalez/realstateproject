@@ -571,3 +571,13 @@
 .carousel-item-prev.carousel-item-end {
     transform: translateX(0);
 }
+
+/* Fechas reservadas en Flatpickr: rojo, tachado, no seleccionable */
+.flatpickr-day.fecha-reservada,
+.flatpickr-day.disabled.fecha-reservada {
+    background: #fff0f0 !important;
+    color: #c00 !important;
+    text-decoration: line-through !important;
+    cursor: not-allowed !important;
+    font-weight: bold;
+}

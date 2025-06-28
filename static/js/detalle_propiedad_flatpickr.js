@@ -1,7 +1,6 @@
-// Flatpickr initialization for date blocking
+// Validación para inputs nativos <input type='date'> en reserva
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Helper: get all blocked dates as array of strings (YYYY-MM-DD)
     function getBlockedDates() {
         let fechasBloqueadas = [];
         function getFechasEnRango(inicio, fin) {
@@ -23,113 +22,56 @@ document.addEventListener('DOMContentLoaded', function() {
         return Array.from(new Set(fechasBloqueadas));
     }
 
-    // Flatpickr config
     const blockedDates = getBlockedDates();
     const today = new Date().toISOString().slice(0,10);
-    const flatpickrOptionsInicio = {
-        dateFormat: 'Y-m-d',
-        minDate: today,
-        disable: blockedDates,
-        locale: 'es',
-        allowInput: false,
-        onChange: function(selectedDates, dateStr, instance) {
-            if (window.flatpickrFin) {
-                window.flatpickrFin.set('minDate', dateStr);
+
+    function flatpickrOptions(inputId) {
+        return {
+            dateFormat: 'Y-m-d',
+            minDate: today,
+            disable: blockedDates,
+            locale: 'es',
+            allowInput: false,
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+                const dateStr = date.toISOString().slice(0,10);
+                if (blockedDates.includes(dateStr)) {
+                    dayElem.classList.add('fecha-reservada');
+                }
             }
-        }
-    };
-    const flatpickrOptionsFin = {
-        dateFormat: 'Y-m-d',
-        minDate: today,
-        disable: blockedDates,
-        locale: 'es',
-        allowInput: false
-    };
-    // Init flatpickr on both date inputs if present
+        };
+    }
+
     if (document.getElementById('fecha_inicio')) {
-        window.flatpickrInicio = flatpickr('#fecha_inicio', flatpickrOptionsInicio);
+        window.flatpickrInicio = flatpickr('#fecha_inicio', flatpickrOptions('fecha_inicio'));
     }
     if (document.getElementById('fecha_fin')) {
-        window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptionsFin);
+        window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptions('fecha_fin'));
     }
-});
 
-// --- Flatpickr para deshabilitar fechas ocupadas/reservadas ---
-document.addEventListener('DOMContentLoaded', function() {
-    // Helper: obtener todas las fechas bloqueadas como array de strings (YYYY-MM-DD)
-    function getBlockedDates() {
-        let fechasBloqueadas = [];
-        function getFechasEnRango(inicio, fin) {
-            let fechas = [];
-            let current = new Date(inicio);
-            let end = new Date(fin);
-            while (current <= end) {
-                fechas.push(current.toISOString().slice(0,10));
-                current.setDate(current.getDate() + 1);
-            }
-            return fechas;
-        }
-        (window.fechasOcupadas || []).forEach(function(r) {
-            getFechasEnRango(r.inicio, r.fin).forEach(f => fechasBloqueadas.push(f));
-        });
-        (window.fechasReservadas || []).forEach(function(r) {
-            getFechasEnRango(r.inicio, r.fin).forEach(f => fechasBloqueadas.push(f));
-        });
-        return Array.from(new Set(fechasBloqueadas));
-    }
-    // Flatpickr config
-    const blockedDates = getBlockedDates();
-    const today = new Date().toISOString().slice(0,10);
-    const flatpickrOptionsInicio = {
-        dateFormat: 'Y-m-d',
-        minDate: today,
-        disable: blockedDates,
-        locale: 'es',
-        allowInput: false,
-        onChange: function(selectedDates, dateStr, instance) {
-            if (window.flatpickrFin) {
-                window.flatpickrFin.set('minDate', dateStr);
+    // --- Enable/disable Ocupar button for admin/superuser ---
+    var btnOcupar = document.getElementById('btn-ocupar-admin');
+    var inputInicio = document.getElementById('fecha_inicio');
+    var inputFin = document.getElementById('fecha_fin');
+    function checkOcuparButtonState() {
+        if (!btnOcupar || !inputInicio || !inputFin) return;
+        const valInicio = inputInicio.value;
+        const valFin = inputFin.value;
+        if (valInicio && valFin) {
+            // Check date validity
+            const start = new Date(valInicio);
+            const end = new Date(valFin);
+            if (end >= start) {
+                btnOcupar.disabled = false;
+                return;
             }
         }
-    };
-    const flatpickrOptionsFin = {
-        dateFormat: 'Y-m-d',
-        minDate: today,
-        disable: blockedDates,
-        locale: 'es',
-        allowInput: false
-    };
-    // Inicializar flatpickr en los inputs de fecha
-    if (document.getElementById('fecha_inicio')) {
-        window.flatpickrInicio = flatpickr('#fecha_inicio', flatpickrOptionsInicio);
+        btnOcupar.disabled = true;
     }
-    if (document.getElementById('fecha_fin')) {
-        window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptionsFin);
+    if (btnOcupar && inputInicio && inputFin) {
+        inputInicio.addEventListener('change', checkOcuparButtonState);
+        inputFin.addEventListener('change', checkOcuparButtonState);
+        // Also check on page load in case of autofill
+        checkOcuparButtonState();
     }
 });
-
-// --- Enable/disable Ocupar button for admin/superuser ---
-var btnOcupar = document.getElementById('btn-ocupar-admin');
-var inputInicio = document.getElementById('fecha_inicio');
-var inputFin = document.getElementById('fecha_fin');
-function checkOcuparButtonState() {
-    if (!btnOcupar || !inputInicio || !inputFin) return;
-    const valInicio = inputInicio.value;
-    const valFin = inputFin.value;
-    if (valInicio && valFin) {
-        // Check date validity
-        const start = new Date(valInicio);
-        const end = new Date(valFin);
-        if (end >= start) {
-            btnOcupar.disabled = false;
-            return;
-        }
-    }
-    btnOcupar.disabled = true;
-}
-if (btnOcupar && inputInicio && inputFin) {
-    inputInicio.addEventListener('change', checkOcuparButtonState);
-    inputFin.addEventListener('change', checkOcuparButtonState);
-    // Also check on page load in case of autofill
-    checkOcuparButtonState();
-}
