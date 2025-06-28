@@ -4,7 +4,6 @@
 <script>
   window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
-  window.username = {{ (session.nombre or 'Invitado') | tojson }};
 </script>
 <div class="container mt-4">
     <h2 class="mb-4">Chat con Administradores</h2>
@@ -21,8 +20,49 @@
     var chatForm = document.getElementById('chat-form');
     var chatInput = document.getElementById('chat-input');
 
+
     if (window.isAdmin) {
         socket.emit('join_admins');
+    }
+
+    // Solicitar historial al conectar
+    socket.emit('get_chat_history');
+
+    socket.on('chat_history', function(history) {
+        chatBox.innerHTML = '';
+        history.forEach(function(data) {
+            renderChatMessage(data);
+        });
+    });
+
+    function renderChatMessage(data) {
+        var rol = data.rol || '';
+        var isAdminMsg = (rol === 'administrador' || rol === 'superusuario');
+
+        var div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = isAdminMsg ? 'flex-end' : 'flex-start';
+        div.style.margin = '4px 0';
+
+        var msgBubble = document.createElement('div');
+        msgBubble.style.maxWidth = '70%';
+        msgBubble.style.padding = '8px 14px';
+        msgBubble.style.borderRadius = '16px';
+        msgBubble.style.background = isAdminMsg ? '#d1e7dd' : '#e9ecef';
+        msgBubble.style.color = '#222';
+        msgBubble.style.textAlign = isAdminMsg ? 'right' : 'left';
+        msgBubble.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+
+        // Etiqueta y mensaje
+        if (isAdminMsg) {
+            msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
+        } else {
+            msgBubble.innerHTML = '<b>Cliente:</b> ' + data.msg;
+        }
+
+        div.appendChild(msgBubble);
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     chatForm.onsubmit = function(e) {
@@ -42,11 +82,7 @@
 
     // Mostrar todos los mensajes (cliente y admin)
     socket.on('chat_mensaje', function(data) {
-        console.log('Mensaje recibido:', data);
-        var div = document.createElement('div');
-        div.innerHTML = '<b>' + (data.user || 'Invitado') + ':</b> ' + data.msg;
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        renderChatMessage(data);
     });
 </script>
 {% endblock %}

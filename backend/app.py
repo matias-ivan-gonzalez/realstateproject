@@ -48,6 +48,10 @@ def create_app():
         from models.propiedad_administrador import propiedad_administrador
         from models.favoritos import favoritos
         from models.reserva import Reserva
+        from models.ocupacion import Ocupacion
+        from models.calificacion import Calificacion
+        from models.mensaje_chat import MensajeChat
+        
         # Crear tablas
         db.create_all()
 

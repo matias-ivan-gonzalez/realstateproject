@@ -322,4 +322,5 @@ def ver_reservas_propiedad(propiedad_id):
 
 @main.route('/chat')
 def chat():
-    return render_template('chat.html')
+    from flask import session
+    return render_template('chat.html', session=session)
