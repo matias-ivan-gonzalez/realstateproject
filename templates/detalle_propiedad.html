@@ -261,17 +261,17 @@
       <div class="modal-body">
         <div class="mb-2">
           <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-          <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
+          <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="">
           <div id="msg_fecha_inicio" class="text-danger small"></div>
         </div>
         <div class="mb-2">
           <label for="fecha_fin" class="form-label">Fecha de fin</label>
-          <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
+          <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="">
           <div id="msg_fecha_fin" class="text-danger small"></div>
         </div>
         <div class="mb-2">
           <label for="huespedes" class="form-label">Cantidad de huéspedes</label>
-          <input type="number" class="form-control" id="huespedes" name="huespedes" min="1" max="{{ propiedad.limite_personas }}" required>
+          <input type="number" class="form-control" id="huespedes" name="huespedes" min="1" max="{{ propiedad.limite_personas }}" value="1" required>
         </div>
         <div class="mb-2">
           <label class="form-label">Precio total</label>
@@ -579,5 +579,18 @@ function confirmarQuitarFavorito(e, btn) {
 
   calcularMonto();
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('modalReservar');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function () {
+      document.getElementById('fecha_inicio').value = '';
+      document.getElementById('fecha_fin').value = '';
+      document.getElementById('huespedes').value = 1;
+      document.getElementById('precio_total').value = `$${parseFloat('{{ propiedad.precio|default(0) }}')}`;
+    });
+  }
+});
 </script>
 {% endblock %}

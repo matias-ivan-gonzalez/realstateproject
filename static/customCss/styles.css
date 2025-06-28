@@ -581,3 +581,22 @@
     cursor: not-allowed !important;
     font-weight: bold;
 }
+
+/* Flatpickr: días de otros meses como días normales pero diferenciados */
+.flatpickr-day.nextMonthDay,
+.flatpickr-day.prevMonthDay {
+    color: #888 !important;
+    opacity: 1 !important;
+}
+
+/* Flatpickr: días previos a la fecha actual en gris claro (no reservables, pero sin afectar reservados) */
+.flatpickr-day.flatpickr-disabled:not(.nextMonthDay):not(.prevMonthDay):not(.fecha-reservada),
+.flatpickr-day.disabled:not(.nextMonthDay):not(.prevMonthDay):not(.fecha-reservada) {
+    color: #e6e0e0 !important;
+    opacity: 1 !important;
+}
+
+/* Flatpickr: días habilitados para reservar en negro más oscuro */
+.flatpickr-day:not(.flatpickr-disabled):not(.nextMonthDay):not(.prevMonthDay):not(.fecha-reservada) {
+    color: #000 !important;
+}

@@ -43,7 +43,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (document.getElementById('fecha_inicio')) {
-        window.flatpickrInicio = flatpickr('#fecha_inicio', flatpickrOptions('fecha_inicio'));
+        window.flatpickrInicio = flatpickr('#fecha_inicio', Object.assign(flatpickrOptions('fecha_inicio'), {
+            onChange: function(selectedDates, dateStr, instance) {
+                if (window.flatpickrFin) {
+                    // Deshabilitar la fecha de inicio en el calendario de fin
+                    let disables = blockedDates.slice();
+                    if (dateStr) {
+                        disables = disables.concat([dateStr]);
+                        window.flatpickrFin.set('minDate', dateStr); // ya lo tienes probablemente
+                        // Si la fecha de fin es igual a la de inicio, limpiar
+                        if (document.getElementById('fecha_fin').value === dateStr) {
+                            document.getElementById('fecha_fin').value = '';
+                        }
+                    } else {
+                        window.flatpickrFin.set('minDate', today);
+                    }
+                    window.flatpickrFin.set('disable', disables);
+                }
+            }
+        }));
     }
     if (document.getElementById('fecha_fin')) {
         window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptions('fecha_fin'));
