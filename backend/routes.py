@@ -319,3 +319,7 @@ def ver_reservas_propiedad(propiedad_id):
     propiedad = Propiedad.query.get_or_404(propiedad_id)
     reservas = propiedad.reservas
     return render_template('reservas_propiedad.html', reservas=reservas, propiedad=propiedad)
+
+@main.route('/chat')
+def chat():
+    return render_template('chat.html')

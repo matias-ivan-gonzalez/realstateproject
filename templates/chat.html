@@ -1,0 +1,55 @@
+{% extends "base_hero.html" %}
+{% block title %}Chat Cliente-Administradores{% endblock %}
+{% block hero_content %}
+<script>
+  window.isAdmin = {{ (session.rol in ['administrador', 'superusuario']) | tojson }};
+  window.isCliente = {{ (session.rol == 'cliente') | tojson }};
+  window.username = {{ (session.nombre or 'Invitado') | tojson }};
+</script>
+<div class="container mt-4">
+    <h2 class="mb-4">Chat con Administradores</h2>
+    <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ccc; border-radius:8px; padding:1rem; background:#fafbfc;"></div>
+    <form id="chat-form" class="mt-3 d-flex gap-2">
+        <input id="chat-input" type="text" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" required>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+    </form>
+</div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    var socket = io({transports: ['websocket', 'polling']});
+    var chatBox = document.getElementById('chat-box');
+    var chatForm = document.getElementById('chat-form');
+    var chatInput = document.getElementById('chat-input');
+
+    if (window.isAdmin) {
+        socket.emit('join_admins');
+    }
+
+    chatForm.onsubmit = function(e) {
+        e.preventDefault();
+        var msg = chatInput.value.trim();
+        if(msg) {
+            var data = {msg: msg, user: window.username};
+            if(window.isCliente) {
+                socket.emit('cliente_mensaje', data);
+            } else if(window.isAdmin) {
+                socket.emit('admin_mensaje', data);
+            }
+            // Mostrar el mensaje localmente para feedback inmediato
+            var div = document.createElement('div');
+            div.innerHTML = '<b>' + (window.username || 'Invitado') + ':</b> ' + msg;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            chatInput.value = '';
+        }
+    };
+
+    // Mostrar todos los mensajes (cliente y admin)
+    socket.on('chat_mensaje', function(data) {
+        var div = document.createElement('div');
+        div.innerHTML = '<b>' + (data.user || 'Invitado') + ':</b> ' + data.msg;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+</script>
+{% endblock %}

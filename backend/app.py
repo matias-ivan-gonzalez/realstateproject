@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_socketio import SocketIO
 import os
 from routes import main  # Asegúrate de importar el Blueprint correctamente
 from database import db  # Importa tu configuración de base de datos desde un archivo separado
@@ -6,6 +7,7 @@ from config import Config  # Importa la gitclase Config
 from werkzeug.security import generate_password_hash
 from datetime import date
 from flask_mail import Mail
+import chat_backend
 
 # Obtener la ruta absoluta del directorio actual
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -15,7 +17,9 @@ flask_params = {
     'template_folder': os.path.join(BASE_DIR, '..', 'templates')
 }
 
-mail = Mail()  # Instancia global
+mail = Mail()# Instancia global
+
+socketio = SocketIO()  # Configurar CORS y modo asíncrono
 
 def create_app():
     app = Flask(__name__, **flask_params)
@@ -54,5 +58,11 @@ def create_app():
 
     # Registrar el Blueprint
     app.register_blueprint(main)
+
+    socketio.init_app(app)
+
+    # Registrar eventos de chat de forma modular para evitar importaciones circulares
+    from chat_backend import register_chat_events
+    register_chat_events(socketio)
 
     return app
