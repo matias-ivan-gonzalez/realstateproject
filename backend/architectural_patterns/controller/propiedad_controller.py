@@ -116,6 +116,14 @@ class PropiedadController:
             if cliente:
                 user_favoritos = cliente.favoritos
 
+        # Flash message para reserva exitosa SOLO si corresponde
+        porcentaje_flash = session.pop('show_reserva_exitosa_flash', None)
+        if porcentaje_flash is not None:
+            flash(f'Reserva exitosa {porcentaje_flash}% abonado', 'success')
+        # Flash message para reserva fallida SOLO si corresponde
+        if session.pop('show_reserva_fallida_flash', None):
+            flash('Reserva fallida por error en el pago', 'danger')
+
         # Contar imágenes reales
         total_imagenes = 0
         for imagen in propiedad.imagenes:

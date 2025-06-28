@@ -98,6 +98,18 @@ def ver_propiedades():
 
 @main.route('/propiedad/<int:id>')
 def detalle_propiedad(id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    pago_status = request.args.get('pago')
+    if pago_status == 'success':
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        huespedes = request.args.get('huespedes')
+        if fecha_inicio and fecha_fin and huespedes:
+            ReservaController().crear_reserva_checkout(session.get('user_id'), id, fecha_inicio, fecha_fin, int(huespedes))
+        return redirect(url_for('main.detalle_propiedad', id=id))
+    elif pago_status == 'failure':
+        session['show_reserva_fallida_flash'] = True
+        return redirect(url_for('main.detalle_propiedad', id=id))
     propiedad_controller = PropiedadController()
     return propiedad_controller.get_propiedad(id)
    

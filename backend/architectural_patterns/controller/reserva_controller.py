@@ -9,6 +9,7 @@ from config import MERCADOPAGO_ACCESS_TOKEN
 
 class ReservaController:
     def crear_reserva_checkout(self, user_id, propiedad_id, fecha_inicio, fecha_fin, cantidad_huespedes):
+        from flask import session
         cliente = Cliente.query.get(user_id)
         propiedad = Propiedad.query.get_or_404(propiedad_id)
         fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
@@ -30,6 +31,8 @@ class ReservaController:
             )
             db.session.add(reserva)
             db.session.commit()
+            # Setear bandera para mostrar flash message en la vista
+            session['show_reserva_exitosa_flash'] = propiedad.porcentaje_pago_reserva
             return True
         return False
 
@@ -128,13 +131,15 @@ class ReservaController:
             preference = preference_response["response"]
             print("Respuesta de Mercado Pago:", preference)  # Log para depuración
             if "init_point" in preference:
-                self.crear_reserva_checkout(session['user_id'], propiedad_id, fecha_inicio, fecha_fin, cantidad_huespedes)
+                # No crear la reserva aquí
                 return jsonify(init_point=preference["init_point"])
             else:
                 print("Error al crear preferencia:", preference)
+                session['show_reserva_fallida_flash'] = True
                 return jsonify({"error": "No se pudo crear la preferencia de pago", "detalle": preference}), 400
         except Exception as e:
             import traceback
             print("Excepción en crear_preferencia_checkout:", e)
             traceback.print_exc()
+            session['show_reserva_fallida_flash'] = True
             return jsonify({"error": "Error interno en el servidor", "detalle": str(e)}), 500
