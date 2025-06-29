@@ -1,12 +1,24 @@
 {% extends "base_hero.html" %}
-{% block title %}Chat Cliente-Administradores{% endblock %}
+{% block title %}
+<script>
+    // Cambia el título dinámicamente según el rol y la conversación
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.isCliente) {
+            document.title = 'Chat con Alquilando';
+        } else if (window.isAdmin) {
+            document.title = 'Chat'; // Por defecto
+        }
+    });
+</script>
+Chat
+{% endblock %}
 {% block hero_content %}
 <script>
   window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
 </script>
 <div class="container mt-4">
-    <h2 class="mb-4">Chat con Administradores</h2>
+    <h2 class="mb-4" id="chat-title-h2"></h2>
     <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ccc; border-radius:8px; padding:1rem; background:#fafbfc;"></div>
     <form id="chat-form" class="mt-3 d-flex gap-2">
         <input id="chat-input" type="text" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" required>
@@ -19,6 +31,7 @@
     var chatBox = document.getElementById('chat-box');
     var chatForm = document.getElementById('chat-form');
     var chatInput = document.getElementById('chat-input');
+    var chatTitleH2 = document.getElementById('chat-title-h2');
 
 
 
@@ -30,6 +43,8 @@
     if (window.isCliente) {
         socket.emit('join_chat', {});
         socket.emit('get_chat_history');
+        // Cambiar el título visible
+        if (chatTitleH2) chatTitleH2.textContent = 'Chat con Alquilando';
     }
 
     // Admin: ver listado de conversaciones y acceder a cada una
@@ -55,7 +70,9 @@
             convs.forEach(function(c) {
                 var row = document.createElement('div');
                 row.className = 'd-flex align-items-center gap-2 mb-1';
-                row.innerHTML = '<span>Conversación #' + c.id + ' (Cliente: ' + c.cliente_id + ')</span>';
+                // Mostrar nombre y apellido si están disponibles, si no mostrar el id
+                var clienteNombre = c.cliente_nombre ? c.cliente_nombre : ('Cliente: ' + c.cliente_id);
+                row.innerHTML = '<span>Conversación #' + c.id + ' (' + clienteNombre + ')</span>';
                 var btn = document.createElement('button');
                 btn.textContent = 'Ver chat';
                 btn.className = 'btn btn-sm btn-outline-primary';
@@ -65,6 +82,14 @@
                     chatForm.style.display = '';
                     socket.emit('join_chat', {conversacion_id: conversacionId});
                     socket.emit('get_chat_history', {conversacion_id: conversacionId});
+                    // Cambiar el título al nombre del cliente
+                    if (c.cliente_nombre) {
+                        document.title = 'Chat con ' + c.cliente_nombre;
+                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + c.cliente_nombre;
+                    } else {
+                        document.title = 'Chat con Cliente ' + c.cliente_id;
+                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con Cliente ' + c.cliente_id;
+                    }
                 };
                 row.appendChild(btn);
                 listaDiv.appendChild(row);

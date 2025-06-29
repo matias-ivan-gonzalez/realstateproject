@@ -22,16 +22,24 @@ def register_chat_events(socketio):
             emit('conversaciones_list', [])
             return
         from models.conversacion import Conversacion
+        from models.user import Cliente
         conversaciones = Conversacion.query.order_by(Conversacion.fecha_creacion.desc()).all()
-        # Solo datos básicos para el listado
-        data = [
-            {
+        data = []
+        for c in conversaciones:
+            cliente_nombre = None
+            try:
+                cliente = Cliente.query.get(c.cliente_id)
+                if cliente:
+                    cliente_nombre = f"{cliente.nombre} {cliente.apellido}".strip()
+            except Exception:
+                cliente_nombre = None
+            data.append({
                 'id': c.id,
                 'cliente_id': c.cliente_id,
+                'cliente_nombre': cliente_nombre,
                 'fecha_creacion': c.fecha_creacion.isoformat(),
                 'estado': c.estado
-            } for c in conversaciones
-        ]
+            })
         emit('conversaciones_list', data)
 
     @socketio.on('cliente_mensaje')
