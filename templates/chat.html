@@ -68,53 +68,61 @@ Chat
 
     // Admin: ver listado de conversaciones y acceder a cada una
     if (window.isAdmin) {
-        // Ocultar el formulario de chat hasta que se seleccione una conversación
-        chatForm.style.display = 'none';
+        // Detectar si hay un conversacion_id en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedConversacionId = urlParams.get('conversacion_id');
 
-        // Crear contenedor para el listado
-        var listaDiv = document.createElement('div');
-        listaDiv.id = 'conversaciones-lista';
-        listaDiv.className = 'mb-3';
-        chatForm.parentNode.insertBefore(listaDiv, chatForm);
+        // Detectar si hay un cliente_nombre en la URL
+        const clienteNombre = urlParams.get('cliente_nombre');
 
-        // Pedir listado al conectar
-        socket.emit('listar_conversaciones');
+        if (window.isAdmin && preselectedConversacionId) {
+            // Si hay un conversacion_id, cargar directamente el chat
+            conversacionId = preselectedConversacionId;
+            chatForm.style.display = '';
+            socket.emit('join_chat', { conversacion_id: conversacionId });
+            socket.emit('get_chat_history', { conversacion_id: conversacionId });
 
-        socket.on('conversaciones_list', function(convs) {
-            listaDiv.innerHTML = '<b>Conversaciones activas:</b>';
-            if (convs.length === 0) {
-                listaDiv.innerHTML += '<div class="text-muted">No hay conversaciones activas.</div>';
-                return;
-            }
-            convs.forEach(function(c) {
-                var row = document.createElement('div');
-                row.className = 'd-flex align-items-center gap-2 mb-1';
-                // Mostrar nombre y apellido si están disponibles, si no mostrar el id
-                var clienteNombre = c.cliente_nombre ? c.cliente_nombre : ('Cliente: ' + c.cliente_id);
-                row.innerHTML = '<span>Conversación #' + c.id + ' (' + clienteNombre + ')</span>';
-                var btn = document.createElement('button');
-                btn.textContent = 'Ver chat';
-                btn.className = 'btn btn-sm btn-outline-primary';
-                btn.onclick = function() {
-                    conversacionId = c.id;
-                    chatBox.innerHTML = '';
-                    chatForm.style.display = '';
-                    socket.emit('join_chat', {conversacion_id: conversacionId});
-                    socket.emit('get_chat_history', {conversacion_id: conversacionId});
-                    // Cambiar el título al nombre del cliente
-                    if (c.cliente_nombre) {
-                        document.title = 'Chat con ' + c.cliente_nombre;
-                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + c.cliente_nombre;
-                    } else {
-                        document.title = 'Chat con Cliente ' + c.cliente_id;
-                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con Cliente ' + c.cliente_id;
-                    }
-                };
-                row.appendChild(btn);
-                listaDiv.appendChild(row);
+            // Cambiar el título visible
+            const titulo = clienteNombre ? `Chat con ${decodeURIComponent(clienteNombre)}` : `Chat con Cliente ${conversacionId}`;
+            document.title = titulo;
+            if (chatTitleH2) chatTitleH2.textContent = titulo;
+        } else if (window.isAdmin) {
+            // Si no hay conversacion_id, mostrar el listado de conversaciones
+            chatForm.style.display = 'none';
+
+            var listaDiv = document.createElement('div');
+            listaDiv.id = 'conversaciones-lista';
+            listaDiv.className = 'mb-3';
+            chatForm.parentNode.insertBefore(listaDiv, chatForm);
+
+            socket.emit('listar_conversaciones');
+
+            socket.on('conversaciones_list', function(convs) {
+                convs.forEach(function(c) {
+                    var row = document.createElement('div');
+                    row.className = 'conversation-row';
+                    row.textContent = c.cliente_nombre || 'Cliente ' + c.cliente_id;
+
+                    var btn = document.createElement('button');
+                    btn.textContent = 'Ver chat';
+                    btn.className = 'btn btn-primary btn-sm ms-2';
+                    btn.onclick = function() {
+                        conversacionId = c.id;
+                        chatBox.innerHTML = '';
+                        chatForm.style.display = '';
+                        socket.emit('join_chat', { conversacion_id: conversacionId });
+                        socket.emit('get_chat_history', { conversacion_id: conversacionId });
+
+                        document.title = 'Chat con ' + (c.cliente_nombre || 'Cliente ' + c.cliente_id);
+                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + (c.cliente_nombre || 'Cliente ' + c.cliente_id);
+                    };
+                    row.appendChild(btn);
+                    listaDiv.appendChild(row);
+                });
             });
-        });
+        }
     }
+    
 
     // --- Refrescar la página solo cuando el cliente envía el primer mensaje ---
     if (window.isCliente) {
@@ -170,13 +178,15 @@ Chat
         msgBubble.style.textAlign = 'left';
         msgBubble.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
 
-        // Etiqueta y mensaje
+        const urlParams = new URLSearchParams(window.location.search);
+        const clienteNombre = urlParams.get('cliente_nombre');
+
         if (isAdminMsg) {
             msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
         } else if (isClienteMsg) {
-            // Si el usuario actual es admin, mostrar siempre "Cliente:" como etiqueta
+            // Si el usuario actual es admin, mostrar siempre el nombre del cliente
             if (window.isAdmin) {
-                msgBubble.innerHTML = '<b>Cliente:</b> ' + data.msg;
+                msgBubble.innerHTML = '<b>' + (clienteNombre || 'Cliente') + ':</b> ' + data.msg;
             } else {
                 // Si el usuario es cliente, mostrar su nombre
                 var nombreMostrar = window.nombre_cliente || 'Cliente';

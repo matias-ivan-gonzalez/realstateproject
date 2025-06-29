@@ -10,18 +10,40 @@
     <div id="listado-chats" class="mt-3"></div>
 </div>
 <script>
-    // Simulación de carga de chats (reemplazar por AJAX/SocketIO en integración real)
     var btnFuturas = document.getElementById('btn-futuras');
     var btnCurso = document.getElementById('btn-curso');
     var listado = document.getElementById('listado-chats');
+    var chatsFuturo = {{ chats_futuro|tojson }};
+    var chatsCurso = {{ chats_curso|tojson }};
+
+    function renderChats(chats, titulo) {
+        if (chats.length === 0) {
+            listado.innerHTML = '<div class="alert alert-info text-center">No hay chats para mostrar.</div>';
+            return;
+        }
+        var html = '<h5>' + titulo + '</h5><ul class="list-group">';
+        chats.forEach(function(chat) {
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                '<div style="display: flex; gap: 1rem;">' +
+                    '<span><strong>Propiedad:</strong> ' + chat.casa_nombre + '</span>' +
+                    '<span><strong>Fecha de inicio:</strong> ' + chat.fecha_inicio + '</span>' +
+                    '<span><strong>Fecha de fin:</strong> ' + chat.fecha_fin + '</span>' +
+                    '<span><strong>Cliente:</strong> ' + chat.cliente_nombre + '</span>' +
+                '</div>' +
+                '<a href="/chat?conversacion_id=' + chat.id + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>' +
+                '</li>';
+        });
+        html += '</ul>';
+        listado.innerHTML = html;
+    }
 
     btnFuturas.onclick = function() {
-        listado.innerHTML = '<h5>Chats con reservas a futuro</h5>' +
-            '<ul><li>Chat #1 - Cliente: Juan Pérez</li><li>Chat #2 - Cliente: Ana Gómez</li></ul>';
+        renderChats(chatsFuturo, 'Chats con reservas a futuro');
     };
     btnCurso.onclick = function() {
-        listado.innerHTML = '<h5>Chats con reservas en curso</h5>' +
-            '<ul><li>Chat #3 - Cliente: Carlos López</li></ul>';
+        renderChats(chatsCurso, 'Chats con reservas en curso');
     };
+    // Mostrar futuros por defecto
+    btnFuturas.click();
 </script>
 {% endblock %}
