@@ -13,7 +13,7 @@
 Chat
 {% endblock %}
 {% block hero_content %}
-</script>
+
 <script>
   window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
