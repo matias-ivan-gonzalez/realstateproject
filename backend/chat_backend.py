@@ -49,13 +49,18 @@ def register_chat_events(socketio):
         user = data.get('user') or session.get('nombre') or 'Cliente'
         rol = session.get('rol') or 'cliente'
         cliente_id = session.get('user_id')
-        # Buscar o crear la conversación única de este cliente
-        conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, estado='abierta').first()
+        reserva_id = data.get('reserva_id')
+        tipo = data.get('tipo')  # 'futuro' o 'curso'
+        if not reserva_id or not tipo:
+            print('[SOCKET] cliente_mensaje: falta reserva_id o tipo')
+            return
+        # Buscar o crear la conversación única de este cliente para esa reserva y tipo
+        conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, reserva_id=reserva_id, tipo=tipo, estado='abierta').first()
         if not conversacion:
-            conversacion = Conversacion(cliente_id=cliente_id)
+            conversacion = Conversacion(cliente_id=cliente_id, reserva_id=reserva_id, tipo=tipo)
             db.session.add(conversacion)
             db.session.commit()
-        print(f"[SOCKET] Mensaje recibido del cliente: user={user}, rol={rol}, cliente_id={cliente_id}, data={data}")
+        print(f"[SOCKET] Mensaje recibido del cliente: user={user}, rol={rol}, cliente_id={cliente_id}, reserva_id={reserva_id}, tipo={tipo}, data={data}")
         mensaje = MensajeChat(user=user, rol=rol, msg=data['msg'], conversacion_id=conversacion.id)
         db.session.add(mensaje)
         db.session.commit()
@@ -100,7 +105,15 @@ def register_chat_events(socketio):
             conversacion_id = data['conversacion_id']
         else:
             cliente_id = session.get('user_id')
-            conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, estado='abierta').first()
+            reserva_id = None
+            tipo = None
+            if data:
+                reserva_id = data.get('reserva_id')
+                tipo = data.get('tipo')
+            if not reserva_id or not tipo:
+                emit('chat_history', [])
+                return
+            conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, reserva_id=reserva_id, tipo=tipo, estado='abierta').first()
             if conversacion:
                 conversacion_id = conversacion.id
         if conversacion_id:
@@ -116,6 +129,13 @@ def register_chat_events(socketio):
             join_room(f"chat_{data['conversacion_id']}")
         elif is_cliente():
             cliente_id = session.get('user_id')
-            conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, estado='abierta').first()
+            reserva_id = None
+            tipo = None
+            if data:
+                reserva_id = data.get('reserva_id')
+                tipo = data.get('tipo')
+            if not reserva_id or not tipo:
+                return
+            conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, reserva_id=reserva_id, tipo=tipo, estado='abierta').first()
             if conversacion:
                 join_room(f"chat_{conversacion.id}")

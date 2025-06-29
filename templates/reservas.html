@@ -38,11 +38,25 @@
                             '<td>' + reserva.fecha_fin_str + '</td>' +
                             '<td>' + reserva.cantidad_personas + '</td>' +
                             '<td>';
-                        // Acciones (solo muestra badge de calificada o no, puedes expandirlo)
+                        // Acciones (badge de calificada o no)
                         if (reserva.calificacion === true) {
-                            html += '<span class="badge bg-success">Calificada</span>';
+                            html += '<span class="badge bg-success">Calificada</span> ';
                         } else {
-                            html += '<span class="badge bg-danger">No calificada</span>';
+                            html += '<span class="badge bg-danger">No calificada</span> ';
+                        }
+                        // Icono de chat: 2 chats distintos según el tipo de reserva
+                        var tipoChat = '';
+                        if (new Date(reserva.fecha_inicio) > currentDate) {
+                            tipoChat = 'futuro';
+                        } else {
+                            tipoChat = 'curso';
+                        }
+                        var chatKey = 'chat_iniciado_' + tipoChat;
+                        var chatIniciado = reserva[chatKey] === true;
+                        if (chatIniciado) {
+                            html += '<button class="btn btn-sm btn-outline-primary iniciar-chat-btn" data-reserva-id="' + reserva.id + '" data-chat-iniciado="1" data-tipo-chat="' + tipoChat + '" title="Ver chat"><i class="bi bi-chat-dots"></i> Ver chat ' + (tipoChat === 'futuro' ? '(Futuro)' : '(En curso)') + '</button>';
+                        } else {
+                            html += '<button class="btn btn-sm btn-outline-secondary iniciar-chat-btn" data-reserva-id="' + reserva.id + '" data-chat-iniciado="0" data-tipo-chat="' + tipoChat + '" title="Iniciar chat"><i class="bi bi-chat"></i> Iniciar chat ' + (tipoChat === 'futuro' ? '(Futuro)' : '(En curso)') + '</button>';
                         }
                         html += '</td></tr>';
                     });
@@ -65,6 +79,21 @@
                     });
                 };
                 // Mostrar futuras por defecto
+                // Delegar click en los botones de chat
+                listado.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.iniciar-chat-btn');
+                    if (btn) {
+                        var reservaId = btn.getAttribute('data-reserva-id');
+                        var chatIniciado = btn.getAttribute('data-chat-iniciado') === '1';
+                        var tipoChat = btn.getAttribute('data-tipo-chat');
+                        // Redirigir a la vista de chat, pasando el tipo de chat
+                        if (chatIniciado) {
+                            window.location.href = '/chat?reserva_id=' + reservaId + '&tipo=' + tipoChat;
+                        } else {
+                            window.location.href = '/chat?reserva_id=' + reservaId + '&iniciar=1&tipo=' + tipoChat;
+                        }
+                    }
+                });
                 btnFuturas.click();
             </script>
         </div>
@@ -72,5 +101,7 @@
 </div>
 {% endblock %}
 
+<!-- Bootstrap Icons CDN para los íconos de chat -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <!-- Script de Bootstrap solo para esta vista -->
 <script src="/static/js/bootstrap.bundle.min.js"></script>

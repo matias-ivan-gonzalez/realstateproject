@@ -18,6 +18,8 @@ Chat
   window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
   window.nombre_cliente = {{ session.get('user_name') | tojson }};
+  window.reserva_id = {{ reserva_id|tojson }};
+  window.tipo_chat = {{ tipo|tojson }};
 </script>
 <div class="container mt-4">
     <h2 class="mb-4" id="chat-title-h2"></h2>
@@ -58,8 +60,8 @@ Chat
 
     // Cliente: solo puede iniciar su conversación y ver su propio chat
     if (window.isCliente) {
-        socket.emit('join_chat', {});
-        socket.emit('get_chat_history');
+        socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
         // Cambiar el título visible
         if (chatTitleH2) chatTitleH2.textContent = 'Chat con Alquilando';
     }
@@ -195,6 +197,8 @@ Chat
         if(msg) {
             var data = {msg: msg, user: window.username};
             if(window.isCliente) {
+                data.reserva_id = window.reserva_id;
+                data.tipo = window.tipo_chat;
                 // Si es el primer mensaje del cliente, refrescar tras enviar
                 if (mensajesCliente === 0) {
                     socket.emit('cliente_mensaje', data);

@@ -301,7 +301,11 @@ class UserController:
         current_date = date.today()
         # Serializar reservas para JS
         reservas_serializadas = []
+        from models.conversacion import Conversacion
         for r in reservas:
+            # Buscar si hay conversación abierta para cada tipo
+            chat_iniciado_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro', estado='abierta').first() is not None
+            chat_iniciado_curso = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='curso', estado='abierta').first() is not None
             reservas_serializadas.append({
                 'id': r.id,
                 'propiedad': r.propiedad.nombre if r.propiedad else '',
@@ -312,7 +316,9 @@ class UserController:
                 'calificacion': r.calificacion is not None,
                 'calificacion_id': r.calificacion.id if r.calificacion else None,
                 'fecha_inicio_str': r.fecha_inicio.strftime('%d/%m/%Y'),
-                'fecha_fin_str': r.fecha_fin.strftime('%d/%m/%Y')
+                'fecha_fin_str': r.fecha_fin.strftime('%d/%m/%Y'),
+                'chat_iniciado_futuro': chat_iniciado_futuro,
+                'chat_iniciado_curso': chat_iniciado_curso
             })
         return render_template('reservas.html', reservas=reservas_serializadas, current_date=current_date)
 

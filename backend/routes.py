@@ -320,10 +320,13 @@ def ver_reservas_propiedad(propiedad_id):
     reservas = propiedad.reservas
     return render_template('reservas_propiedad.html', reservas=reservas, propiedad=propiedad)
 
+from flask import request
 @main.route('/chat')
 def chat():
     from flask import session
-    return render_template('chat.html', session=session)
+    reserva_id = request.args.get('reserva_id')
+    tipo = request.args.get('tipo')
+    return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo)
 
 @main.route('/ver-chats')
 @login_required
