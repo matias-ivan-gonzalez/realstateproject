@@ -129,10 +129,20 @@ Chat
     function renderChatMessage(data) {
         var rol = data.rol || '';
         var isAdminMsg = (rol === 'administrador' || rol === 'superusuario');
+        var isClienteMsg = (rol === 'cliente');
 
         var div = document.createElement('div');
         div.style.display = 'flex';
-        div.style.justifyContent = isAdminMsg ? 'flex-end' : 'flex-start';
+        // Lógica de alineación según el usuario actual
+        if (window.isCliente) {
+            // Cliente ve sus mensajes a la derecha, admin a la izquierda
+            div.style.justifyContent = isClienteMsg ? 'flex-end' : 'flex-start';
+        } else if (window.isAdmin) {
+            // Admin ve sus mensajes a la derecha, cliente a la izquierda
+            div.style.justifyContent = isAdminMsg ? 'flex-end' : 'flex-start';
+        } else {
+            div.style.justifyContent = 'flex-start';
+        }
         div.style.margin = '4px 0';
 
         var msgBubble = document.createElement('div');
@@ -141,14 +151,24 @@ Chat
         msgBubble.style.borderRadius = '16px';
         msgBubble.style.background = isAdminMsg ? '#d1e7dd' : '#e9ecef';
         msgBubble.style.color = '#222';
-        msgBubble.style.textAlign = isAdminMsg ? 'right' : 'left';
+        // El texto siempre alineado a la izquierda para ambos
+        msgBubble.style.textAlign = 'left';
         msgBubble.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
-        
+
         // Etiqueta y mensaje
         if (isAdminMsg) {
             msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
+        } else if (isClienteMsg) {
+            // Si el usuario actual es admin, mostrar siempre "Cliente:" como etiqueta
+            if (window.isAdmin) {
+                msgBubble.innerHTML = '<b>Cliente:</b> ' + data.msg;
+            } else {
+                // Si el usuario es cliente, mostrar su nombre
+                var nombreMostrar = window.nombre_cliente || 'Cliente';
+                msgBubble.innerHTML = '<b>' + nombreMostrar + ':</b> ' + data.msg;
+            }
         } else {
-            msgBubble.innerHTML = '<b>' + window.nombre_cliente + ':</b> ' + data.msg;
+            msgBubble.innerHTML = data.msg;
         }
 
         div.appendChild(msgBubble);
