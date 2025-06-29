@@ -12,6 +12,13 @@
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
+<style>
+#huespedes.is-invalid {
+  background-image: none !important;
+  padding-right: 0.75rem !important;
+}
+</style>
+
 <div class="container mt-4 fade-in">
     <div class="detalle-grid">
         <!-- Nombre de la propiedad -->
@@ -270,8 +277,9 @@
           <div id="msg_fecha_fin" class="text-danger small"></div>
         </div>
         <div class="mb-2">
-          <label for="huespedes" class="form-label">Cantidad de huéspedes</label>
+          <label for="huespedes" class="form-label">Cantidad de huéspedes <span class="text-muted" style="font-size:0.95em;">(máximo {{ propiedad.limite_personas }})</span></label>
           <input type="number" class="form-control" id="huespedes" name="huespedes" min="1" max="{{ propiedad.limite_personas }}" value="1" required>
+          <div id="msg_huespedes" class="text-danger small"></div>
         </div>
         <div class="mb-2">
           <label class="form-label">Precio total</label>
@@ -283,7 +291,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" id="btn-reservar-pagar">Reservar y pagar</button>
+        <button type="button" class="btn btn-success" id="btn-reservar-pagar" disabled>Reservar y pagar</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
       </div>
     </div>
@@ -522,15 +530,79 @@ function confirmarQuitarFavorito(e, btn) {
     return monto;
   }
 
-  document.getElementById('fecha_inicio').addEventListener('change', calcularMonto);
-  document.getElementById('fecha_fin').addEventListener('change', calcularMonto);
+  function validarCamposReserva() {
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin = document.getElementById('fecha_fin').value;
+    const huespedesInput = document.getElementById('huespedes');
+    const huespedes = parseInt(huespedesInput.value);
+    const maxHuespedes = parseInt('{{ propiedad.limite_personas }}');
+    const btnReservar = document.getElementById('btn-reservar-pagar');
+    let valido = true;
+    if (!fechaInicio || !fechaFin || !huespedes) valido = false;
+    if (huespedes > maxHuespedes || huespedes < 1) {
+      valido = false;
+      huespedesInput.style.color = 'red';
+      huespedesInput.classList.add('is-invalid');
+    } else {
+      huespedesInput.style.color = '';
+      huespedesInput.classList.remove('is-invalid');
+    }
+    if (fechaFin && fechaInicio && fechaFin <= fechaInicio) valido = false;
+    btnReservar.disabled = !valido;
+  }
+
+  document.getElementById('fecha_inicio').addEventListener('change', function() {
+    calcularMonto();
+    validarCamposReserva();
+  });
+  document.getElementById('fecha_fin').addEventListener('change', function() {
+    calcularMonto();
+    validarCamposReserva();
+  });
+  document.getElementById('huespedes').addEventListener('input', function() {
+    // Si el usuario pone 0, lo cambiamos a vacío
+    if (this.value === '0') {
+      this.value = '';
+    }
+    validarCamposReserva();
+  });
+
+  document.getElementById('huespedes').addEventListener('keydown', function(e) {
+    // Permitir solo números y teclas de control
+    if (
+      // Permitir: backspace, delete, tab, escape, enter, flechas
+      [8, 9, 13, 27, 46, 37, 38, 39, 40].includes(e.keyCode) ||
+      // Permitir: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+      (e.ctrlKey && [65, 67, 86, 88].includes(e.keyCode))
+    ) {
+      return;
+    }
+    // Bloquear: e, E, +, -, . y cualquier cosa que no sea número
+    if (
+      e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-' || e.key === '.' ||
+      (e.key.length === 1 && !/\d/.test(e.key))
+    ) {
+      e.preventDefault();
+    }
+  });
 
   document.getElementById('btn-reservar-pagar').onclick = async function() {
     const fecha_inicio = document.getElementById('fecha_inicio').value;
     const fecha_fin = document.getElementById('fecha_fin').value;
-    const huespedes = document.getElementById('huespedes').value;
+    const huespedes = parseInt(document.getElementById('huespedes').value);
+    const maxHuespedes = parseInt('{{ propiedad.limite_personas }}');
+    const msgHuespedes = document.getElementById('msg_huespedes');
+    if (msgHuespedes) msgHuespedes.textContent = '';
     if (!fecha_inicio || !fecha_fin || !huespedes) {
       alert('Completa todos los campos de la reserva.');
+      return;
+    }
+    if (huespedes > maxHuespedes) {
+      if (msgHuespedes) {
+        msgHuespedes.textContent = `No puedes ingresar más de ${maxHuespedes} huéspedes.`;
+      } else {
+        alert(`No puedes ingresar más de ${maxHuespedes} huéspedes.`);
+      }
       return;
     }
     if (fecha_fin <= fecha_inicio) {
@@ -578,6 +650,7 @@ function confirmarQuitarFavorito(e, btn) {
   };
 
   calcularMonto();
+  validarCamposReserva();
 })();
 </script>
 <script>
