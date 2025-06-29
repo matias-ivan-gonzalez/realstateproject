@@ -298,10 +298,9 @@ class UserController:
             return redirect(url_for('main.index'))
         cliente = Cliente.query.get(user_id)
         reservas = cliente.reservas if cliente else []
-        hoy = date.today()
-        reservas_futuras = [r for r in reservas if r.fecha_inicio > hoy]
-        current_date = hoy
-        return render_template('reservas.html', reservas=reservas_futuras, current_date=current_date)
+        current_date = date.today()
+        # Pasar una variable para ocultar la columna de acciones
+        return render_template('reservas.html', reservas=reservas, current_date=current_date, ocultar_acciones=True)
 
     def mostrar_formulario_calificacion(self, session, reserva_id):
         from models.reserva import Reserva
@@ -432,3 +431,8 @@ class UserController:
         reservas = self.obtener_lista_reservas(session)
         hoy = datetime.now().date()
         return [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days <= 30 and r.calificacion is not None]
+
+    def obtener_reservas_activas(self, session):
+        reservas = self.obtener_lista_reservas(session)
+        hoy = datetime.now().date()
+        return [r for r in reservas if r.fecha_inicio <= hoy <= r.fecha_fin]

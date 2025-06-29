@@ -347,3 +347,10 @@ def calificaciones_editables():
     reservas = user_controller.obtener_calificaciones_editables(session)
     current_date = datetime.now().date()
     return render_template('calificaciones_editables.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/activas')
+def reservas_activas():
+    user_controller = UserController()
+    reservas = user_controller.obtener_reservas_activas(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)

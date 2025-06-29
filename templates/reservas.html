@@ -9,6 +9,7 @@
             <!-- Botones de filtro -->
             <div class="d-flex justify-content-center mb-3">
                 <a href="/reservas/futuras" class="btn btn-outline-primary mx-2">Reservas Futuras</a>
+                <a href="/reservas/activas" class="btn btn-outline-primary mx-2">Reservas Activas</a>
                 <a href="/reservas/concluidas" class="btn btn-outline-primary mx-2">Reservas Concluidas</a>
                 <a href="/reservas/pendientes" class="btn btn-outline-primary mx-2">Calificaciones Pendientes</a>
                 <a href="/reservas/editables" class="btn btn-outline-primary mx-2">Calificaciones Modificables</a>
@@ -24,10 +25,11 @@
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
-                                {# Solo mostrar columna Acciones si hay alguna reserva que no es futura #}
-                                {% set mostrar_acciones = reservas|selectattr('fecha_inicio', 'le', current_date)|list|length > 0 %}
-                                {% if mostrar_acciones %}
-                                    <th>Acciones</th>
+                                {% if not ocultar_acciones %}
+                                    {% set mostrar_acciones = reservas|selectattr('fecha_inicio', 'le', current_date)|list|length > 0 %}
+                                    {% if mostrar_acciones %}
+                                        <th>Acciones</th>
+                                    {% endif %}
                                 {% endif %}
                             </tr>
                         </thead>
@@ -39,7 +41,7 @@
                                     <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
                                     <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
                                     <td>{{ reserva.cantidad_personas }}</td>
-                                    {% if mostrar_acciones %}
+                                    {% if not ocultar_acciones and mostrar_acciones %}
                                     <td>
                                         {% set tipo_reserva = "" %}
                                         {% if reserva.fecha_inicio > current_date %}
