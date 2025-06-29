@@ -299,7 +299,22 @@ class UserController:
         cliente = Cliente.query.get(user_id)
         reservas = cliente.reservas if cliente else []
         current_date = date.today()
-        return render_template('reservas.html', reservas=reservas, current_date=current_date)
+        # Serializar reservas para JS
+        reservas_serializadas = []
+        for r in reservas:
+            reservas_serializadas.append({
+                'id': r.id,
+                'propiedad': r.propiedad.nombre if r.propiedad else '',
+                'direccion': r.propiedad.direccion if r.propiedad else '',
+                'fecha_inicio': r.fecha_inicio.strftime('%Y-%m-%d'),
+                'fecha_fin': r.fecha_fin.strftime('%Y-%m-%d'),
+                'cantidad_personas': r.cantidad_personas,
+                'calificacion': r.calificacion is not None,
+                'calificacion_id': r.calificacion.id if r.calificacion else None,
+                'fecha_inicio_str': r.fecha_inicio.strftime('%d/%m/%Y'),
+                'fecha_fin_str': r.fecha_fin.strftime('%d/%m/%Y')
+            })
+        return render_template('reservas.html', reservas=reservas_serializadas, current_date=current_date)
 
     def mostrar_formulario_calificacion(self, session, reserva_id):
         from models.reserva import Reserva

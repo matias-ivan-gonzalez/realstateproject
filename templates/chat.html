@@ -13,9 +13,11 @@
 Chat
 {% endblock %}
 {% block hero_content %}
+</script>
 <script>
   window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
+  window.nombre_cliente = {{ session.get('user_name') | tojson }};
 </script>
 <div class="container mt-4">
     <h2 class="mb-4" id="chat-title-h2"></h2>
@@ -32,6 +34,8 @@ Chat
     var chatForm = document.getElementById('chat-form');
     var chatInput = document.getElementById('chat-input');
     var chatTitleH2 = document.getElementById('chat-title-h2');
+    // Contador de mensajes enviados por el cliente en esta sesión
+    var mensajesCliente = 0;
 
 
 
@@ -97,30 +101,25 @@ Chat
         });
     }
 
-    // --- Refrescar la página cada 2 segundos hasta que el admin responda por primera vez ---
-    var adminRespondio = false;
-    var refreshInterval = null;
-if (window.isCliente) {
-    var isTyping = false;
-    chatInput.addEventListener('focus', function() { isTyping = true; });
-    chatInput.addEventListener('blur', function() { isTyping = false; });
-    refreshInterval = setInterval(function() {
-        if (!adminRespondio && !isTyping) {
-            window.location.reload();
-        }
-    }, 2000);
-}
+    // --- Refrescar la página solo cuando el cliente envía el primer mensaje ---
+    if (window.isCliente) {
+        var isTyping = false;
+        chatInput.addEventListener('focus', function() { isTyping = true; });
+        chatInput.addEventListener('blur', function() { isTyping = false; });
+    }
 
     socket.on('chat_history', function(history) {
         chatBox.innerHTML = '';
         // Detectar si el admin ya respondió alguna vez
+        // Ya no se usa refreshInterval, solo lógica de adminRespondio si necesitas mostrar algo
         if (window.isCliente) {
             adminRespondio = history.some(function(data) {
                 return data.rol === 'administrador' || data.rol === 'superusuario';
             });
-            if (adminRespondio && refreshInterval) {
-                clearInterval(refreshInterval);
-            }
+            // Contar mensajes del cliente
+            mensajesCliente = history.filter(function(data) {
+                return data.rol === 'cliente';
+            }).length;
         }
         history.forEach(function(data) {
             renderChatMessage(data);
@@ -144,12 +143,12 @@ if (window.isCliente) {
         msgBubble.style.color = '#222';
         msgBubble.style.textAlign = isAdminMsg ? 'right' : 'left';
         msgBubble.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
-
+        
         // Etiqueta y mensaje
         if (isAdminMsg) {
             msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
         } else {
-            msgBubble.innerHTML = '<b>Cliente:</b> ' + data.msg;
+            msgBubble.innerHTML = '<b>' + window.nombre_cliente + ':</b> ' + data.msg;
         }
 
         div.appendChild(msgBubble);
@@ -163,8 +162,13 @@ if (window.isCliente) {
         if(msg) {
             var data = {msg: msg, user: window.username};
             if(window.isCliente) {
-                // Solo emitir, el mensaje se mostrará cuando llegue del servidor para evitar duplicados
-                socket.emit('cliente_mensaje', data);
+                // Si es el primer mensaje del cliente, refrescar tras enviar
+                if (mensajesCliente === 0) {
+                    socket.emit('cliente_mensaje', data);
+                    window.location.reload();
+                } else {
+                    socket.emit('cliente_mensaje', data);
+                }
             } else if(window.isAdmin) {
                 if (conversacionId) {
                     data.conversacion_id = conversacionId;

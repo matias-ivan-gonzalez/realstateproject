@@ -1,0 +1,27 @@
+{% extends "base_hero.html" %}
+{% block title %}Ver Chats{% endblock %}
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Gestión de Chats</h2>
+    <div class="mb-3 d-flex gap-3">
+        <button id="btn-futuras" class="btn btn-outline-primary">Chats con reservas a futuro</button>
+        <button id="btn-curso" class="btn btn-outline-success">Chats con reservas en curso</button>
+    </div>
+    <div id="listado-chats" class="mt-3"></div>
+</div>
+<script>
+    // Simulación de carga de chats (reemplazar por AJAX/SocketIO en integración real)
+    var btnFuturas = document.getElementById('btn-futuras');
+    var btnCurso = document.getElementById('btn-curso');
+    var listado = document.getElementById('listado-chats');
+
+    btnFuturas.onclick = function() {
+        listado.innerHTML = '<h5>Chats con reservas a futuro</h5>' +
+            '<ul><li>Chat #1 - Cliente: Juan Pérez</li><li>Chat #2 - Cliente: Ana Gómez</li></ul>';
+    };
+    btnCurso.onclick = function() {
+        listado.innerHTML = '<h5>Chats con reservas en curso</h5>' +
+            '<ul><li>Chat #3 - Cliente: Carlos López</li></ul>';
+    };
+</script>
+{% endblock %}

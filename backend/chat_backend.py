@@ -60,6 +60,18 @@ def register_chat_events(socketio):
         db.session.add(mensaje)
         db.session.commit()
         emit('chat_mensaje', mensaje.to_dict(), room=f'chat_{conversacion.id}')
+        # Si es el primer mensaje de la conversación, responder automáticamente como admin
+        mensajes_previos = MensajeChat.query.filter_by(conversacion_id=conversacion.id).count()
+        if mensajes_previos == 1:
+            auto_msg = MensajeChat(
+                user='Alquilando',
+                rol='administrador',
+                msg='Gracias por contactarnos, en un momento estamos con usted.',
+                conversacion_id=conversacion.id
+            )
+            db.session.add(auto_msg)
+            db.session.commit()
+            emit('chat_mensaje', auto_msg.to_dict(), room=f'chat_{conversacion.id}')
 
     @socketio.on('admin_mensaje')
     def handle_admin_mensaje(data):

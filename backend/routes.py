@@ -324,3 +324,11 @@ def ver_reservas_propiedad(propiedad_id):
 def chat():
     from flask import session
     return render_template('chat.html', session=session)
+
+@main.route('/ver-chats')
+@login_required
+def ver_chats():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    return render_template('ver_chats.html')
