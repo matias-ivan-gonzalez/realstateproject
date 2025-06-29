@@ -8,5 +8,6 @@ class Conversacion(db.Model):
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     es_futura = db.Column(db.Boolean, default=True)  #TRUE Indica si es una conversación a una reserva futura
     estado = db.Column(db.String(20), default='abierta')
+    #reserva_id = db.Column(db.Integer, db.ForeignKey('reservas.id'), nullable=False)  # Relación opcional con reservas
 
     mensajes = db.relationship('MensajeChat', backref='conversacion', lazy=True)

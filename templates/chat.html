@@ -24,8 +24,9 @@ Chat
     <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ccc; border-radius:8px; padding:1rem; background:#fafbfc;"></div>
     <form id="chat-form" class="mt-3 d-flex gap-2">
         <input id="chat-input" type="text" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" required>
-        <button type="submit" class="btn btn-primary">Enviar</button>
+        <button type="submit" class="btn btn-primary" id="chat-send-btn" >Enviar</button>
     </form>
+    
 </div>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
@@ -35,6 +36,18 @@ Chat
     var chatInput = document.getElementById('chat-input');
     var chatTitleH2 = document.getElementById('chat-title-h2');
     // Contador de mensajes enviados por el cliente en esta sesión
+    var chatSendBtn = document.getElementById('chat-send-btn');
+
+    // Función para activar/desactivar el botón
+    function toggleSendButton() {
+        chatSendBtn.disabled = chatInput.value.trim() === '';
+    }
+
+    // Desactivar al inicio
+    toggleSendButton();
+
+    // Actualizar en cada cambio de texto
+    chatInput.addEventListener('input', toggleSendButton);
     var mensajesCliente = 0;
 
 
@@ -185,6 +198,7 @@ Chat
                 // Si es el primer mensaje del cliente, refrescar tras enviar
                 if (mensajesCliente === 0) {
                     socket.emit('cliente_mensaje', data);
+                    toggleSendButton();
                     window.location.reload();
                 } else {
                     socket.emit('cliente_mensaje', data);
@@ -198,6 +212,7 @@ Chat
                 }
             }
             chatInput.value = '';
+            toggleSendButton();
         }
     };
 
