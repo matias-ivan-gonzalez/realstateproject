@@ -319,3 +319,31 @@ def ver_reservas_propiedad(propiedad_id):
     propiedad = Propiedad.query.get_or_404(propiedad_id)
     reservas = propiedad.reservas
     return render_template('reservas_propiedad.html', reservas=reservas, propiedad=propiedad)
+
+
+from architectural_patterns.controller.user_controller import UserController
+user_controller = UserController()
+
+@main.route('/reservas/futuras')
+def reservas_futuras():
+    reservas = user_controller.obtener_reservas_futuras(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/concluidas')
+def reservas_concluidas():
+    reservas = user_controller.obtener_reservas_concluidas(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_concluidas.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/pendientes')
+def calificaciones_pendientes():
+    reservas = user_controller.obtener_calificaciones_pendientes(session)
+    current_date = datetime.now().date()
+    return render_template('calificaciones_pendientes.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/editables')
+def calificaciones_editables():
+    reservas = user_controller.obtener_calificaciones_editables(session)
+    current_date = datetime.now().date()
+    return render_template('calificaciones_editables.html', reservas=reservas, current_date=current_date)
