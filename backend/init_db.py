@@ -255,7 +255,7 @@ def init_db():
         prop9.longitud = -58.5796
     prop10 = Propiedad.query.filter_by(nombre='Depto Salta Balcarce').first()
     if not prop10:
-        prop10 = Propiedad(nombre='Depto Salta Balcarce', ubicacion='Salta', direccion='Balcarce 500, Salta', precio=90000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento turístico en la zona de peñas y bares.', superusuario=superuser, encargado=encargado, latitud=-24.7883, longitud=-65.4106)
+        prop10 = Propiedad(nombre='Depto Salta Balcarce', ubicacion='Salta', direccion='Balcarce 500, Salta', precio=90000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento turístico en la zona de peñas y bares.', superusuario=superuser, latitud=-24.7883, longitud=-65.4106)
         db.session.add(prop10)
     else:
         prop10.latitud = -24.7883
@@ -324,6 +324,15 @@ def init_db():
     if not reserva4:
         reserva4 = Reserva(cliente=cliente, propiedad=prop2, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='cancelada')
         db.session.add(reserva4)
+        
+    fecha_inicio5 = '2025-6-30'
+    fecha_fin5 = '2025-7-05'
+    fecha_inicio_convertida5 = datetime.strptime(fecha_inicio5, '%Y-%m-%d')
+    fecha_fin_convertida5 = datetime.strptime(fecha_fin5, '%Y-%m-%d')
+    reserva5 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop10.id, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5).first()
+    if not reserva5:    
+        reserva5 = Reserva(cliente=cliente, propiedad=prop10, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5, cantidad_personas=2, estado='concretada')
+        db.session.add(reserva5)
     
     db.session.commit()
     

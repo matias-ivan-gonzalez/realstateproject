@@ -347,11 +347,37 @@ def ver_chats():
     from models.reserva import Reserva
     from models.propiedad import Propiedad
 
-    # Obtener todas las conversaciones abiertas, agrupadas por tipo
-    chats_futuro = Conversacion.query.filter_by(tipo='futuro', estado='abierta').all()
-    chats_curso = Conversacion.query.filter_by(tipo='curso', estado='abierta').all()
-    chats_futuro_cerradas = Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all()
-    chats_curso_cerradas = Conversacion.query.filter_by(tipo='curso', estado='cerrada').all()
+
+    # Solo mostrar a los administradores/superusuarios los chats donde la propiedad NO tiene encargado asignado
+
+    def filtrar_chats_para_admin(chats, tipo):
+        filtrados = []
+        for chat in chats:
+            reserva = Reserva.query.get(chat.reserva_id)
+            if not reserva:
+                continue
+            propiedad = Propiedad.query.get(reserva.propiedad_id)
+            if tipo == 'futuro':
+                # Para reservas a futuro, siempre son los administradores
+                if session.get('rol') == 'superusuario':
+                    filtrados.append(chat)
+                elif session.get('rol') == 'administrador':
+                    if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                        filtrados.append(chat)
+            else:
+                # Para reservas en curso, solo si NO hay encargado asignado
+                if propiedad and not propiedad.encargado_id:
+                    if session.get('rol') == 'superusuario':
+                        filtrados.append(chat)
+                    elif session.get('rol') == 'administrador':
+                        if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                            filtrados.append(chat)
+        return filtrados
+
+    chats_futuro = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='abierta').all(), 'futuro')
+    chats_curso = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='abierta').all(), 'curso')
+    chats_futuro_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all(), 'futuro')
+    chats_curso_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='cerrada').all(), 'curso')
 
     def serializar_chat(chat):
         cliente = Cliente.query.get(chat.cliente_id)
@@ -419,9 +445,18 @@ def ver_mis_chats_encargado():
     from models.reserva import Reserva
     from models.propiedad import Propiedad
 
-    # Obtener las conversaciones del encargado
+
+    # Obtener las conversaciones del encargado a través de sus propiedades
     encargado_id = session.get('user_id')
-    chats = Conversacion.query.filter_by(encargado_id=encargado_id).all()
+    propiedades_encargado = Propiedad.query.filter_by(encargado_id=encargado_id).all()
+    propiedad_ids = [p.id for p in propiedades_encargado]
+    reservas_encargado = Reserva.query.filter(Reserva.propiedad_id.in_(propiedad_ids)).all() if propiedad_ids else []
+    reserva_ids = [r.id for r in reservas_encargado]
+    # Solo mostrar conversaciones en curso (tipo='curso')
+    chats = Conversacion.query.filter(
+        Conversacion.reserva_id.in_(reserva_ids),
+        Conversacion.tipo == 'curso'
+    ).all() if reserva_ids else []
 
     def serializar_chat(chat):
         cliente = Cliente.query.get(chat.cliente_id)
