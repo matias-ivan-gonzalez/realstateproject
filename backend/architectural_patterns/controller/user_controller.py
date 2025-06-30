@@ -2,7 +2,7 @@ from flask import  render_template,  redirect, url_for, flash, request
 from architectural_patterns.service.user_service import UserService
 from flask_mail import Message
 from models.user import Administrador, Encargado
-from datetime import date
+from datetime import date, datetime
 
 class UserController:
 
@@ -299,6 +299,7 @@ class UserController:
         cliente = Cliente.query.get(user_id)
         reservas = cliente.reservas if cliente else []
         current_date = date.today()
+        # Pasar una variable para ocultar la columna de acciones
         # Serializar reservas para JS
         reservas_serializadas = []
         from models.conversacion import Conversacion
@@ -320,7 +321,7 @@ class UserController:
                 'chat_iniciado_futuro': chat_iniciado_futuro,
                 'chat_iniciado_curso': chat_iniciado_curso
             })
-        return render_template('reservas.html', reservas=reservas_serializadas, current_date=current_date)
+        return render_template('reservas.html', reservas=reservas_serializadas, current_date=current_date, ocultar_acciones=True)
 
     def mostrar_formulario_calificacion(self, session, reserva_id):
         from models.reserva import Reserva
@@ -421,3 +422,38 @@ class UserController:
         db.session.commit()
         flash('Calificación borrada exitosamente.', 'success')
         return redirect(url_for('main.ver_reservas'))
+
+    def obtener_lista_reservas(self, session):
+        from models.user import Cliente
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo != 'cliente':
+            return []
+        cliente = Cliente.query.get(user_id)
+        reservas = cliente.reservas if cliente else []
+        return reservas
+
+    def obtener_reservas_futuras(self, session):
+        reservas = self.obtener_lista_reservas(session)
+        hoy = datetime.now().date()
+        return [r for r in reservas if r.fecha_inicio > hoy]
+
+    def obtener_reservas_concluidas(self, session):
+        reservas = self.obtener_lista_reservas(session)
+        hoy = datetime.now().date()
+        return [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days > 30]
+
+    def obtener_calificaciones_pendientes(self, session):
+        reservas = self.obtener_lista_reservas(session)
+        hoy = datetime.now().date()
+        return [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days <= 30 and r.calificacion is None]
+
+    def obtener_calificaciones_editables(self, session):
+        reservas = self.obtener_lista_reservas(session)
+        hoy = datetime.now().date()
+        return [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days <= 30 and r.calificacion is not None]
+
+    def obtener_reservas_activas(self, session):
+        reservas = self.obtener_lista_reservas(session)
+        hoy = datetime.now().date()
+        return [r for r in reservas if r.fecha_inicio <= hoy <= r.fecha_fin]
