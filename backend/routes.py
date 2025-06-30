@@ -407,3 +407,35 @@ def reservas_activas():
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
     return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+
+
+@main.route('/ver-mis-chats-encargado')
+def ver_mis_chats_encargado():
+    if session.get('rol') != 'encargado':
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.conversacion import Conversacion
+    from models.user import Cliente
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+
+    # Obtener las conversaciones del encargado
+    encargado_id = session.get('user_id')
+    chats = Conversacion.query.filter_by(encargado_id=encargado_id).all()
+
+    def serializar_chat(chat):
+        cliente = Cliente.query.get(chat.cliente_id)
+        reserva = Reserva.query.get(chat.reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        return {
+            'id': chat.id,
+            'cliente_id': chat.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat.cliente_id}",
+            'reserva_id': chat.reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida"
+        }
+
+    chats_serializados = [serializar_chat(c) for c in chats]
+    return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)
