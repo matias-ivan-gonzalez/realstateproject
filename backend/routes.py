@@ -347,11 +347,37 @@ def ver_chats():
     from models.reserva import Reserva
     from models.propiedad import Propiedad
 
-    # Obtener todas las conversaciones abiertas, agrupadas por tipo
-    chats_futuro = Conversacion.query.filter_by(tipo='futuro', estado='abierta').all()
-    chats_curso = Conversacion.query.filter_by(tipo='curso', estado='abierta').all()
-    chats_futuro_cerradas = Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all()
-    chats_curso_cerradas = Conversacion.query.filter_by(tipo='curso', estado='cerrada').all()
+
+    # Solo mostrar a los administradores/superusuarios los chats donde la propiedad NO tiene encargado asignado
+
+    def filtrar_chats_para_admin(chats, tipo):
+        filtrados = []
+        for chat in chats:
+            reserva = Reserva.query.get(chat.reserva_id)
+            if not reserva:
+                continue
+            propiedad = Propiedad.query.get(reserva.propiedad_id)
+            if tipo == 'futuro':
+                # Para reservas a futuro, siempre son los administradores
+                if session.get('rol') == 'superusuario':
+                    filtrados.append(chat)
+                elif session.get('rol') == 'administrador':
+                    if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                        filtrados.append(chat)
+            else:
+                # Para reservas en curso, solo si NO hay encargado asignado
+                if propiedad and not propiedad.encargado_id:
+                    if session.get('rol') == 'superusuario':
+                        filtrados.append(chat)
+                    elif session.get('rol') == 'administrador':
+                        if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                            filtrados.append(chat)
+        return filtrados
+
+    chats_futuro = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='abierta').all(), 'futuro')
+    chats_curso = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='abierta').all(), 'curso')
+    chats_futuro_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all(), 'futuro')
+    chats_curso_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='cerrada').all(), 'curso')
 
     def serializar_chat(chat):
         cliente = Cliente.query.get(chat.cliente_id)
@@ -407,3 +433,44 @@ def reservas_activas():
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
     return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+
+
+@main.route('/ver-mis-chats-encargado')
+def ver_mis_chats_encargado():
+    if session.get('rol') != 'encargado':
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.conversacion import Conversacion
+    from models.user import Cliente
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+
+
+    # Obtener las conversaciones del encargado a través de sus propiedades
+    encargado_id = session.get('user_id')
+    propiedades_encargado = Propiedad.query.filter_by(encargado_id=encargado_id).all()
+    propiedad_ids = [p.id for p in propiedades_encargado]
+    reservas_encargado = Reserva.query.filter(Reserva.propiedad_id.in_(propiedad_ids)).all() if propiedad_ids else []
+    reserva_ids = [r.id for r in reservas_encargado]
+    # Solo mostrar conversaciones en curso (tipo='curso')
+    chats = Conversacion.query.filter(
+        Conversacion.reserva_id.in_(reserva_ids),
+        Conversacion.tipo == 'curso'
+    ).all() if reserva_ids else []
+
+    def serializar_chat(chat):
+        cliente = Cliente.query.get(chat.cliente_id)
+        reserva = Reserva.query.get(chat.reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        return {
+            'id': chat.id,
+            'cliente_id': chat.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat.cliente_id}",
+            'reserva_id': chat.reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida"
+        }
+
+    chats_serializados = [serializar_chat(c) for c in chats]
+    return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)

@@ -17,6 +17,7 @@ Chat
 <script>
   window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
   window.isCliente = {{ (session.rol == 'cliente') | tojson }};
+  window.isEncargado = {{ (session.rol == 'encargado') | tojson }};
   window.nombre_cliente = {{ session.get('user_name') | tojson }};
   window.reserva_id = {{ reserva_id|tojson }};
   window.tipo_chat = {{ tipo|tojson }};
@@ -72,12 +73,38 @@ Chat
     // --- CHAT POR CONVERSACION ---
     var conversacionId = null;
 
+
     // Cliente: solo puede iniciar su conversación y ver su propio chat
     if (window.isCliente) {
         socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
         socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
         // Cambiar el título visible
         if (chatTitleH2) chatTitleH2.textContent = 'Chat con Alquilando';
+    }
+
+    // Encargado: ve el historial de la conversación a la que accede (por conversacion_id)
+    if (window.isEncargado) {
+        // Detectar conversacion_id y nombre del cliente en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedConversacionId = urlParams.get('conversacion_id');
+        let clienteNombre = urlParams.get('cliente_nombre');
+        if (clienteNombre) {
+            try {
+                clienteNombre = decodeURIComponent(clienteNombre.replace(/\+/g, ' '));
+            } catch (e) {
+                // fallback
+                clienteNombre = clienteNombre.replace(/%20/g, ' ');
+            }
+        }
+        if (preselectedConversacionId) {
+            conversacionId = preselectedConversacionId;
+            chatForm.style.display = '';
+            socket.emit('join_chat', { conversacion_id: conversacionId });
+            socket.emit('get_chat_history', { conversacion_id: conversacionId });
+            if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + (clienteNombre ? clienteNombre : 'Cliente');
+        } else {
+            chatForm.style.display = 'none';
+        }
     }
 
     // Admin: ver listado de conversaciones y acceder a cada una
@@ -87,7 +114,14 @@ Chat
         const preselectedConversacionId = urlParams.get('conversacion_id');
 
         // Detectar si hay un cliente_nombre en la URL
-        const clienteNombre = urlParams.get('cliente_nombre');
+        let clienteNombre = urlParams.get('cliente_nombre');
+        if (clienteNombre) {
+            try {
+                clienteNombre = decodeURIComponent(clienteNombre.replace(/\+/g, ' '));
+            } catch (e) {
+                clienteNombre = clienteNombre.replace(/%20/g, ' ');
+            }
+        }
 
         if (window.isAdmin && preselectedConversacionId) {
             // Si hay un conversacion_id, cargar directamente el chat
@@ -97,7 +131,7 @@ Chat
             socket.emit('get_chat_history', { conversacion_id: conversacionId });
 
             // Cambiar el título visible
-            const titulo = clienteNombre ? `Chat con ${decodeURIComponent(clienteNombre)}` : `Chat con Cliente ${conversacionId}`;
+            const titulo = clienteNombre ? `Chat con ${clienteNombre}` : `Chat con Cliente ${conversacionId}`;
             document.title = titulo;
             if (chatTitleH2) chatTitleH2.textContent = titulo;
         } else if (window.isAdmin) {
@@ -167,16 +201,21 @@ Chat
         var rol = data.rol || '';
         var isAdminMsg = (rol === 'administrador' || rol === 'superusuario');
         var isClienteMsg = (rol === 'cliente');
+        var isEncargadoMsg = (rol === 'encargado');
 
         var div = document.createElement('div');
         div.style.display = 'flex';
         // Lógica de alineación según el usuario actual
         if (window.isCliente) {
-            // Cliente ve sus mensajes a la derecha, admin a la izquierda
+            // Cliente ve sus mensajes a la derecha, admin/encargado a la izquierda
             div.style.justifyContent = isClienteMsg ? 'flex-end' : 'flex-start';
-        } else if (window.isAdmin) {
-            // Admin ve sus mensajes a la derecha, cliente a la izquierda
-            div.style.justifyContent = isAdminMsg ? 'flex-end' : 'flex-start';
+        } else if (window.isAdmin || window.isEncargado) {
+            // Admin y encargado ven todos los mensajes de "Alquilando" (admin o encargado) a la derecha
+            if (isAdminMsg || isEncargadoMsg) {
+                div.style.justifyContent = 'flex-end';
+            } else {
+                div.style.justifyContent = 'flex-start';
+            }
         } else {
             div.style.justifyContent = 'flex-start';
         }
@@ -186,21 +225,33 @@ Chat
         msgBubble.style.maxWidth = '70%';
         msgBubble.style.padding = '8px 14px';
         msgBubble.style.borderRadius = '16px';
-        msgBubble.style.background = isAdminMsg ? '#d1e7dd' : '#e9ecef';
+        msgBubble.style.background = isAdminMsg ? '#d1e7dd' : (isEncargadoMsg ? '#ffe5b4' : '#e9ecef');
         msgBubble.style.color = '#222';
         // El texto siempre alineado a la izquierda para ambos
         msgBubble.style.textAlign = 'left';
         msgBubble.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
 
         const urlParams = new URLSearchParams(window.location.search);
-        const clienteNombre = urlParams.get('cliente_nombre');
+        let clienteNombre = urlParams.get('cliente_nombre');
+        if (clienteNombre) {
+            try {
+                clienteNombre = decodeURIComponent(clienteNombre.replace(/\+/g, ' '));
+            } catch (e) {
+                clienteNombre = clienteNombre.replace(/%20/g, ' ');
+            }
+        }
 
         if (isAdminMsg) {
             msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
+        } else if (isEncargadoMsg) {
+            // El encargado ve sus propios mensajes como "Alquilando", el cliente también los ve así
+            msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
         } else if (isClienteMsg) {
-            // Si el usuario actual es admin, mostrar siempre el nombre del cliente
-            if (window.isAdmin) {
-                msgBubble.innerHTML = '<b>' + (clienteNombre || 'Cliente') + ':</b> ' + data.msg;
+            // Si el usuario actual es admin o encargado, mostrar siempre el nombre del cliente
+            if (window.isAdmin || window.isEncargado) {
+                // Decodificar el nombre del cliente si está presente
+                let nombreDecodificado = clienteNombre ? decodeURIComponent(clienteNombre) : 'Cliente';
+                msgBubble.innerHTML = '<b>' + nombreDecodificado + ':</b> ' + data.msg;
             } else {
                 // Si el usuario es cliente, mostrar su nombre
                 var nombreMostrar = window.nombre_cliente || 'Cliente';
@@ -235,6 +286,13 @@ Chat
                 if (conversacionId) {
                     data.conversacion_id = conversacionId;
                     socket.emit('admin_mensaje', data);
+                } else {
+                    alert('Selecciona una conversación para chatear');
+                }
+            } else if(window.isEncargado) {
+                if (conversacionId) {
+                    data.conversacion_id = conversacionId;
+                    socket.emit('encargado_mensaje', data);
                 } else {
                     alert('Selecciona una conversación para chatear');
                 }

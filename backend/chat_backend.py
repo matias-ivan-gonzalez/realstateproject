@@ -80,8 +80,6 @@ def register_chat_events(socketio):
 
     @socketio.on('admin_mensaje')
     def handle_admin_mensaje(data):
-        if not is_admin():
-            return
         user = data.get('user') or session.get('nombre') or 'Admin'
         rol = session.get('rol') or 'administrador'
         conversacion_id = data.get('conversacion_id')
@@ -92,17 +90,66 @@ def register_chat_events(socketio):
         if not conversacion:
             print('[SOCKET] admin_mensaje: conversacion no encontrada')
             return
+        # --- NUEVO: Solo permitir admins si NO hay encargado asignado ---
+        if conversacion.tipo == 'curso':
+            from models.reserva import Reserva
+            from models.propiedad import Propiedad
+            reserva = Reserva.query.get(conversacion.reserva_id)
+            encargado_id = None
+            if reserva:
+                propiedad = Propiedad.query.get(reserva.propiedad_id)
+                if propiedad:
+                    encargado_id = getattr(propiedad, 'encargado_id', None)
+            if encargado_id:
+                # Si hay encargado, los admins no pueden enviar mensajes
+                print('[SOCKET] admin_mensaje: Hay encargado asignado, solo el encargado puede responder')
+                return
+        if not is_admin():
+            return
         print(f"[SOCKET] Mensaje recibido del admin: user={user}, rol={rol}, conversacion_id={conversacion_id}, data={data}")
+        mensaje = MensajeChat(user=user, rol=rol, msg=data['msg'], conversacion_id=conversacion.id)
+        db.session.add(mensaje)
+        db.session.commit()
+        emit('chat_mensaje', mensaje.to_dict(), room=f'chat_{conversacion.id}')
+    @socketio.on('encargado_mensaje')
+    def handle_encargado_mensaje(data):
+        # Solo el encargado de la propiedad puede enviar mensajes en curso
+        if session.get('rol') != 'encargado':
+            return
+        user = data.get('user') or session.get('nombre') or 'Encargado'
+        rol = session.get('rol') or 'encargado'
+        conversacion_id = data.get('conversacion_id')
+        if not conversacion_id:
+            print('[SOCKET] encargado_mensaje: conversacion_id faltante')
+            return
+        conversacion = Conversacion.query.get(conversacion_id)
+        if not conversacion:
+            print('[SOCKET] encargado_mensaje: conversacion no encontrada')
+            return
+        if conversacion.tipo != 'curso':
+            print('[SOCKET] encargado_mensaje: Solo puede responder en conversaciones en curso')
+            return
+        from models.reserva import Reserva
+        from models.propiedad import Propiedad
+        reserva = Reserva.query.get(conversacion.reserva_id)
+        encargado_id = None
+        if reserva:
+            propiedad = Propiedad.query.get(reserva.propiedad_id)
+            if propiedad:
+                encargado_id = getattr(propiedad, 'encargado_id', None)
+        if encargado_id != session.get('user_id'):
+            print('[SOCKET] encargado_mensaje: No es el encargado asignado a esta propiedad')
+            return
         mensaje = MensajeChat(user=user, rol=rol, msg=data['msg'], conversacion_id=conversacion.id)
         db.session.add(mensaje)
         db.session.commit()
         emit('chat_mensaje', mensaje.to_dict(), room=f'chat_{conversacion.id}')
     @socketio.on('get_chat_history')
     def handle_get_chat_history(data=None):
-        # El cliente siempre pide su propia conversación, el admin puede pedir la de un cliente específico
+        # El cliente siempre pide su propia conversación, el admin o encargado pueden pedir la de un cliente específico
         conversacion_id = None
         conversacion = None
-        if is_admin() and data and data.get('conversacion_id'):
+        if (is_admin() or session.get('rol') == 'encargado') and data and data.get('conversacion_id'):
             conversacion_id = data['conversacion_id']
             conversacion = Conversacion.query.get(conversacion_id)
         else:
@@ -127,8 +174,8 @@ def register_chat_events(socketio):
 
     @socketio.on('join_chat')
     def join_chat(data):
-        # Un cliente se une a su room de conversación, un admin puede unirse a la conversación de un cliente
-        if is_admin() and data and data.get('conversacion_id'):
+        # Un cliente, admin o encargado se une a su room de conversación
+        if (is_admin() or session.get('rol') == 'encargado') and data and data.get('conversacion_id'):
             join_room(f"chat_{data['conversacion_id']}")
         elif is_cliente():
             cliente_id = session.get('user_id')

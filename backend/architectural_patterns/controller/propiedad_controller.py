@@ -287,8 +287,20 @@ class PropiedadController:
 
     def asignar_propiedad(self, session, propiedad_id, encargado_id):
         from models.propiedad import Propiedad
+        from models.reserva import Reserva
         from database import db
+        from datetime import date
         propiedad = Propiedad.query.get_or_404(propiedad_id)
+        # Validar que no haya una reserva en curso en la fecha actual
+        hoy = date.today()
+        reservas_en_curso = Reserva.query.filter(
+            Reserva.propiedad_id == propiedad_id,
+            Reserva.fecha_inicio <= hoy,
+            Reserva.fecha_fin >= hoy
+        ).all()
+        if reservas_en_curso:
+            flash('No se puede asignar la propiedad porque tiene una reserva en curso.', 'danger')
+            return redirect(url_for('main.ver_encargados'))
         propiedad.encargado_id = encargado_id
         db.session.commit()
         flash('Propiedad asignada correctamente.', 'success')
@@ -296,8 +308,20 @@ class PropiedadController:
 
     def desasignar_propiedad(self, session, propiedad_id):
         from models.propiedad import Propiedad
+        from models.reserva import Reserva
         from database import db
+        from datetime import date
         propiedad = Propiedad.query.get_or_404(propiedad_id)
+        # Validar que no haya una reserva en curso en la fecha actual
+        hoy = date.today()
+        reservas_en_curso = Reserva.query.filter(
+            Reserva.propiedad_id == propiedad_id,
+            Reserva.fecha_inicio <= hoy,
+            Reserva.fecha_fin >= hoy
+        ).all()
+        if reservas_en_curso:
+            flash('No se puede desasignar la propiedad porque tiene una reserva en curso.', 'danger')
+            return redirect(url_for('main.ver_encargados'))
         propiedad.encargado_id = None
         db.session.commit()
         flash('Propiedad desasignada correctamente.', 'success')
