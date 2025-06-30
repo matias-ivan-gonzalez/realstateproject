@@ -25,26 +25,40 @@
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
                                 <th>Estado</th>
+                                <th>Chat en curso</th>
+                                <th>Chat futuro</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for reserva in reservas %}
-                                {% if reserva.fecha_fin < current_date and (current_date - reserva.fecha_fin).days > 30 %}
                                 <tr>
-                                    <td>{{ reserva.propiedad.nombre }}</td>
-                                    <td>{{ reserva.propiedad.direccion }}</td>
-                                    <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-                                    <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ reserva.propiedad }}</td>
+                                    <td>{{ reserva.direccion }}</td>
+                                    <td>{{ reserva.fecha_inicio_str }}</td>
+                                    <td>{{ reserva.fecha_fin_str }}</td>
                                     <td>{{ reserva.cantidad_personas }}</td>
                                     <td>
-                                        {% if reserva.calificacion is not none %}
+                                        {% if reserva.calificacion %}
                                             <span class="badge bg-success">Calificada</span>
                                         {% else %}
                                             <span class="badge bg-danger">No calificada</span>
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        {% if reserva.chat_existio_curso %}
+                                            <a href="/chat?reserva_id={{ reserva.id }}&tipo=curso" class="btn btn-outline-primary">Ver chat</a>
+                                        {% else %}
+                                            <span class="text-muted">No hubo chat</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reserva.chat_existio_futuro %}
+                                            <a href="/chat?reserva_id={{ reserva.id }}&tipo=futuro" class="btn btn-outline-primary">Ver chat</a>
+                                        {% else %}
+                                            <span class="text-muted">No hubo chat</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
-                                {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>

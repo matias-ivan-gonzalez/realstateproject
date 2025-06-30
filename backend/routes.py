@@ -320,6 +320,59 @@ def ver_reservas_propiedad(propiedad_id):
     reservas = propiedad.reservas
     return render_template('reservas_propiedad.html', reservas=reservas, propiedad=propiedad)
 
+from flask import request
+@main.route('/chat')
+def chat():
+    from flask import session
+    from models.conversacion import Conversacion
+    reserva_id = request.args.get('reserva_id')
+    tipo = request.args.get('tipo')
+    conversacion_id = request.args.get('conversacion_id')
+    conversacion = None
+    if conversacion_id:
+        conversacion = Conversacion.query.get(conversacion_id)
+    elif session.get('rol') == 'cliente':
+        conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
+    estado_chat = conversacion.estado if conversacion else 'abierta'
+    return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo, estado_chat=estado_chat)
+
+@main.route('/ver-chats')
+@login_required
+def ver_chats():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.conversacion import Conversacion
+    from models.user import Cliente
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+
+    # Obtener todas las conversaciones abiertas, agrupadas por tipo
+    chats_futuro = Conversacion.query.filter_by(tipo='futuro', estado='abierta').all()
+    chats_curso = Conversacion.query.filter_by(tipo='curso', estado='abierta').all()
+    chats_futuro_cerradas = Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all()
+    chats_curso_cerradas = Conversacion.query.filter_by(tipo='curso', estado='cerrada').all()
+
+    def serializar_chat(chat):
+        cliente = Cliente.query.get(chat.cliente_id)
+        reserva = Reserva.query.get(chat.reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        return {
+            'id': chat.id,
+            'cliente_id': chat.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat.cliente_id}",
+            'reserva_id': chat.reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida"
+        }
+
+    chats_futuro = [serializar_chat(c) for c in chats_futuro]
+    chats_curso = [serializar_chat(c) for c in chats_curso]
+    chats_futuro_cerradas = [serializar_chat(c) for c in chats_futuro_cerradas]
+    chats_curso_cerradas = [serializar_chat(c) for c in chats_curso_cerradas]
+    return render_template('ver_chats.html', chats_futuro=chats_futuro, chats_curso=chats_curso, chats_futuro_cerradas=chats_futuro_cerradas, chats_curso_cerradas=chats_curso_cerradas)
+
 
 from architectural_patterns.controller.user_controller import UserController
 user_controller = UserController()

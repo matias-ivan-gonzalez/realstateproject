@@ -9,6 +9,8 @@ from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
 from models.reserva import Reserva
 from datetime import datetime, date
+from models.conversacion import Conversacion
+from models.mensaje_chat import MensajeChat
 
 
 def init_db():
@@ -385,6 +387,21 @@ def init_db():
     
         
         
+    db.session.commit()
+    
+    # Conversaciones
+    conversacion1 = Conversacion.query.filter_by(cliente_id=cliente.id,estado = 'cerrada', reserva_id=reserva3.id, tipo = 'curso').first()
+    if not conversacion1:
+        conversacion1 = Conversacion(cliente_id=cliente.id, estado = 'cerrada', reserva_id=reserva3.id, tipo='curso')
+        db.session.add(conversacion1)
+    msj_1 = MensajeChat.query.filter_by(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion1, msg='Hola, tengo una consulta sobre la reserva que hice para mayo.').first()
+    if not msj_1:
+        msj_1 = MensajeChat(user=cliente.nombre, rol= cliente.tipo, conversacion=conversacion1, msg='Hola, tengo una consulta sobre la reserva que hice para mayo.')
+        db.session.add(msj_1)
+    msj_2 = MensajeChat.query.filter_by(user=superuser.nombre, rol=superuser.tipo, conversacion_id=conversacion1.id, msg='Gracias por contactarnos, en un momento estamos con usted.').first()
+    if not msj_2:
+        msj_2 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion1, msg='Gracias por contactarnos, en un momento estamos con usted.')
+        db.session.add(msj_2)
     db.session.commit()
 
     # Favoritos
