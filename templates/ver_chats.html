@@ -6,15 +6,21 @@
     <div class="mb-3 d-flex gap-3">
         <button id="btn-futuras" class="btn btn-outline-primary">Chats con reservas a futuro</button>
         <button id="btn-curso" class="btn btn-outline-success">Chats con reservas en curso</button>
+        <button id="btn-futuras-cerradas" class="btn btn-outline-secondary">Chats con reservas a futuro cerrados</button>
+        <button id="btn-curso-cerradas" class="btn btn-outline-secondary">Chats con reservas en curso cerrados</button>
     </div>
     <div id="listado-chats" class="mt-3"></div>
 </div>
 <script>
     var btnFuturas = document.getElementById('btn-futuras');
     var btnCurso = document.getElementById('btn-curso');
+    var btnFuturasCerradas = document.getElementById('btn-futuras-cerradas');
+    var btnCursoCerradas = document.getElementById('btn-curso-cerradas');
     var listado = document.getElementById('listado-chats');
     var chatsFuturo = {{ chats_futuro|tojson }};
     var chatsCurso = {{ chats_curso|tojson }};
+    var chatsFuturoCerradas = {{ chats_futuro_cerradas|tojson }};           
+    var chatsCursoCerradas = {{ chats_curso_cerradas|tojson }};
 
     function renderChats(chats, titulo) {
         if (chats.length === 0) {
@@ -43,7 +49,11 @@
     btnCurso.onclick = function() {
         renderChats(chatsCurso, 'Chats con reservas en curso');
     };
-    // Mostrar futuros por defecto
-    btnFuturas.click();
+    btnFuturasCerradas.onclick = function() {
+        renderChats(chatsFuturoCerradas, 'Chats con reservas a futuros cerrados');
+    };
+    btnCursoCerradas.onclick = function() {
+        renderChats(chatsCursoCerradas, 'Chats con reservas en curso cerrados');
+    };
 </script>
 {% endblock %}

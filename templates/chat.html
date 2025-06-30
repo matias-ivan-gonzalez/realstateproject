@@ -20,14 +20,28 @@ Chat
   window.nombre_cliente = {{ session.get('user_name') | tojson }};
   window.reserva_id = {{ reserva_id|tojson }};
   window.tipo_chat = {{ tipo|tojson }};
+  window.estado_chat = {{ estado_chat|tojson }};
 </script>
 <div class="container mt-4">
     <h2 class="mb-4" id="chat-title-h2"></h2>
     <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ccc; border-radius:8px; padding:1rem; background:#fafbfc;"></div>
+    {% raw %}
+    <div id="chat-cerrado-aviso" style="display:none;" class="alert alert-warning mt-2 mb-0 py-2 px-3">Este chat está cerrado, no se pueden enviar mensajes.</div>
+    {% endraw %}
     <form id="chat-form" class="mt-3 d-flex gap-2">
         <input id="chat-input" type="text" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" required>
-        <button type="submit" class="btn btn-primary" id="chat-send-btn" >Enviar</button>
+        <button type="submit" class="btn btn-primary" id="chat-send-btn">Enviar</button>
     </form>
+    <script>
+     if (window.estado_chat === 'cerrada') {
+        document.getElementById('chat-input').disabled = true;
+        document.getElementById('chat-send-btn').disabled = true;
+        document.getElementById('chat-send-btn').textContent = 'Chat cerrado';
+        document.getElementById('chat-cerrado-aviso').style.display = 'block';
+     }
+     // Bloquear envío de mensajes para todos si el chat está cerrado
+     
+    </script>
     
 </div>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>

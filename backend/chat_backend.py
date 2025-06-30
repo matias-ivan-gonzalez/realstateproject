@@ -101,8 +101,10 @@ def register_chat_events(socketio):
     def handle_get_chat_history(data=None):
         # El cliente siempre pide su propia conversación, el admin puede pedir la de un cliente específico
         conversacion_id = None
+        conversacion = None
         if is_admin() and data and data.get('conversacion_id'):
             conversacion_id = data['conversacion_id']
+            conversacion = Conversacion.query.get(conversacion_id)
         else:
             cliente_id = session.get('user_id')
             reserva_id = None
@@ -113,7 +115,8 @@ def register_chat_events(socketio):
             if not reserva_id or not tipo:
                 emit('chat_history', [])
                 return
-            conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, reserva_id=reserva_id, tipo=tipo, estado='abierta').first()
+            # Buscar conversación sin importar el estado (abierta o cerrada)
+            conversacion = Conversacion.query.filter_by(cliente_id=cliente_id, reserva_id=reserva_id, tipo=tipo).first()
             if conversacion:
                 conversacion_id = conversacion.id
         if conversacion_id:

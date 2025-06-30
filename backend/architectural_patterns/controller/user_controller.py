@@ -445,8 +445,19 @@ class UserController:
         concluidas = [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days > 30]
         reservas_serializadas = []
         for r in concluidas:
-            chat_existio_curso = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='curso').first() is not None
-            chat_existio_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro').first() is not None
+            # Cerrar conversaciones si existen y están abiertas
+            chat_curso = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='curso').first()
+            chat_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro').first()
+            chat_existio_curso = chat_curso is not None
+            chat_existio_futuro = chat_futuro is not None
+            # Si la conversación existe y está abierta, cerrarla
+            from database import db
+            if chat_curso and chat_curso.estado != 'cerrada':
+                chat_curso.estado = 'cerrada'
+                db.session.commit()
+            if chat_futuro and chat_futuro.estado != 'cerrada':
+                chat_futuro.estado = 'cerrada'
+                db.session.commit()
             reservas_serializadas.append({
                 'id': r.id,
                 'propiedad': r.propiedad.nombre if r.propiedad else '',
