@@ -416,12 +416,52 @@ class UserController:
     def obtener_reservas_futuras(self, session):
         reservas = self.obtener_lista_reservas(session)
         hoy = datetime.now().date()
-        return [r for r in reservas if r.fecha_inicio > hoy]
+        user_id = session.get('user_id')
+        from models.conversacion import Conversacion
+        futuras = [r for r in reservas if r.fecha_inicio > hoy]
+        reservas_serializadas = []
+        for r in futuras:
+            chat_iniciado_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro', estado='abierta').first() is not None
+            reservas_serializadas.append({
+                'id': r.id,
+                'propiedad': r.propiedad.nombre if r.propiedad else '',
+                'direccion': r.propiedad.direccion if r.propiedad else '',
+                'fecha_inicio': r.fecha_inicio.strftime('%Y-%m-%d'),
+                'fecha_fin': r.fecha_fin.strftime('%Y-%m-%d'),
+                'cantidad_personas': r.cantidad_personas,
+                'calificacion': r.calificacion is not None,
+                'calificacion_id': r.calificacion.id if r.calificacion else None,
+                'fecha_inicio_str': r.fecha_inicio.strftime('%d/%m/%Y'),
+                'fecha_fin_str': r.fecha_fin.strftime('%d/%m/%Y'),
+                'chat_iniciado_futuro': chat_iniciado_futuro
+            })
+        return reservas_serializadas
 
     def obtener_reservas_concluidas(self, session):
         reservas = self.obtener_lista_reservas(session)
         hoy = datetime.now().date()
-        return [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days > 30]
+        user_id = session.get('user_id')
+        from models.conversacion import Conversacion
+        concluidas = [r for r in reservas if r.fecha_fin < hoy and (hoy - r.fecha_fin).days > 30]
+        reservas_serializadas = []
+        for r in concluidas:
+            chat_existio_curso = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='curso').first() is not None
+            chat_existio_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro').first() is not None
+            reservas_serializadas.append({
+                'id': r.id,
+                'propiedad': r.propiedad.nombre if r.propiedad else '',
+                'direccion': r.propiedad.direccion if r.propiedad else '',
+                'fecha_inicio': r.fecha_inicio.strftime('%Y-%m-%d'),
+                'fecha_fin': r.fecha_fin.strftime('%Y-%m-%d'),
+                'cantidad_personas': r.cantidad_personas,
+                'calificacion': r.calificacion is not None,
+                'calificacion_id': r.calificacion.id if r.calificacion else None,
+                'fecha_inicio_str': r.fecha_inicio.strftime('%d/%m/%Y'),
+                'fecha_fin_str': r.fecha_fin.strftime('%d/%m/%Y'),
+                'chat_existio_curso': chat_existio_curso,
+                'chat_existio_futuro': chat_existio_futuro
+            })
+        return reservas_serializadas
 
     def obtener_calificaciones_pendientes(self, session):
         reservas = self.obtener_lista_reservas(session)
