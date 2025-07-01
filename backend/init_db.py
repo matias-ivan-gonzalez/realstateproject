@@ -315,16 +315,37 @@ def init_db():
         reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2, estado='pendiente')
         db.session.add(reserva3)
 
-    # Cuarta reserva en julio (cancelada)
+    # Cuarta reserva en julio (cancelada) - Casa Palermo
     fecha_inicio4 = '2025-7-01'
     fecha_fin4 = '2025-7-05'
     fecha_inicio_convertida4 = datetime.strptime(fecha_inicio4, '%Y-%m-%d')
     fecha_fin_convertida4 = datetime.strptime(fecha_fin4, '%Y-%m-%d')
-    reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop2.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
+    reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
     if not reserva4:
-        reserva4 = Reserva(cliente=cliente, propiedad=prop2, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='cancelada')
+        reserva4 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='cancelada')
         db.session.add(reserva4)
-        
+
+    # Reserva cancelada en agosto (Casa Palermo, fechas no superpuestas)
+    fecha_inicio6 = '2025-8-10'
+    fecha_fin6 = '2025-8-15'
+    fecha_inicio_convertida6 = datetime.strptime(fecha_inicio6, '%Y-%m-%d')
+    fecha_fin_convertida6 = datetime.strptime(fecha_fin6, '%Y-%m-%d')
+    reserva6 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6).first()
+    if not reserva6:
+        reserva6 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6, cantidad_personas=3, estado='cancelada')
+        db.session.add(reserva6)
+
+    # Reserva concretada en agosto (Casa Palermo, fechas no superpuestas)
+    fecha_inicio7 = '2025-8-20'
+    fecha_fin7 = '2025-8-25'
+    fecha_inicio_convertida7 = datetime.strptime(fecha_inicio7, '%Y-%m-%d')
+    fecha_fin_convertida7 = datetime.strptime(fecha_fin7, '%Y-%m-%d')
+    reserva7 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7).first()
+    if not reserva7:
+        reserva7 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7, cantidad_personas=2, estado='concretada')
+        db.session.add(reserva7)
+
+    # Reserva concretada en prop10 (junio-julio, fechas no superpuestas con prop2)
     fecha_inicio5 = '2025-6-30'
     fecha_fin5 = '2025-7-05'
     fecha_inicio_convertida5 = datetime.strptime(fecha_inicio5, '%Y-%m-%d')
@@ -333,7 +354,7 @@ def init_db():
     if not reserva5:    
         reserva5 = Reserva(cliente=cliente, propiedad=prop10, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5, cantidad_personas=2, estado='concretada')
         db.session.add(reserva5)
-    
+
     db.session.commit()
     
     

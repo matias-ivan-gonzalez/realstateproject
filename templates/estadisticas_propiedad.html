@@ -1,7 +1,69 @@
 {% extends "base_hero.html" %}
 {% block title %}Estadísticas de Propiedad - Alquilando{% endblock %}
 {% block hero_content %}
-<div class="container mt-5 fade-in">
+<style>
+    /* Ajusta el ancho máximo y el padding para que todo entre en la pantalla */
+    .estadisticas-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 8px 0 8px;
+    }
+    @media (max-width: 1200px) {
+        .estadisticas-container {
+            max-width: 100vw;
+            padding: 12px 2vw 0 2vw;
+        }
+    }
+    .estadisticas-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: center;
+    }
+    .estadisticas-col {
+        flex: 1 1 400px;
+        max-width: 500px;
+        min-width: 320px;
+        display: flex;
+    }
+    .card.shadow {
+        width: 100%;
+    }
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        margin-top: 18px;
+        margin-bottom: 8px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    .legend-color {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    canvas {
+        max-width: 100% !important;
+        height: 340px !important;
+    }
+    @media (max-width: 900px) {
+        .estadisticas-row {
+            flex-direction: column;
+            align-items: center;
+        }
+        .estadisticas-col {
+            max-width: 95vw;
+        }
+    }
+</style>
+<div class="estadisticas-container fade-in">
     <h2 class="mb-4">Estadísticas de {{ propiedad.nombre }}</h2>
     <form method="get" class="mb-4 row g-2 align-items-end">
         <div class="col-auto">
@@ -27,29 +89,37 @@
             <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-secondary">Volver al detalle</a>
         </div>
     </form>
-    <div class="row g-4">
-        <div class="col-md-6">
+    <div class="estadisticas-row">
+        <div class="estadisticas-col">
             <div class="card shadow">
-                <div class="card-header">Reservas en el mes</div>
+                <div class="card-header">Estadísticas mensuales</div>
                 <div class="card-body">
                     <canvas id="reservasMesChart"></canvas>
+                    <!-- Leyenda eliminada para evitar duplicación visual -->
                     <ul class="mt-3">
-                        <li><strong>Concretadas:</strong> {{ reservas_concretadas }}</li>
-                        <li><strong>Canceladas:</strong> {{ reservas_canceladas }}</li>
+                        <li><strong>Reservas concretadas:</strong> {{ reservas_concretadas }}</li>
+                        <li><strong>Reservas canceladas:</strong> {{ reservas_canceladas }}</li>
                         <li><strong>Promedio de días por reserva:</strong> {{ promedio_dias_reserva }}</li>
                         <li><strong>Total de noches reservadas:</strong> {{ total_noches }}</li>
+                        <li><strong>Porcentaje de ocupación:</strong> {{ porcentaje_ocupacion }}%</li>
+                        <li><strong>Ingresos:</strong> ${{ ingresos_estimados }}</li>
                     </ul>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="estadisticas-col">
             <div class="card shadow">
-                <div class="card-header">Otras estadísticas</div>
+                <div class="card-header">Estadísticas anuales</div>
                 <div class="card-body">
-                    <ul>
-                        <li><strong>Porcentaje de ocupación:</strong> {{ porcentaje_ocupacion }}%</li>
-                        <li><strong>Ingresos estimados:</strong> ${{ ingresos_estimados }}</li>
-                        <li><strong>Reservas totales del año:</strong> {{ reservas_anio }}</li>
+                    <canvas id="reservasAnioChart"></canvas>
+                    <!-- Leyenda eliminada para evitar duplicación visual en anuales -->
+                    <ul class="mt-3">
+                        <li><strong>Reservas concretadas:</strong> {{ reservas_anio_concretadas }}</li>
+                        <li><strong>Reservas canceladas:</strong> {{ reservas_anio_canceladas }}</li>
+                        <li><strong>Promedio de días por reserva:</strong> {{ promedio_dias_reserva_anio }}</li>
+                        <li><strong>Total de noches reservadas:</strong> {{ total_noches_anio }}</li>
+                        <li><strong>Porcentaje de ocupación:</strong> {{ porcentaje_ocupacion_anio }}%</li>
+                        <li><strong>Ingresos:</strong> ${{ ingresos_estimados_anio }}</li>
                     </ul>
                 </div>
             </div>
@@ -62,7 +132,7 @@
     const reservasMesChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Concretadas', 'Canceladas'],
+            labels: ['Reservas concretadas', 'Reservas canceladas'],
             datasets: [{
                 data: [Number('{{ reservas_concretadas }}'), Number('{{ reservas_canceladas }}')],
                 backgroundColor: ['#198754', '#dc3545']
@@ -70,7 +140,26 @@
         },
         options: {
             plugins: {
-                legend: { position: 'bottom' }
+                legend: { position: 'bottom' },
+                tooltip: { enabled: false }
+            }
+        }
+    });
+
+    const ctxAnio = document.getElementById('reservasAnioChart').getContext('2d');
+    const reservasAnioChart = new Chart(ctxAnio, {
+        type: 'doughnut',
+        data: {
+            labels: ['Reservas concretadas', 'Reservas canceladas'],
+            datasets: [{
+                data: [Number('{{ reservas_anio_concretadas }}'), Number('{{ reservas_anio_canceladas }}')],
+                backgroundColor: ['#198754', '#dc3545']
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { enabled: false }
             }
         }
     });
