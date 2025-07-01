@@ -9,6 +9,12 @@ from flask import request
 from sqlalchemy import desc
 
 class PropiedadController:
+
+    def get_estadisticas_propiedad(self, propiedad_id, mes, anio):
+        from models.propiedad import Propiedad
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        service = PropiedadService()
+        return propiedad, service.get_estadisticas(propiedad, mes, anio)
     
     def add_propiedad(self, request):
         if request.method == 'POST':
