@@ -245,3 +245,10 @@ class UserService:
             Reserva.fecha_fin >= hoy
         ).first()
         return reservas_activas is not None 
+
+    def get_reservas_calificables_por_encargado(self, encargado_id):
+        from datetime import date
+        from architectural_patterns.repository.reserva_repository import ReservaRepository
+        hoy = date.today()
+        repo = ReservaRepository()
+        return repo.get_reservas_calificables_por_encargado(encargado_id, hoy) 

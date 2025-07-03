@@ -457,3 +457,46 @@ def ver_mis_chats_encargado():
 
     chats_serializados = [serializar_chat(c) for c in chats]
     return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)
+
+@main.route('/clientes-calificables')
+@login_required
+def clientes_calificables():
+    from architectural_patterns.service.user_service import UserService
+    if 'user_id' not in session or session.get('rol') != 'encargado':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('main.index'))
+    user_service = UserService()
+    reservas = user_service.get_reservas_calificables_por_encargado(session['user_id'])
+    return render_template('encargado/clientes_calificables.html', reservas=reservas)
+
+@main.route('/calificar-cliente/<int:reserva_id>', methods=['GET', 'POST'])
+@login_required
+def calificar_cliente(reserva_id):
+    from models.reserva import Reserva
+    from models.calificacion_cliente import CalificacionCliente
+    from models.user import Encargado
+    if 'user_id' not in session or session.get('rol') != 'encargado':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('main.index'))
+    reserva = Reserva.query.get_or_404(reserva_id)
+    if request.method == 'POST':
+        opinion = request.form.get('opinion', '').strip()
+        if not opinion:
+            flash('Debes ingresar una opinión.', 'warning')
+            return render_template('encargado/calificar_cliente.html', reserva=reserva)
+        ya_calificada = CalificacionCliente.query.filter_by(reserva_id=reserva.id).first()
+        if ya_calificada:
+            flash('Ya has calificado a este cliente para esta reserva.', 'info')
+            return redirect(url_for('main.clientes_calificables'))
+        calif = CalificacionCliente(
+            reserva_id=reserva.id,
+            encargado_id=session['user_id'],
+            cliente_id=reserva.cliente_id,
+            opinion=opinion
+        )
+        from database import db
+        db.session.add(calif)
+        db.session.commit()
+        flash('Calificación registrada correctamente.', 'success')
+        return redirect(url_for('main.clientes_calificables'))
+    return render_template('encargado/calificar_cliente.html', reserva=reserva)
