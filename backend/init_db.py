@@ -4,10 +4,13 @@ from models.permiso import Permiso
 from models.user import Cliente, Administrador, Encargado, SuperUsuario
 from models.propiedad import Propiedad
 from models.imagen import Imagen
+from models.calificacion import Calificacion
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
 from models.reserva import Reserva
 from datetime import datetime, date
+from models.conversacion import Conversacion
+from models.mensaje_chat import MensajeChat
 
 
 def init_db():
@@ -289,29 +292,146 @@ def init_db():
     fecha_fin_convertida = datetime.strptime(fecha_fin, '%Y-%m-%d')
     reserva1 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida).first()
     if not reserva1:
-        reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3)
+        reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3, estado='concretada')
         db.session.add(reserva1)
-    
-    # Segunda reserva para pruebas de calificación
+
+    # Segunda reserva para pruebas de calificación (junio, concretada)
     fecha_inicio2 = '2025-6-01'
     fecha_fin2 = '2025-6-04'
     fecha_inicio_convertida2 = datetime.strptime(fecha_inicio2, '%Y-%m-%d')
     fecha_fin_convertida2 = datetime.strptime(fecha_fin2, '%Y-%m-%d')
     reserva2 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2).first()
     if not reserva2:
-        reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2)
+        reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2, estado='concretada')
         db.session.add(reserva2)
-    
-    # Tercera reserva en el pasado para probar 'No calificada'
+
+    # Tercera reserva en el pasado para probar 'No calificada' (pendiente)
     fecha_inicio3 = '2024-05-01'
     fecha_fin3 = '2024-05-05'
     fecha_inicio_convertida3 = datetime.strptime(fecha_inicio3, '%Y-%m-%d')
     fecha_fin_convertida3 = datetime.strptime(fecha_fin3, '%Y-%m-%d')
     reserva3 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3).first()
     if not reserva3:
-        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2)
+        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2, estado='pendiente')
         db.session.add(reserva3)
+
+    # Cuarta reserva en julio (cancelada) - Casa Palermo
+    fecha_inicio4 = '2025-7-01'
+    fecha_fin4 = '2025-7-05'
+    fecha_inicio_convertida4 = datetime.strptime(fecha_inicio4, '%Y-%m-%d')
+    fecha_fin_convertida4 = datetime.strptime(fecha_fin4, '%Y-%m-%d')
+    reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
+    if not reserva4:
+        reserva4 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='cancelada')
+        db.session.add(reserva4)
+
+    # Reserva cancelada en agosto (Casa Palermo, fechas no superpuestas)
+    fecha_inicio6 = '2025-8-10'
+    fecha_fin6 = '2025-8-15'
+    fecha_inicio_convertida6 = datetime.strptime(fecha_inicio6, '%Y-%m-%d')
+    fecha_fin_convertida6 = datetime.strptime(fecha_fin6, '%Y-%m-%d')
+    reserva6 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6).first()
+    if not reserva6:
+        reserva6 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6, cantidad_personas=3, estado='cancelada')
+        db.session.add(reserva6)
+
+    # Reserva concretada en agosto (Casa Palermo, fechas no superpuestas)
+    fecha_inicio7 = '2025-8-20'
+    fecha_fin7 = '2025-8-25'
+    fecha_inicio_convertida7 = datetime.strptime(fecha_inicio7, '%Y-%m-%d')
+    fecha_fin_convertida7 = datetime.strptime(fecha_fin7, '%Y-%m-%d')
+    reserva7 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7).first()
+    if not reserva7:
+        reserva7 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7, cantidad_personas=2, estado='concretada')
+        db.session.add(reserva7)
+
+    # Reserva concretada en prop10 (junio-julio, fechas no superpuestas con prop2)
+    fecha_inicio5 = '2025-6-30'
+    fecha_fin5 = '2025-7-05'
+    fecha_inicio_convertida5 = datetime.strptime(fecha_inicio5, '%Y-%m-%d')
+    fecha_fin_convertida5 = datetime.strptime(fecha_fin5, '%Y-%m-%d')
+    reserva5 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop10.id, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5).first()
+    if not reserva5:    
+        reserva5 = Reserva(cliente=cliente, propiedad=prop10, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5, cantidad_personas=2, estado='concretada')
+        db.session.add(reserva5)
+
+    db.session.commit()
     
+    
+    # Calificaciones
+    
+    estrella_vista = 5
+    estrella_ubicacion = 5
+    estrella_limpieza = 5
+    descripcion_calificacion = 'Excelente experiencia, la casa es hermosa y muy cómoda.'
+    calificacion1 = Calificacion.query.filter_by(reserva_id = reserva1.id).first()  
+    if not calificacion1:
+        calificacion1 = Calificacion(
+            reserva=reserva1, cliente=cliente, propiedad=prop1,
+            estrellas_vista=estrella_vista, estrellas_ubicacion=estrella_ubicacion,
+            estrellas_limpieza=estrella_limpieza, descripcion=descripcion_calificacion
+        )
+        db.session.add(calificacion1)
+        
+    estrella_vista2 = 4
+    estrella_ubicacion2 = 4
+    estrella_limpieza2 = 4
+    descripcion_calificacion2 = 'Muy buena estadía, la ubicación es excelente pero podría mejorar la limpieza.'
+    calificacion2 = Calificacion.query.filter_by(reserva_id = reserva2.id).first()
+    if not calificacion2:
+        calificacion2 = Calificacion(
+            reserva=reserva2, cliente=cliente, propiedad=prop1,
+            estrellas_vista=estrella_vista2, estrellas_ubicacion=estrella_ubicacion2,
+            estrellas_limpieza=estrella_limpieza2, descripcion=descripcion_calificacion2
+        )
+        db.session.add(calificacion2)
+        
+        
+    estrella_vista3 = 3
+    estrella_ubicacion3 = 3
+    estrella_limpieza3 = 1
+    descripcion_calificacion3 = 'La casa es bonita pero la limpieza fue deficiente y había problemas con el wifi.'
+    calificacion3 = Calificacion.query.filter_by(reserva_id = reserva3.id).first()
+    if not calificacion3:
+        calificacion3 = Calificacion(
+            reserva=reserva3, cliente=cliente, propiedad=prop1,
+            estrellas_vista=estrella_vista3, estrellas_ubicacion=estrella_ubicacion3,
+            estrellas_limpieza=estrella_limpieza3, descripcion=descripcion_calificacion3
+        )
+        db.session.add(calificacion3)
+        
+    estrella_vista4 = 1
+    estrella_ubicacion4 = 1
+    estrella_limpieza4 = 1
+    descripcion_calificacion4 = 'Muy mala experiencia, la casa estaba sucia y no funcionaba el aire acondicionado.'
+    calificacion4 = Calificacion.query.filter_by(reserva_id = reserva4.id).first()
+    if not calificacion4:
+        calificacion4 = Calificacion(
+            reserva=reserva4, cliente=cliente, propiedad=prop2,
+            estrellas_vista=estrella_vista4, estrellas_ubicacion=estrella_ubicacion4,
+            estrellas_limpieza=estrella_limpieza4, descripcion=descripcion_calificacion4
+        )
+        db.session.add(calificacion4)
+        
+        
+    
+        
+        
+    db.session.commit()
+    
+    # Conversaciones
+    conversacion1 = Conversacion.query.filter_by(cliente_id=cliente.id,estado = 'cerrada', reserva_id=reserva3.id, tipo = 'curso').first()
+    if not conversacion1:
+        conversacion1 = Conversacion(cliente_id=cliente.id, estado = 'cerrada', reserva_id=reserva3.id, tipo='curso')
+        db.session.add(conversacion1)
+    msj_1 = MensajeChat.query.filter_by(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion1, msg='Hola, tengo una consulta sobre la reserva que hice para mayo.').first()
+    if not msj_1:
+        msj_1 = MensajeChat(user=cliente.nombre, rol= cliente.tipo, conversacion=conversacion1, msg='Hola, tengo una consulta sobre la reserva que hice para mayo.')
+        db.session.add(msj_1)
+    msj_2 = MensajeChat.query.filter_by(user=superuser.nombre, rol=superuser.tipo, conversacion_id=conversacion1.id, msg='Gracias por contactarnos, en un momento estamos con usted.').first()
+    if not msj_2:
+        msj_2 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion1, msg='Gracias por contactarnos, en un momento estamos con usted.')
+        db.session.add(msj_2)
     db.session.commit()
 
     # Favoritos

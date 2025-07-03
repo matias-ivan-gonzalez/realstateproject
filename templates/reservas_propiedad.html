@@ -1,0 +1,40 @@
+{% extends "base_hero.html" %}
+{% block title %}Reservas de la Propiedad{% endblock %}
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Reservas de la propiedad <span class="fw-bold">{{ propiedad.nombre }}</span></h2>
+    {% if reservas and reservas|length > 0 %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Fecha inicio</th>
+                    <th>Fecha fin</th>
+                    <th>Estado</th>
+                    <th>Personas</th>
+                    <th>Precio total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reserva in reservas %}
+                <tr>
+                    <td>{{ reserva.cliente.nombre }} {{ reserva.cliente.apellido }}</td>
+                    <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ reserva.estado }}</td>
+                    <td>{{ reserva.cantidad_personas }}</td>
+                    <td>
+                        {% set dias = (reserva.fecha_fin - reserva.fecha_inicio).days %}
+                        {% set precio_noche = propiedad.precio %}
+                        ${{ (precio_noche * dias)|round(2) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    <a href="{{ url_for('main.ver_propiedades')}}" class="btn btn-secondary mt-3">Volver al listado</a>
+</div>
+{% endblock %}
