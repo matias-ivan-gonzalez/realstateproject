@@ -40,3 +40,26 @@ class ReservaRepository:
             .distinct()
         )
         return [r.propiedad_id for r in subquery.all()]
+
+    def get_reservas_calificables_por_encargado(self, encargado_id, hoy):
+        from models.calificacion_cliente import CalificacionCliente
+        from models.propiedad import Propiedad
+        from sqlalchemy.orm import joinedload
+        reservas = (
+            db.session.query(Reserva)
+            .join(Propiedad)
+            .filter(Propiedad.encargado_id == encargado_id)
+            .filter(Reserva.estado == 'concretada')
+            .options(joinedload(Reserva.cliente), joinedload(Reserva.propiedad))
+            .all()
+        )
+        calificables = []
+        for reserva in reservas:
+            fecha_limite = reserva.fecha_fin
+            if fecha_limite is None:
+                continue
+            if (hoy > fecha_limite) and ((hoy - fecha_limite).days <= 30):
+                ya_calificada = CalificacionCliente.query.filter_by(reserva_id=reserva.id).first()
+                if not ya_calificada:
+                    calificables.append(reserva)
+        return calificables
