@@ -1,3 +1,4 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 from models.propiedad import Propiedad
 from sqlalchemy.sql.expression import func
@@ -7,6 +8,11 @@ from architectural_patterns.controller.propiedad_controller import PropiedadCont
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
 from models.calificacion import Calificacion
+from models.reserva import Reserva
+from models.user import Cliente
+from database import db
+from config import MERCADOPAGO_ACCESS_TOKEN
+import mercadopago
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date
 from models.reserva import Reserva
@@ -114,6 +120,18 @@ def ver_propiedades():
 
 @main.route('/propiedad/<int:id>')
 def detalle_propiedad(id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    pago_status = request.args.get('pago')
+    if pago_status == 'success':
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        huespedes = request.args.get('huespedes')
+        if fecha_inicio and fecha_fin and huespedes:
+            ReservaController().crear_reserva_checkout(session.get('user_id'), id, fecha_inicio, fecha_fin, int(huespedes))
+        return redirect(url_for('main.detalle_propiedad', id=id))
+    elif pago_status == 'failure':
+        session['show_reserva_fallida_flash'] = True
+        return redirect(url_for('main.detalle_propiedad', id=id))
     propiedad_controller = PropiedadController()
     return propiedad_controller.get_propiedad(id)
    
@@ -264,6 +282,18 @@ def editar_calificacion(calificacion_id):
 def borrar_calificacion(calificacion_id):
     user_controller = UserController()
     return user_controller.borrar_calificacion(session, calificacion_id)
+
+@main.route('/propiedad/<int:propiedad_id>/reservar', methods=['POST'])
+@login_required
+def reservar_propiedad(propiedad_id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    return ReservaController().reservar_propiedad_post(request, session, propiedad_id)
+
+@main.route('/crear_preferencia_checkout', methods=['POST'])
+@login_required
+def crear_preferencia_checkout():
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    return ReservaController().crear_preferencia_checkout(request, session)
 
 @main.route('/propiedad/<int:propiedad_id>/reservas')
 @login_required

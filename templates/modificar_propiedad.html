@@ -35,19 +35,25 @@
                 </div>
             </div>
             <div class="row mb-2">
-                <div class="col-md-8">
-                    <label for="direccion" class="form-label text-secondary">Dirección*</label>
-                    <input type="text" class="form-control" id="direccion" name="direccion" value="{{ propiedad.direccion }}" required>
+                <div class="col-md-4">
+                    <label for="porcentaje_pago_reserva" class="form-label text-secondary">Porcentaje a abonar para reservar*</label>
+                    <select class="form-select" id="porcentaje_pago_reserva" name="porcentaje_pago_reserva" required>
+                        <option value="0" {% if propiedad.porcentaje_pago_reserva == 0 %}selected{% endif %}>0%</option>
+                        <option value="20" {% if propiedad.porcentaje_pago_reserva == 20 or propiedad.porcentaje_pago_reserva is not defined %}selected{% endif %}>20%</option>
+                        <option value="100" {% if propiedad.porcentaje_pago_reserva == 100 %}selected{% endif %}>100%</option>
+                    </select>
                 </div>
-                <div class="col-md-4 d-flex align-items-center">
-                    <div class="form-check mt-4">
+                <div class="col-md-8 d-flex align-items-center">
+                    <label for="direccion" class="form-label text-secondary w-100">Dirección*</label>
+                    <input type="text" class="form-control" id="direccion" name="direccion" value="{{ propiedad.direccion }}" required>
+                    <div class="form-check ms-3">
                         <input class="form-check-input" type="checkbox" id="reembolsable" name="reembolsable" {% if propiedad.reembolsable %}checked{% endif %}>
                         <label class="form-check-label text-secondary" for="reembolsable">Reembolsable</label>
                     </div>
                 </div>
             </div>
             <div class="row mb-2">
-                <div class="col-md-4">
+                <div class="col-md-8">
                     <label for="latitud" class="form-label text-secondary">Latitud*</label>
                     <input type="number" class="form-control" id="latitud" name="latitud" step="any" value="{{ propiedad.latitud }}">
                 </div>

@@ -7,6 +7,7 @@ from flask import session
 from models.user import Cliente
 from flask import request
 from sqlalchemy import desc
+from config import MERCADOPAGO_PUBLIC_KEY
 
 class PropiedadController:
 
@@ -121,6 +122,14 @@ class PropiedadController:
             if cliente:
                 user_favoritos = cliente.favoritos
 
+        # Flash message para reserva exitosa SOLO si corresponde
+        porcentaje_flash = session.pop('show_reserva_exitosa_flash', None)
+        if porcentaje_flash is not None:
+            flash(f'Reserva exitosa {porcentaje_flash}% abonado', 'success')
+        # Flash message para reserva fallida SOLO si corresponde
+        if session.pop('show_reserva_fallida_flash', None):
+            flash('Reserva fallida por error en el pago', 'danger')
+
         # Contar imágenes reales
         total_imagenes = 0
         for imagen in propiedad.imagenes:
@@ -164,7 +173,8 @@ class PropiedadController:
                              total_imagenes_reales=total_imagenes,
                              fechas_ocupadas=fechas_ocupadas,
                              fechas_reservadas=fechas_reservadas,
-                             dias_ocupados_encargado=dias_ocupados_encargado)
+                             dias_ocupados_encargado=dias_ocupados_encargado,
+                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
