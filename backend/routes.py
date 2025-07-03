@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 from models.propiedad import Propiedad
 from sqlalchemy.sql.expression import func
@@ -7,12 +7,38 @@ from architectural_patterns.controller.empleado_controller import EmpleadoContro
 from architectural_patterns.controller.propiedad_controller import PropiedadController
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
-from datetime import datetime, date
 from models.calificacion import Calificacion
-
+from models.reserva import Reserva
+from models.user import Cliente
+from database import db
+from config import MERCADOPAGO_ACCESS_TOKEN
+import mercadopago
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from datetime import datetime, date
+from models.reserva import Reserva
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
+
+@main.route('/propiedad/<int:propiedad_id>/estadisticas')
+def estadisticas_propiedad(propiedad_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    from datetime import datetime
+    mes = request.args.get('mes', datetime.now().month, type=int)
+    anio = request.args.get('anio', datetime.now().year, type=int)
+    controller = PropiedadController()
+    propiedad, estadisticas = controller.get_estadisticas_propiedad(propiedad_id, mes, anio)
+    anio_actual = datetime.now().year
+    return render_template('estadisticas_propiedad.html',
+        propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
+        **estadisticas
+    )
+    reservas_anio = len([r for r in reservas if r.fecha_inicio.year == anio and r.estado == 'concretada'])
+    anio_actual = datetime.now().year
+    return render_template('estadisticas_propiedad.html', propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
+        reservas_concretadas=reservas_concretadas, reservas_canceladas=reservas_canceladas, promedio_dias_reserva=promedio_dias_reserva,
+        total_noches=total_noches, porcentaje_ocupacion=porcentaje_ocupacion, ingresos_estimados=ingresos_estimados, reservas_anio=reservas_anio)
+
 
 def login_required(f):
     @wraps(f)
@@ -94,6 +120,18 @@ def ver_propiedades():
 
 @main.route('/propiedad/<int:id>')
 def detalle_propiedad(id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    pago_status = request.args.get('pago')
+    if pago_status == 'success':
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        huespedes = request.args.get('huespedes')
+        if fecha_inicio and fecha_fin and huespedes:
+            ReservaController().crear_reserva_checkout(session.get('user_id'), id, fecha_inicio, fecha_fin, int(huespedes))
+        return redirect(url_for('main.detalle_propiedad', id=id))
+    elif pago_status == 'failure':
+        session['show_reserva_fallida_flash'] = True
+        return redirect(url_for('main.detalle_propiedad', id=id))
     propiedad_controller = PropiedadController()
     return propiedad_controller.get_propiedad(id)
    
@@ -244,3 +282,178 @@ def editar_calificacion(calificacion_id):
 def borrar_calificacion(calificacion_id):
     user_controller = UserController()
     return user_controller.borrar_calificacion(session, calificacion_id)
+
+@main.route('/propiedad/<int:propiedad_id>/reservar', methods=['POST'])
+@login_required
+def reservar_propiedad(propiedad_id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    return ReservaController().reservar_propiedad_post(request, session, propiedad_id)
+
+@main.route('/crear_preferencia_checkout', methods=['POST'])
+@login_required
+def crear_preferencia_checkout():
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    return ReservaController().crear_preferencia_checkout(request, session)
+
+@main.route('/propiedad/<int:propiedad_id>/reservas')
+@login_required
+def ver_reservas_propiedad(propiedad_id):
+    from models.propiedad import Propiedad
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    reservas = propiedad.reservas
+    return render_template('reservas_propiedad.html', reservas=reservas, propiedad=propiedad)
+
+from flask import request
+@main.route('/chat')
+def chat():
+    from flask import session
+    from models.conversacion import Conversacion
+    reserva_id = request.args.get('reserva_id')
+    tipo = request.args.get('tipo')
+    conversacion_id = request.args.get('conversacion_id')
+    conversacion = None
+    if conversacion_id:
+        conversacion = Conversacion.query.get(conversacion_id)
+    elif session.get('rol') == 'cliente':
+        conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
+    estado_chat = conversacion.estado if conversacion else 'abierta'
+    return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo, estado_chat=estado_chat)
+
+@main.route('/ver-chats')
+@login_required
+def ver_chats():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.conversacion import Conversacion
+    from models.user import Cliente
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+
+
+    # Solo mostrar a los administradores/superusuarios los chats donde la propiedad NO tiene encargado asignado
+
+    def filtrar_chats_para_admin(chats, tipo):
+        filtrados = []
+        for chat in chats:
+            reserva = Reserva.query.get(chat.reserva_id)
+            if not reserva:
+                continue
+            propiedad = Propiedad.query.get(reserva.propiedad_id)
+            if tipo == 'futuro':
+                # Para reservas a futuro, siempre son los administradores
+                if session.get('rol') == 'superusuario':
+                    filtrados.append(chat)
+                elif session.get('rol') == 'administrador':
+                    if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                        filtrados.append(chat)
+            else:
+                # Para reservas en curso, solo si NO hay encargado asignado
+                if propiedad and not propiedad.encargado_id:
+                    if session.get('rol') == 'superusuario':
+                        filtrados.append(chat)
+                    elif session.get('rol') == 'administrador':
+                        if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                            filtrados.append(chat)
+        return filtrados
+
+    chats_futuro = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='abierta').all(), 'futuro')
+    chats_curso = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='abierta').all(), 'curso')
+    chats_futuro_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all(), 'futuro')
+    chats_curso_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='cerrada').all(), 'curso')
+
+    def serializar_chat(chat):
+        cliente = Cliente.query.get(chat.cliente_id)
+        reserva = Reserva.query.get(chat.reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        return {
+            'id': chat.id,
+            'cliente_id': chat.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat.cliente_id}",
+            'reserva_id': chat.reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida"
+        }
+
+    chats_futuro = [serializar_chat(c) for c in chats_futuro]
+    chats_curso = [serializar_chat(c) for c in chats_curso]
+    chats_futuro_cerradas = [serializar_chat(c) for c in chats_futuro_cerradas]
+    chats_curso_cerradas = [serializar_chat(c) for c in chats_curso_cerradas]
+    return render_template('ver_chats.html', chats_futuro=chats_futuro, chats_curso=chats_curso, chats_futuro_cerradas=chats_futuro_cerradas, chats_curso_cerradas=chats_curso_cerradas)
+
+
+from architectural_patterns.controller.user_controller import UserController
+user_controller = UserController()
+
+@main.route('/reservas/futuras')
+def reservas_futuras():
+    reservas = user_controller.obtener_reservas_futuras(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/concluidas')
+def reservas_concluidas():
+    reservas = user_controller.obtener_reservas_concluidas(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_concluidas.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/pendientes')
+def calificaciones_pendientes():
+    reservas = user_controller.obtener_calificaciones_pendientes(session)
+    current_date = datetime.now().date()
+    return render_template('calificaciones_pendientes.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/editables')
+def calificaciones_editables():
+    reservas = user_controller.obtener_calificaciones_editables(session)
+    current_date = datetime.now().date()
+    return render_template('calificaciones_editables.html', reservas=reservas, current_date=current_date)
+
+@main.route('/reservas/activas')
+def reservas_activas():
+    user_controller = UserController()
+    reservas = user_controller.obtener_reservas_activas(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+
+
+@main.route('/ver-mis-chats-encargado')
+def ver_mis_chats_encargado():
+    if session.get('rol') != 'encargado':
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.conversacion import Conversacion
+    from models.user import Cliente
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+
+
+    # Obtener las conversaciones del encargado a través de sus propiedades
+    encargado_id = session.get('user_id')
+    propiedades_encargado = Propiedad.query.filter_by(encargado_id=encargado_id).all()
+    propiedad_ids = [p.id for p in propiedades_encargado]
+    reservas_encargado = Reserva.query.filter(Reserva.propiedad_id.in_(propiedad_ids)).all() if propiedad_ids else []
+    reserva_ids = [r.id for r in reservas_encargado]
+    # Solo mostrar conversaciones en curso (tipo='curso')
+    chats = Conversacion.query.filter(
+        Conversacion.reserva_id.in_(reserva_ids),
+        Conversacion.tipo == 'curso'
+    ).all() if reserva_ids else []
+
+    def serializar_chat(chat):
+        cliente = Cliente.query.get(chat.cliente_id)
+        reserva = Reserva.query.get(chat.reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        return {
+            'id': chat.id,
+            'cliente_id': chat.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat.cliente_id}",
+            'reserva_id': chat.reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida"
+        }
+
+    chats_serializados = [serializar_chat(c) for c in chats]
+    return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)

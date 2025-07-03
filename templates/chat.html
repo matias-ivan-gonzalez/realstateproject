@@ -1,0 +1,310 @@
+{% extends "base_hero.html" %}
+{% block title %}
+<script>
+    // Cambia el título dinámicamente según el rol y la conversación
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.isCliente) {
+            document.title = 'Chat con Alquilando';
+        } else if (window.isAdmin) {
+            document.title = 'Chat'; // Por defecto
+        }
+    });
+</script>
+Chat
+{% endblock %}
+{% block hero_content %}
+
+<script>
+  window.isAdmin = {{ (session.rol in ('administrador', 'superusuario')) | tojson }};
+  window.isCliente = {{ (session.rol == 'cliente') | tojson }};
+  window.isEncargado = {{ (session.rol == 'encargado') | tojson }};
+  window.nombre_cliente = {{ session.get('user_name') | tojson }};
+  window.reserva_id = {{ reserva_id|tojson }};
+  window.tipo_chat = {{ tipo|tojson }};
+  window.estado_chat = {{ estado_chat|tojson }};
+</script>
+<div class="container mt-4">
+    <h2 class="mb-4" id="chat-title-h2"></h2>
+    <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ccc; border-radius:8px; padding:1rem; background:#fafbfc;"></div>
+    {% raw %}
+    <div id="chat-cerrado-aviso" style="display:none;" class="alert alert-warning mt-2 mb-0 py-2 px-3">Este chat está cerrado, no se pueden enviar mensajes.</div>
+    {% endraw %}
+    <form id="chat-form" class="mt-3 d-flex gap-2">
+        <input id="chat-input" type="text" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" required>
+        <button type="submit" class="btn btn-primary" id="chat-send-btn">Enviar</button>
+    </form>
+    <script>
+     if (window.estado_chat === 'cerrada') {
+        document.getElementById('chat-input').disabled = true;
+        document.getElementById('chat-send-btn').disabled = true;
+        document.getElementById('chat-send-btn').textContent = 'Chat cerrado';
+        document.getElementById('chat-cerrado-aviso').style.display = 'block';
+     }
+     // Bloquear envío de mensajes para todos si el chat está cerrado
+     
+    </script>
+    
+</div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    var socket = io({transports: ['websocket', 'polling']});
+    var chatBox = document.getElementById('chat-box');
+    var chatForm = document.getElementById('chat-form');
+    var chatInput = document.getElementById('chat-input');
+    var chatTitleH2 = document.getElementById('chat-title-h2');
+    // Contador de mensajes enviados por el cliente en esta sesión
+    var chatSendBtn = document.getElementById('chat-send-btn');
+
+    // Función para activar/desactivar el botón
+    function toggleSendButton() {
+        chatSendBtn.disabled = chatInput.value.trim() === '';
+    }
+
+    // Desactivar al inicio
+    toggleSendButton();
+
+    // Actualizar en cada cambio de texto
+    chatInput.addEventListener('input', toggleSendButton);
+    var mensajesCliente = 0;
+
+
+
+
+    // --- CHAT POR CONVERSACION ---
+    var conversacionId = null;
+
+
+    // Cliente: solo puede iniciar su conversación y ver su propio chat
+    if (window.isCliente) {
+        socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        // Cambiar el título visible
+        if (chatTitleH2) chatTitleH2.textContent = 'Chat con Alquilando';
+    }
+
+    // Encargado: ve el historial de la conversación a la que accede (por conversacion_id)
+    if (window.isEncargado) {
+        // Detectar conversacion_id y nombre del cliente en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedConversacionId = urlParams.get('conversacion_id');
+        let clienteNombre = urlParams.get('cliente_nombre');
+        if (clienteNombre) {
+            try {
+                clienteNombre = decodeURIComponent(clienteNombre.replace(/\+/g, ' '));
+            } catch (e) {
+                // fallback
+                clienteNombre = clienteNombre.replace(/%20/g, ' ');
+            }
+        }
+        if (preselectedConversacionId) {
+            conversacionId = preselectedConversacionId;
+            chatForm.style.display = '';
+            socket.emit('join_chat', { conversacion_id: conversacionId });
+            socket.emit('get_chat_history', { conversacion_id: conversacionId });
+            if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + (clienteNombre ? clienteNombre : 'Cliente');
+        } else {
+            chatForm.style.display = 'none';
+        }
+    }
+
+    // Admin: ver listado de conversaciones y acceder a cada una
+    if (window.isAdmin) {
+        // Detectar si hay un conversacion_id en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedConversacionId = urlParams.get('conversacion_id');
+
+        // Detectar si hay un cliente_nombre en la URL
+        let clienteNombre = urlParams.get('cliente_nombre');
+        if (clienteNombre) {
+            try {
+                clienteNombre = decodeURIComponent(clienteNombre.replace(/\+/g, ' '));
+            } catch (e) {
+                clienteNombre = clienteNombre.replace(/%20/g, ' ');
+            }
+        }
+
+        if (window.isAdmin && preselectedConversacionId) {
+            // Si hay un conversacion_id, cargar directamente el chat
+            conversacionId = preselectedConversacionId;
+            chatForm.style.display = '';
+            socket.emit('join_chat', { conversacion_id: conversacionId });
+            socket.emit('get_chat_history', { conversacion_id: conversacionId });
+
+            // Cambiar el título visible
+            const titulo = clienteNombre ? `Chat con ${clienteNombre}` : `Chat con Cliente ${conversacionId}`;
+            document.title = titulo;
+            if (chatTitleH2) chatTitleH2.textContent = titulo;
+        } else if (window.isAdmin) {
+            // Si no hay conversacion_id, mostrar el listado de conversaciones
+            chatForm.style.display = 'none';
+
+            var listaDiv = document.createElement('div');
+            listaDiv.id = 'conversaciones-lista';
+            listaDiv.className = 'mb-3';
+            chatForm.parentNode.insertBefore(listaDiv, chatForm);
+
+            socket.emit('listar_conversaciones');
+
+            socket.on('conversaciones_list', function(convs) {
+                convs.forEach(function(c) {
+                    var row = document.createElement('div');
+                    row.className = 'conversation-row';
+                    row.textContent = c.cliente_nombre || 'Cliente ' + c.cliente_id;
+
+                    var btn = document.createElement('button');
+                    btn.textContent = 'Ver chat';
+                    btn.className = 'btn btn-primary btn-sm ms-2';
+                    btn.onclick = function() {
+                        conversacionId = c.id;
+                        chatBox.innerHTML = '';
+                        chatForm.style.display = '';
+                        socket.emit('join_chat', { conversacion_id: conversacionId });
+                        socket.emit('get_chat_history', { conversacion_id: conversacionId });
+
+                        document.title = 'Chat con ' + (c.cliente_nombre || 'Cliente ' + c.cliente_id);
+                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + (c.cliente_nombre || 'Cliente ' + c.cliente_id);
+                    };
+                    row.appendChild(btn);
+                    listaDiv.appendChild(row);
+                });
+            });
+        }
+    }
+    
+
+    // --- Refrescar la página solo cuando el cliente envía el primer mensaje ---
+    if (window.isCliente) {
+        var isTyping = false;
+        chatInput.addEventListener('focus', function() { isTyping = true; });
+        chatInput.addEventListener('blur', function() { isTyping = false; });
+    }
+
+    socket.on('chat_history', function(history) {
+        chatBox.innerHTML = '';
+        // Detectar si el admin ya respondió alguna vez
+        // Ya no se usa refreshInterval, solo lógica de adminRespondio si necesitas mostrar algo
+        if (window.isCliente) {
+            adminRespondio = history.some(function(data) {
+                return data.rol === 'administrador' || data.rol === 'superusuario';
+            });
+            // Contar mensajes del cliente
+            mensajesCliente = history.filter(function(data) {
+                return data.rol === 'cliente';
+            }).length;
+        }
+        history.forEach(function(data) {
+            renderChatMessage(data);
+        });
+    });
+
+    function renderChatMessage(data) {
+        var rol = data.rol || '';
+        var isAdminMsg = (rol === 'administrador' || rol === 'superusuario');
+        var isClienteMsg = (rol === 'cliente');
+        var isEncargadoMsg = (rol === 'encargado');
+
+        var div = document.createElement('div');
+        div.style.display = 'flex';
+        // Lógica de alineación según el usuario actual
+        if (window.isCliente) {
+            // Cliente ve sus mensajes a la derecha, admin/encargado a la izquierda
+            div.style.justifyContent = isClienteMsg ? 'flex-end' : 'flex-start';
+        } else if (window.isAdmin || window.isEncargado) {
+            // Admin y encargado ven todos los mensajes de "Alquilando" (admin o encargado) a la derecha
+            if (isAdminMsg || isEncargadoMsg) {
+                div.style.justifyContent = 'flex-end';
+            } else {
+                div.style.justifyContent = 'flex-start';
+            }
+        } else {
+            div.style.justifyContent = 'flex-start';
+        }
+        div.style.margin = '4px 0';
+
+        var msgBubble = document.createElement('div');
+        msgBubble.style.maxWidth = '70%';
+        msgBubble.style.padding = '8px 14px';
+        msgBubble.style.borderRadius = '16px';
+        msgBubble.style.background = isAdminMsg ? '#d1e7dd' : (isEncargadoMsg ? '#ffe5b4' : '#e9ecef');
+        msgBubble.style.color = '#222';
+        // El texto siempre alineado a la izquierda para ambos
+        msgBubble.style.textAlign = 'left';
+        msgBubble.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let clienteNombre = urlParams.get('cliente_nombre');
+        if (clienteNombre) {
+            try {
+                clienteNombre = decodeURIComponent(clienteNombre.replace(/\+/g, ' '));
+            } catch (e) {
+                clienteNombre = clienteNombre.replace(/%20/g, ' ');
+            }
+        }
+
+        if (isAdminMsg) {
+            msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
+        } else if (isEncargadoMsg) {
+            // El encargado ve sus propios mensajes como "Alquilando", el cliente también los ve así
+            msgBubble.innerHTML = '<b>Alquilando:</b> ' + data.msg;
+        } else if (isClienteMsg) {
+            // Si el usuario actual es admin o encargado, mostrar siempre el nombre del cliente
+            if (window.isAdmin || window.isEncargado) {
+                // Decodificar el nombre del cliente si está presente
+                let nombreDecodificado = clienteNombre ? decodeURIComponent(clienteNombre) : 'Cliente';
+                msgBubble.innerHTML = '<b>' + nombreDecodificado + ':</b> ' + data.msg;
+            } else {
+                // Si el usuario es cliente, mostrar su nombre
+                var nombreMostrar = window.nombre_cliente || 'Cliente';
+                msgBubble.innerHTML = '<b>' + nombreMostrar + ':</b> ' + data.msg;
+            }
+        } else {
+            msgBubble.innerHTML = data.msg;
+        }
+
+        div.appendChild(msgBubble);
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    chatForm.onsubmit = function(e) {
+        e.preventDefault();
+        var msg = chatInput.value.trim();
+        if(msg) {
+            var data = {msg: msg, user: window.username};
+            if(window.isCliente) {
+                data.reserva_id = window.reserva_id;
+                data.tipo = window.tipo_chat;
+                // Si es el primer mensaje del cliente, refrescar tras enviar
+                if (mensajesCliente === 0) {
+                    socket.emit('cliente_mensaje', data);
+                    toggleSendButton();
+                    window.location.reload();
+                } else {
+                    socket.emit('cliente_mensaje', data);
+                }
+            } else if(window.isAdmin) {
+                if (conversacionId) {
+                    data.conversacion_id = conversacionId;
+                    socket.emit('admin_mensaje', data);
+                } else {
+                    alert('Selecciona una conversación para chatear');
+                }
+            } else if(window.isEncargado) {
+                if (conversacionId) {
+                    data.conversacion_id = conversacionId;
+                    socket.emit('encargado_mensaje', data);
+                } else {
+                    alert('Selecciona una conversación para chatear');
+                }
+            }
+            chatInput.value = '';
+            toggleSendButton();
+        }
+    };
+
+    // Mostrar todos los mensajes (cliente y admin)
+    socket.on('chat_mensaje', function(data) {
+        renderChatMessage(data);
+    });
+</script>
+{% endblock %}

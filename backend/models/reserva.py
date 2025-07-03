@@ -7,8 +7,8 @@ class Reserva(db.Model):
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
     cantidad_personas = db.Column(db.Integer, nullable=False)
-    #estado = db.Column(db.String(50), nullable=False)  ver si hacemos patron state # Ej: 'pendiente', 'confirmada', 'cancelada'
-    
+    estado = db.Column(db.String(50), nullable=False, default='pendiente')  # Ej: 'pendiente', 'concretada', 'cancelada'
+
     # Claves foráneas
     cliente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     propiedad_id = db.Column(db.Integer, db.ForeignKey('propiedad.id'), nullable=False)
@@ -17,6 +17,7 @@ class Reserva(db.Model):
     propiedad = db.relationship('Propiedad', back_populates='reservas')
     cliente = db.relationship('Cliente', back_populates='reservas')
     calificacion = db.relationship('Calificacion', back_populates='reserva', uselist=False)
+    
 
     def __repr__(self):
         return f"<Reserva {self.id} de {self.cliente.nombre} para {self.propiedad.direccion}>"

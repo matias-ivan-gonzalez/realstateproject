@@ -1,6 +1,9 @@
 {% macro property_actions(propiedad) %}
 <div class="botones-columna">
     <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-primary">Ver detalle</a>
+    {% if propiedad.reservas and propiedad.reservas|length > 0 %}
+    <a href="{{ url_for('main.ver_reservas_propiedad', propiedad_id=propiedad.id) }}" class="btn btn-info">Ver reservas</a>
+    {% endif %}
     {% if session.rol in ['administrador', 'superusuario'] %}
     <a href="{{ url_for('main.modificar_propiedad', id=propiedad.id) }}" class="btn btn-warning">Editar</a>
     <form method="POST" action="{{ url_for('main.eliminar_propiedad', id=propiedad.id) }}" style="display:inline;">
@@ -8,4 +11,4 @@
     </form>
     {% endif %}
 </div>
-{% endmacro %} 
+{% endmacro %}

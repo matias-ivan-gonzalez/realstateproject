@@ -12,6 +12,13 @@
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
+<style>
+#huespedes.is-invalid {
+  background-image: none !important;
+  padding-right: 0.75rem !important;
+}
+</style>
+
 <div class="container mt-4 fade-in">
     <div class="detalle-grid">
         <!-- Nombre de la propiedad -->
@@ -108,6 +115,52 @@
                     <p><strong>Habitaciones:</strong> {{ propiedad.cantidad_habitaciones }}</p>
                     <p><strong>Límite de personas:</strong> {{ propiedad.limite_personas }}</p>
                     <p><strong>Reembolsable:</strong> {{ 'Sí' if propiedad.reembolsable else 'No' }}</p>
+                    <hr>
+                    <div>
+                        <strong>Promedio de calificaciones:</strong>
+                        <div class="mb-1 mt-2">
+                            <span>Limpieza:</span>
+                            {% set promedio_limpieza = propiedad.promedio_limpieza() %}
+                            {% if promedio_limpieza is not none %}
+                                <span title="{{ promedio_limpieza|round(2) }} de 5">
+                                    {% set full_stars = promedio_limpieza|int %}
+                                    {% set half_star = 1 if promedio_limpieza - full_stars >= 0.25 and promedio_limpieza - full_stars < 0.75 else 0 %}
+                                    {% set empty_stars = 5 - full_stars - half_star %}
+                                    {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                    {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                    {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                </span>
+                            {% else %}<span class="text-muted">Sin calificación</span>{% endif %}
+                        </div>
+                        <div class="mb-1">
+                            <span>Vista:</span>
+                            {% set promedio_vista = propiedad.promedio_vista() %}
+                            {% if promedio_vista is not none %}
+                                <span title="{{ promedio_vista|round(2) }} de 5">
+                                    {% set full_stars = promedio_vista|int %}
+                                    {% set half_star = 1 if promedio_vista - full_stars >= 0.25 and promedio_vista - full_stars < 0.75 else 0 %}
+                                    {% set empty_stars = 5 - full_stars - half_star %}
+                                    {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                    {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                    {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                </span>
+                            {% else %}<span class="text-muted">Sin calificación</span>{% endif %}
+                        </div>
+                        <div class="mb-1">
+                            <span>Ubicación:</span>
+                            {% set promedio_ubicacion = propiedad.promedio_ubicacion() %}
+                            {% if promedio_ubicacion is not none %}
+                                <span title="{{ promedio_ubicacion|round(2) }} de 5">
+                                    {% set full_stars = promedio_ubicacion|int %}
+                                    {% set half_star = 1 if promedio_ubicacion - full_stars >= 0.25 and promedio_ubicacion - full_stars < 0.75 else 0 %}
+                                    {% set empty_stars = 5 - full_stars - half_star %}
+                                    {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                    {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                    {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                </span>
+                            {% else %}<span class="text-muted">Sin calificación</span>{% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,8 +198,8 @@
             </div>
         </div>
         <!-- Características y Descripción -->
-        <div class="caracteristicas-descripcion-row">
-            <div class="caracteristicas">
+        <div class="caracteristicas-descripcion-row row g-3 mt-3">
+            <div class="caracteristicas col-12 col-md-4 col-lg-3">
                 <div class="card shadow h-100" style="width: fit-content;">
                     <div class="card-header text-center">CARACTERISTICAS</div>
                     <div class="card-body p-2">
@@ -185,7 +238,7 @@
                     </div>
                 </div>
             </div>
-            <div class="descripcion">
+            <div class="descripcion col-12 col-md-8 col-lg-5">
                 <div class="card shadow h-100" style="height: 100%;">
                     <div class="card-header text-center">DESCRIPCION</div>
                     <div class="card-body">
@@ -193,8 +246,103 @@
                     </div>
                 </div>
             </div>
+            <div class="calificaciones col-12 col-lg-4 mt-3 mt-lg-0">
+                {% set calificaciones = propiedad.calificaciones or [] %}
+                {% set pagina_calif = request.args.get('pagina_calif', 1) | int %}
+                {% set por_pagina = 1 %}
+                {% set total_calif = calificaciones|length %}
+                {% set total_paginas_calif = (total_calif // por_pagina) + (1 if total_calif % por_pagina > 0 else 0) %}
+                {% set inicio = (pagina_calif - 1) * por_pagina %}
+                {% set fin = inicio + por_pagina %}
+                {% set calificaciones_pagina = calificaciones[inicio:fin] %}
+                <div class="card shadow h-100">
+                    <div class="card-header text-center">
+                        CALIFICACIONES
+                        {% if total_paginas_calif > 0 %}
+                            <span class="text-secondary" style="font-size:0.98em;">({{ pagina_calif }} / {{ total_paginas_calif }})</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                {% if calificaciones_pagina and calificaciones_pagina|length > 0 %}
+                    <div class="row" id="calificacion-auto-slide">
+                        {% for calificacion in calificaciones_pagina %}
+                            <div class="col-12 mb-4 d-flex">
+                                <div class="w-100 border-bottom pb-2">
+                                    <div class="fw-bold mb-1">
+                                        <i class="fa-solid fa-user me-1" style="color: #222;"></i>
+                                        {{ calificacion.cliente.nombre }} {{ calificacion.cliente.apellido }}
+                                        <span class="text-muted" style="font-size:0.95em;">({{ calificacion.fecha_calificacion.strftime('%d/%m/%Y') if calificacion.fecha_calificacion else '' }})</span>
+                                    </div>
+                                    <div class="mb-1 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center w-100 justify-content-center position-relative">
+                                            {% if total_paginas_calif > 1 %}
+                                            <a href="?{% for key, value in request.args.items() if key != 'pagina_calif' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina_calif={{ pagina_calif-1 if pagina_calif > 1 else total_paginas_calif }}#calificaciones" class="btn btn-link p-0 calif-arrow calif-arrow-izq" id="calif-prev" title="Anterior">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </a>
+                                            {% endif %}
+                                            <span class="text-secondary mx-2">Limpieza:</span>
+                                            {% set val = calificacion.estrellas_limpieza %}
+                                            <span title="{{ val }} de 5" class="d-inline-block" id="calif-stars">
+                                                {% set full_stars = val|int %}
+                                                {% set half_star = 1 if val - full_stars >= 0.25 and val - full_stars < 0.75 else 0 %}
+                                                {% set empty_stars = 5 - full_stars - half_star %}
+                                                {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                                {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                                {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                            </span>
+                                            {% if total_paginas_calif > 1 %}
+                                            <a href="?{% for key, value in request.args.items() if key != 'pagina_calif' %}{{ key }}={{ value|urlencode }}&{% endfor %}pagina_calif={{ pagina_calif+1 if pagina_calif < total_paginas_calif else 1 }}#calificaciones" class="btn btn-link p-0 calif-arrow calif-arrow-der" id="calif-next" title="Siguiente">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="mb-1">
+                                        <span class="text-secondary">Vista:</span>
+                                        {% set val = calificacion.estrellas_vista %}
+                                        <span title="{{ val }} de 5">
+                                            {% set full_stars = val|int %}
+                                            {% set half_star = 1 if val - full_stars >= 0.25 and val - full_stars < 0.75 else 0 %}
+                                            {% set empty_stars = 5 - full_stars - half_star %}
+                                            {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                            {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                            {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                        </span>
+                                    </div>
+                                    <div class="mb-1">
+                                        <span class="text-secondary">Ubicación:</span>
+                                        {% set val = calificacion.estrellas_ubicacion %}
+                                        <span title="{{ val }} de 5">
+                                            {% set full_stars = val|int %}
+                                            {% set half_star = 1 if val - full_stars >= 0.25 and val - full_stars < 0.75 else 0 %}
+                                            {% set empty_stars = 5 - full_stars - half_star %}
+                                            {% for _ in range(full_stars) %}<i class="fa-solid fa-star" style="color: #222;"></i>{% endfor %}
+                                            {% if half_star %}<i class="fa-solid fa-star-half-stroke" style="color: #222;"></i>{% endif %}
+                                            {% for _ in range(empty_stars) %}<i class="fa-regular fa-star" style="color: #222;"></i>{% endfor %}
+                                        </span>
+                                    </div>
+                                    {% if calificacion.descripcion %}
+                                    <div class="mt-2"><span class="text-secondary">Comentario:</span> {{ calificacion.descripcion }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center">Esta propiedad aún no tiene calificaciones.</div>
+                {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    {% if session.rol in ['administrador', 'superusuario'] %}
+        <div class="text-end mb-3">
+            <a href="{{ url_for('main.estadisticas_propiedad', propiedad_id=propiedad.id) }}" class="btn btn-info">
+                <i class="fa-solid fa-chart-column me-1"></i> Ver estadísticas
+            </a>
+        </div>
+    {% endif %}
     {% if session.rol in ['administrador', 'superusuario'] or (session.rol == 'encargado' and propiedad.encargado_id == session.user_id) %}
         <div class="mt-4">
             <div class="card shadow">
@@ -209,11 +357,13 @@
                         <div class="row g-2 align-items-end">
                             <div class="col-md-5">
                                 <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-                                <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" required>
+                                <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}">
+                                <div id="msg_fecha_inicio" class="text-danger small"></div>
                             </div>
                             <div class="col-md-5">
                                 <label for="fecha_fin" class="form-label">Fecha de fin</label>
-                                <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" required>
+                                <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}">
+                                <div id="msg_fecha_fin" class="text-danger small"></div>
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary w-100" id="btn-ocupar-admin" disabled>Ocupar</button>
@@ -239,9 +389,56 @@
             {% if request.args.get('from') == 'favoritos' and session.rol == 'cliente' %}
                 <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
             {% endif %}
+            {% if session.rol == 'cliente' %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReservar">
+                    Reservar
+                </button>
+            {% endif %}
         </div>
     {% endif %}
 </div>
+
+<!-- Modal de Reserva -->
+<div class="modal fade" id="modalReservar" tabindex="-1" aria-labelledby="modalReservarLabel" aria-hidden="true" data-bs-backdrop="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalReservarLabel">Reservar {{ propiedad.nombre }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+          <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="">
+          <div id="msg_fecha_inicio" class="text-danger small"></div>
+        </div>
+        <div class="mb-2">
+          <label for="fecha_fin" class="form-label">Fecha de fin</label>
+          <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="">
+          <div id="msg_fecha_fin" class="text-danger small"></div>
+        </div>
+        <div class="mb-2">
+          <label for="huespedes" class="form-label">Cantidad de huéspedes <span class="text-muted" style="font-size:0.95em;">(máximo {{ propiedad.limite_personas }})</span></label>
+          <input type="number" class="form-control" id="huespedes" name="huespedes" min="1" max="{{ propiedad.limite_personas }}" value="1" required>
+          <div id="msg_huespedes" class="text-danger small"></div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Precio total</label>
+          <input type="text" class="form-control" id="precio_total" value="${{ propiedad.precio }}" readonly>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Porcentaje a abonar ahora</label>
+          <input type="text" class="form-control" id="porcentaje_pago" value="{{ propiedad.porcentaje_pago_reserva }}%" readonly>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="btn-reservar-pagar" disabled>Reservar y pagar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 function initMapDetalle() {
     var coords = [Number('{{ propiedad.latitud if propiedad.latitud is not none else 0 }}'), Number('{{ propiedad.longitud if propiedad.longitud is not none else 0 }}')];
@@ -336,6 +533,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         btnAgregar.disabled = !inputImagenes.files || inputImagenes.files.length === 0;
     }
+
+    // Efecto visual al cambiar calificación
+    const califArrows = document.querySelectorAll('.calif-arrow');
+    califArrows.forEach(function(arrow) {
+        arrow.addEventListener('click', function(e) {
+            const stars = document.getElementById('calif-stars');
+            if (stars) {
+                stars.classList.add('calif-fade');
+            }
+        });
+    });
 
     // --- Deshabilitar fechas ocupadas/reservadas en los inputs de fecha ---
     var fechasOcupadas = JSON.parse('{{ fechas_ocupadas|tojson|safe }}');
@@ -452,4 +660,189 @@ function confirmarQuitarFavorito(e, btn) {
     window.fechasReservadas = JSON.parse('{{ fechas_reservadas|tojson|safe }}');
 </script>
 <script src="{{ url_for('static', filename='js/detalle_propiedad_flatpickr.js') }}"></script>
+<script>
+(function() {
+  let porcentajePago = parseFloat('{{ propiedad.porcentaje_pago_reserva|default(0) }}');
+  let precioNoche = parseFloat('{{ propiedad.precio|default(0) }}');
+  let propiedadId = parseInt('{{ propiedad.id|default(0) }}');
+
+  function calcularMonto() {
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin = document.getElementById('fecha_fin').value;
+    let noches = 1;
+    if (fechaInicio && fechaFin) {
+      const d1 = new Date(fechaInicio);
+      const d2 = new Date(fechaFin);
+      noches = (d2 - d1) / (1000*60*60*24);
+      if (noches < 1) noches = 1;
+    }
+    const total = precioNoche * noches;
+    document.getElementById('precio_total').value = `$${total}`;
+    const monto = Math.round(total * (porcentajePago/100));
+    return monto;
+  }
+
+  function validarCamposReserva() {
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin = document.getElementById('fecha_fin').value;
+    const huespedesInput = document.getElementById('huespedes');
+    const huespedes = parseInt(huespedesInput.value);
+    const maxHuespedes = parseInt('{{ propiedad.limite_personas }}');
+    const btnReservar = document.getElementById('btn-reservar-pagar');
+    let valido = true;
+    if (!fechaInicio || !fechaFin || !huespedes) valido = false;
+    if (huespedes > maxHuespedes || huespedes < 1) {
+      valido = false;
+      huespedesInput.style.color = 'red';
+      huespedesInput.classList.add('is-invalid');
+    } else {
+      huespedesInput.style.color = '';
+      huespedesInput.classList.remove('is-invalid');
+    }
+    if (fechaFin && fechaInicio && fechaFin <= fechaInicio) valido = false;
+    btnReservar.disabled = !valido;
+  }
+
+  document.getElementById('fecha_inicio').addEventListener('change', function() {
+    calcularMonto();
+    validarCamposReserva();
+  });
+  document.getElementById('fecha_fin').addEventListener('change', function() {
+    calcularMonto();
+    validarCamposReserva();
+  });
+  document.getElementById('huespedes').addEventListener('input', function() {
+    // Si el usuario pone 0, lo cambiamos a vacío
+    if (this.value === '0') {
+      this.value = '';
+    }
+    validarCamposReserva();
+  });
+
+  document.getElementById('huespedes').addEventListener('keydown', function(e) {
+    // Permitir solo números y teclas de control
+    if (
+      // Permitir: backspace, delete, tab, escape, enter, flechas
+      [8, 9, 13, 27, 46, 37, 38, 39, 40].includes(e.keyCode) ||
+      // Permitir: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+      (e.ctrlKey && [65, 67, 86, 88].includes(e.keyCode))
+    ) {
+      return;
+    }
+    // Bloquear: e, E, +, -, . y cualquier cosa que no sea número
+    if (
+      e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-' || e.key === '.' ||
+      (e.key.length === 1 && !/\d/.test(e.key))
+    ) {
+      e.preventDefault();
+    }
+  });
+
+  document.getElementById('btn-reservar-pagar').onclick = async function() {
+    const fecha_inicio = document.getElementById('fecha_inicio').value;
+    const fecha_fin = document.getElementById('fecha_fin').value;
+    const huespedes = parseInt(document.getElementById('huespedes').value);
+    const maxHuespedes = parseInt('{{ propiedad.limite_personas }}');
+    const msgHuespedes = document.getElementById('msg_huespedes');
+    if (msgHuespedes) msgHuespedes.textContent = '';
+    if (!fecha_inicio || !fecha_fin || !huespedes) {
+      alert('Completa todos los campos de la reserva.');
+      return;
+    }
+    if (huespedes > maxHuespedes) {
+      if (msgHuespedes) {
+        msgHuespedes.textContent = `No puedes ingresar más de ${maxHuespedes} huéspedes.`;
+      } else {
+        alert(`No puedes ingresar más de ${maxHuespedes} huéspedes.`);
+      }
+      return;
+    }
+    if (fecha_fin <= fecha_inicio) {
+      alert('La fecha de fin debe ser mayor a la de inicio.');
+      return;
+    }
+    if (porcentajePago > 0) {
+      // Checkout Pro
+      const resp = await fetch('/crear_preferencia_checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propiedad_id: propiedadId,
+          fecha_inicio,
+          fecha_fin,
+          huespedes
+        })
+      });
+      const data = await resp.json();
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert('Error al generar el pago.');
+      }
+    } else {
+      // Reserva sin pago
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/propiedad/${propiedadId}/reservar`;
+      form.style.display = 'none';
+      [
+        ['fecha_inicio', fecha_inicio],
+        ['fecha_fin', fecha_fin],
+        ['huespedes', huespedes]
+      ].forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    }
+  };
+
+  calcularMonto();
+  validarCamposReserva();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('modalReservar');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function () {
+      document.getElementById('fecha_inicio').value = '';
+      document.getElementById('fecha_fin').value = '';
+      document.getElementById('huespedes').value = 1;
+      document.getElementById('precio_total').value = `$${parseFloat('{{ propiedad.precio|default(0) }}')}`;
+    });
+  }
+});
+</script>
+<style>
+.calif-fade {
+    animation: califFadeOutIn 0.5s;
+}
+@keyframes califFadeOutIn {
+    0% { opacity: 1; }
+    40% { opacity: 0; transform: translateX(20px); }
+    60% { opacity: 0; transform: translateX(-20px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+.calif-arrow-izq {
+    position: absolute;
+    left: -38px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.calif-arrow-der {
+    position: absolute;
+    right: -38px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+@media (max-width: 600px) {
+    .calif-arrow-izq { left: -18px; }
+    .calif-arrow-der { right: -18px; }
+}
+</style>
 {% endblock %}

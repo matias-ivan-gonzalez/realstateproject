@@ -7,8 +7,15 @@ from flask import session
 from models.user import Cliente
 from flask import request
 from sqlalchemy import desc
+from config import MERCADOPAGO_PUBLIC_KEY
 
 class PropiedadController:
+
+    def get_estadisticas_propiedad(self, propiedad_id, mes, anio):
+        from models.propiedad import Propiedad
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        service = PropiedadService()
+        return propiedad, service.get_estadisticas(propiedad, mes, anio)
     
     def add_propiedad(self, request):
         if request.method == 'POST':
@@ -115,6 +122,14 @@ class PropiedadController:
             if cliente:
                 user_favoritos = cliente.favoritos
 
+        # Flash message para reserva exitosa SOLO si corresponde
+        porcentaje_flash = session.pop('show_reserva_exitosa_flash', None)
+        if porcentaje_flash is not None:
+            flash(f'Reserva exitosa {porcentaje_flash}% abonado', 'success')
+        # Flash message para reserva fallida SOLO si corresponde
+        if session.pop('show_reserva_fallida_flash', None):
+            flash('Reserva fallida por error en el pago', 'danger')
+
         # Contar imágenes reales
         total_imagenes = 0
         for imagen in propiedad.imagenes:
@@ -158,7 +173,8 @@ class PropiedadController:
                              total_imagenes_reales=total_imagenes,
                              fechas_ocupadas=fechas_ocupadas,
                              fechas_reservadas=fechas_reservadas,
-                             dias_ocupados_encargado=dias_ocupados_encargado)
+                             dias_ocupados_encargado=dias_ocupados_encargado,
+                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -287,8 +303,20 @@ class PropiedadController:
 
     def asignar_propiedad(self, session, propiedad_id, encargado_id):
         from models.propiedad import Propiedad
+        from models.reserva import Reserva
         from database import db
+        from datetime import date
         propiedad = Propiedad.query.get_or_404(propiedad_id)
+        # Validar que no haya una reserva en curso en la fecha actual
+        hoy = date.today()
+        reservas_en_curso = Reserva.query.filter(
+            Reserva.propiedad_id == propiedad_id,
+            Reserva.fecha_inicio <= hoy,
+            Reserva.fecha_fin >= hoy
+        ).all()
+        if reservas_en_curso:
+            flash('No se puede asignar la propiedad porque tiene una reserva en curso.', 'danger')
+            return redirect(url_for('main.ver_encargados'))
         propiedad.encargado_id = encargado_id
         db.session.commit()
         flash('Propiedad asignada correctamente.', 'success')
@@ -296,8 +324,20 @@ class PropiedadController:
 
     def desasignar_propiedad(self, session, propiedad_id):
         from models.propiedad import Propiedad
+        from models.reserva import Reserva
         from database import db
+        from datetime import date
         propiedad = Propiedad.query.get_or_404(propiedad_id)
+        # Validar que no haya una reserva en curso en la fecha actual
+        hoy = date.today()
+        reservas_en_curso = Reserva.query.filter(
+            Reserva.propiedad_id == propiedad_id,
+            Reserva.fecha_inicio <= hoy,
+            Reserva.fecha_fin >= hoy
+        ).all()
+        if reservas_en_curso:
+            flash('No se puede desasignar la propiedad porque tiene una reserva en curso.', 'danger')
+            return redirect(url_for('main.ver_encargados'))
         propiedad.encargado_id = None
         db.session.commit()
         flash('Propiedad desasignada correctamente.', 'success')

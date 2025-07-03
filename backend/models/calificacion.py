@@ -20,3 +20,21 @@ class Calificacion(db.Model):
 
     def __repr__(self):
         return f"<Calificacion {self.id} - Reserva {self.reserva_id}>" 
+    
+    
+    def promedio_estrellas(self):
+        return (self.estrellas_vista + self.estrellas_ubicacion + self.estrellas_limpieza) / 3
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'reserva_id': self.reserva_id,
+            'cliente_id': self.cliente_id,
+            'propiedad_id': self.propiedad_id,
+            'estrellas_vista': self.estrellas_vista,
+            'estrellas_ubicacion': self.estrellas_ubicacion,
+            'estrellas_limpieza': self.estrellas_limpieza,
+            'descripcion': self.descripcion,
+            'fecha_calificacion': self.fecha_calificacion.isoformat() if self.fecha_calificacion else None,
+            'promedio_estrellas': self.promedio_estrellas()
+        }
