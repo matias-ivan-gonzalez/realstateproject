@@ -15,6 +15,7 @@ class UserController:
             if user:
                 session['user_id'] = user.id
                 session['user_name'] = user.nombre
+                session['email'] = user.email
                 # Asignar el rol correctamente
                 from models.user import SuperUsuario, Administrador, Encargado, Cliente
                 if isinstance(user, SuperUsuario):

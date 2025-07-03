@@ -125,7 +125,39 @@ class ReservaController:
                     "pending": f"{base_url}/propiedad/{propiedad_id}?pago=pending"
                 },
                 "auto_return": "approved",
-                "binary_mode": True
+                "binary_mode": True,
+                "payment_methods": {
+                    "excluded_payment_types": [
+                        {"id": "debit_card"},
+                        {"id": "ticket"},
+                        {"id": "atm"},
+                        {"id": "prepaid_card"}
+                    ],
+                    "excluded_payment_methods": [
+                        {"id": "amex"},
+                        {"id": "naranja"},
+                        {"id": "cabal"},
+                        {"id": "argencard"},
+                        {"id": "cencosud"},
+                        {"id": "tarshop"},
+                        {"id": "diners"},
+                        {"id": "pagofacil"},
+                        {"id": "rapipago"},
+                        {"id": "cmr"},
+                        {"id": "cordobesa"},
+                        {"id": "maestro"},
+                        {"id": "mercadopago"},
+                        {"id": "pagoefectivo"},
+                        {"id": "visa_debit"},
+                        {"id": "master_debit"},
+                        {"id": "debmaster"},
+                        {"id": "debvisa"}
+                    ],
+                    "installments": 1
+                },
+                "payer": {
+                    "email": session.get("email", "")
+                }
             }
             preference_response = sdk.preference().create(preference_data)
             preference = preference_response["response"]
