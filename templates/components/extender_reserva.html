@@ -35,7 +35,15 @@
             <div id="msgNuevaFechaFin" class="text-danger small"></div>
           </div>
           <div class="mb-2">
-            <label class="form-label">Monto total por la extensión</label>
+            <label class="form-label">Precio total por la extensión</label>
+            <input type="text" class="form-control" id="precioTotalExtension" readonly>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Porcentaje cobrado por reserva</label>
+            <input type="text" class="form-control" id="porcentajeCobrado" readonly>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Monto a pagar por la extensión</label>
             <input type="text" class="form-control" id="montoExtension" readonly>
           </div>
         </form>
@@ -63,16 +71,26 @@
     var inputNuevaFechaFin = document.getElementById('nuevaFechaFin');
     var inputFechaFinActual = document.getElementById('fechaFinActual');
     var inputMonto = document.getElementById('montoExtension');
+    var inputPrecioTotal = document.getElementById('precioTotalExtension');
+    var inputPorcentaje = document.getElementById('porcentajeCobrado');
     inputReservaId.value = reservaId;
     inputFechaFinActual.value = fechaFinActual;
     inputNuevaFechaFin.value = '';
-    inputNuevaFechaFin.min = fechaFinActual;
+    // Solo permitir fechas al menos 1 día después de la actual
+    var fechaMin = new Date(fechaFinActual);
+    fechaMin.setDate(fechaMin.getDate() + 1);
+    var minStr = fechaMin.toISOString().split('T')[0];
+    inputNuevaFechaFin.min = minStr;
+    inputNuevaFechaFin.setAttribute('min', minStr);
     inputMonto.value = '';
+    inputPrecioTotal.value = '';
+    inputPorcentaje.value = porcentaje + '%';
     document.getElementById('msgNuevaFechaFin').textContent = '';
     inputNuevaFechaFin.oninput = function() {
       var nueva = inputNuevaFechaFin.value;
       if (!nueva || nueva <= fechaFinActual) {
         inputMonto.value = '';
+        inputPrecioTotal.value = '';
         return;
       }
       var fecha1 = new Date(fechaFinActual);
@@ -80,10 +98,12 @@
       var noches = (fecha2 - fecha1) / (1000*60*60*24);
       if (noches < 1) {
         inputMonto.value = '';
+        inputPrecioTotal.value = '';
         return;
       }
       var total = precio * noches;
       var monto = Math.round(total * (porcentaje/100));
+      inputPrecioTotal.value = `$${total}`;
       inputMonto.value = monto > 0 ? `$${monto}` : `$${total}`;
     };
   });
@@ -96,6 +116,12 @@
       msg.textContent = '';
       if (!nuevaFechaFin) {
         msg.textContent = 'Selecciona la nueva fecha de salida.';
+        return;
+      }
+      // Validar que la fecha sea al menos 1 día después
+      const fechaFinActual = document.getElementById('fechaFinActual').value;
+      if (nuevaFechaFin <= fechaFinActual) {
+        msg.textContent = 'La nueva fecha de salida debe ser al menos 1 día después de la actual.';
         return;
       }
       try {

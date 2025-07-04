@@ -317,7 +317,7 @@ def init_db():
 
     # Cuarta reserva en julio (cancelada) - Casa Palermo
     fecha_inicio4 = '2025-7-01'
-    fecha_fin4 = '2026-7-05'
+    fecha_fin4 = '2025-7-05'
     fecha_inicio_convertida4 = datetime.strptime(fecha_inicio4, '%Y-%m-%d')
     fecha_fin_convertida4 = datetime.strptime(fecha_fin4, '%Y-%m-%d')
     reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
