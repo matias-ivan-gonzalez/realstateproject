@@ -31,7 +31,7 @@
           </div>
           <div class="mb-2">
             <label for="nuevaFechaFin" class="form-label">Nueva fecha de salida</label>
-            <input type="date" class="form-control" id="nuevaFechaFin" name="nueva_fecha_fin" required>
+            <input type="text" class="form-control" id="nuevaFechaFin" name="nueva_fecha_fin" required readonly>
             <div id="msgNuevaFechaFin" class="text-danger small"></div>
           </div>
           <div class="mb-2">
@@ -57,7 +57,72 @@
 </div>
 
 <script>
-// Script para pasar datos al modal de extensión y calcular monto
+// Inyectar fechas ocupadas/reservadas desde el backend (debe hacerse en el template padre)
+// window.fechasOcupadas = [...]; window.fechasReservadas = [...];
+// Si no existen, inicializar vacías para evitar errores
+window.fechasOcupadas = window.fechasOcupadas || [];
+window.fechasReservadas = window.fechasReservadas || [];
+
+function getBlockedDates() {
+  let fechasBloqueadas = [];
+  function getFechasEnRango(inicio, fin) {
+    let fechas = [];
+    let current = new Date(inicio);
+    let end = new Date(fin);
+    while (current <= end) {
+      fechas.push(current.toISOString().slice(0,10));
+      current.setDate(current.getDate() + 1);
+    }
+    return fechas;
+  }
+  (window.fechasOcupadas || []).forEach(function(r) {
+    getFechasEnRango(r.inicio, r.fin).forEach(f => fechasBloqueadas.push(f));
+  });
+  (window.fechasReservadas || []).forEach(function(r) {
+    getFechasEnRango(r.inicio, r.fin).forEach(f => fechasBloqueadas.push(f));
+  });
+  return Array.from(new Set(fechasBloqueadas));
+}
+
+function setupFlatpickrExtenderReserva(fechaFinActual) {
+  const blockedDates = getBlockedDates();
+  const today = new Date().toISOString().slice(0,10);
+  const minDate = today > fechaFinActual ? today : fechaFinActual;
+  if (window.flatpickrNuevaFin) {
+    window.flatpickrNuevaFin.destroy();
+  }
+  window.flatpickrNuevaFin = flatpickr('#nuevaFechaFin', {
+    dateFormat: 'Y-m-d',
+    minDate: minDate,
+    disable: blockedDates.concat([fechaFinActual]),
+    locale: 'es',
+    allowInput: false,
+    onChange: function(selectedDates, dateStr, instance) {
+      const msg = document.getElementById('msgNuevaFechaFin');
+      const btn = document.getElementById('btnConfirmarExtension');
+      if (!dateStr) {
+        msg.textContent = 'Selecciona la nueva fecha de salida.';
+        btn.disabled = true;
+        return;
+      }
+      if (dateStr <= fechaFinActual) {
+        msg.textContent = 'La nueva fecha debe ser posterior a la actual y no estar ocupada.';
+        btn.disabled = true;
+        instance.clear();
+        return;
+      }
+      if (blockedDates.includes(dateStr)) {
+        msg.textContent = 'La fecha seleccionada está ocupada o reservada.';
+        btn.disabled = true;
+        instance.clear();
+        return;
+      }
+      msg.textContent = '';
+      btn.disabled = false;
+    }
+  });
+}
+
 (function() {
   var modalExtender = document.getElementById('modalExtenderReserva');
   if (!modalExtender) return;
@@ -76,16 +141,12 @@
     inputReservaId.value = reservaId;
     inputFechaFinActual.value = fechaFinActual;
     inputNuevaFechaFin.value = '';
-    // Solo permitir fechas al menos 1 día después de la actual
-    var fechaMin = new Date(fechaFinActual);
-    fechaMin.setDate(fechaMin.getDate() + 1);
-    var minStr = fechaMin.toISOString().split('T')[0];
-    inputNuevaFechaFin.min = minStr;
-    inputNuevaFechaFin.setAttribute('min', minStr);
     inputMonto.value = '';
     inputPrecioTotal.value = '';
     inputPorcentaje.value = porcentaje + '%';
     document.getElementById('msgNuevaFechaFin').textContent = '';
+    document.getElementById('btnConfirmarExtension').disabled = true;
+    setupFlatpickrExtenderReserva(fechaFinActual);
     inputNuevaFechaFin.oninput = function() {
       var nueva = inputNuevaFechaFin.value;
       if (!nueva || nueva <= fechaFinActual) {
