@@ -8,7 +8,7 @@ from models.calificacion import Calificacion
 from models.propiedad_administrador import propiedad_administrador
 from models.favoritos import favoritos
 from models.reserva import Reserva
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from models.conversacion import Conversacion
 from models.mensaje_chat import MensajeChat
 
@@ -354,6 +354,18 @@ def init_db():
     if not reserva5:    
         reserva5 = Reserva(cliente=cliente, propiedad=prop10, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5, cantidad_personas=2, estado='concretada')
         db.session.add(reserva5)
+
+    # Reserva en curso para pruebas
+    hoy = datetime.now().date()
+    fecha_inicio_curso = hoy - timedelta(days=1)
+    fecha_fin_curso = hoy + timedelta(days=3)
+    reserva_curso = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop2.id, fecha_inicio=fecha_inicio_curso, fecha_fin=fecha_fin_curso).first()
+    if not reserva_curso:
+        reserva_curso = Reserva(cliente=cliente, propiedad=prop2, fecha_inicio=fecha_inicio_curso, fecha_fin=fecha_fin_curso, cantidad_personas=2, estado='curso')
+        db.session.add(reserva_curso)
+    # Quitar el encargado asignado a prop2
+    prop2.encargado_id = None
+    db.session.commit()
 
     db.session.commit()
     

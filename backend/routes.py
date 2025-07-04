@@ -553,3 +553,70 @@ def eliminar_calificacion_cliente(calificacion_id):
     db.session.commit()
     flash('Calificación eliminada exitosamente.', 'success')
     return redirect(url_for('main.calificaciones_editables_clientes'))
+
+@main.route('/propiedades/sin-encargado')
+@login_required
+def propiedades_sin_encargado():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    from architectural_patterns.repository.empleado_repository import EmpleadoRepository
+    propiedades = Propiedad.query.filter_by(encargado_id=None, eliminado=False).all()
+    encargados = EmpleadoRepository().get_encargados()
+    return render_template('propiedades_sin_encargado.html', propiedades=propiedades, encargados=encargados)
+
+@main.route('/propiedad/<int:propiedad_id>/asignar-encargado', methods=['POST'])
+@login_required
+def asignar_encargado_a_propiedad(propiedad_id):
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para realizar esta acción.', 'danger')
+        return redirect(url_for('main.index'))
+    encargado_id = request.form.get('encargado_id')
+    if not encargado_id:
+        flash('Debes seleccionar un encargado.', 'warning')
+        return redirect(url_for('main.propiedades_sin_encargado'))
+    from models.propiedad import Propiedad
+    from models.reserva import Reserva
+    from database import db
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Validar si hay reservas en curso
+    reservas_curso = Reserva.query.filter_by(propiedad_id=propiedad.id, estado='curso').all()
+    if reservas_curso:
+        flash('No se puede asignar la propiedad porque tiene una reserva en curso.', 'warning')
+        return redirect(url_for('main.propiedades_sin_encargado'))
+    propiedad.encargado_id = int(encargado_id)
+    db.session.commit()
+    flash('Encargado asignado correctamente.', 'success')
+    return redirect(url_for('main.propiedades_sin_encargado'))
+
+@main.route('/propiedades/asignadas')
+@login_required
+def propiedades_asignadas():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    from models.user import Encargado
+    propiedades = Propiedad.query.filter(Propiedad.encargado_id.isnot(None), Propiedad.eliminado == False).all()
+    return render_template('propiedades_asignadas.html', propiedades=propiedades)
+
+@main.route('/propiedad/<int:propiedad_id>/desasignar-encargado', methods=['POST'])
+@login_required
+def desasignar_encargado_de_propiedad(propiedad_id):
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para realizar esta acción.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    from models.reserva import Reserva
+    from database import db
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Validar si hay reservas en curso
+    reservas_curso = Reserva.query.filter_by(propiedad_id=propiedad.id, estado='curso').all()
+    if reservas_curso:
+        flash('No se puede desasignar el encargado porque hay una estadía en curso en esta propiedad.', 'warning')
+        return redirect(url_for('main.propiedades_asignadas'))
+    propiedad.encargado_id = None
+    db.session.commit()
+    flash('Encargado desasignado correctamente.', 'success')
+    return redirect(url_for('main.propiedades_asignadas'))
