@@ -1,0 +1,105 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Calificaciones editables/eliminables{% endblock %}
+
+<style>
+  .modal-bg {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-bg.active {
+    display: flex;
+  }
+  .modal-confirm {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    text-align: center;
+    min-width: 300px;
+    max-width: 90vw;
+  }
+  .modal-confirm .btn {
+    min-width: 100px;
+    margin: 0 0.5rem;
+  }
+</style>
+
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Calificaciones editables/eliminables</h2>
+    {% if reservas %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre del cliente</th>
+                    <th>Propiedad</th>
+                    <th>Fecha inicio</th>
+                    <th>Fecha fin</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reserva in reservas %}
+                <tr>
+                    <td>{{ reserva.cliente.nombre }} {{ reserva.cliente.apellido }}</td>
+                    <td>{{ reserva.propiedad.nombre }}</td>
+                    <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('main.editar_calificacion_cliente', calificacion_id=reserva.calificacion_cliente.id) }}" class="btn btn-primary btn-sm">Editar calificación</a>
+                        <form method="POST" action="{{ url_for('main.eliminar_calificacion_cliente', calificacion_id=reserva.calificacion_cliente.id) }}" style="display:inline;">
+                            <button type="button" class="btn btn-danger btn-sm ms-2" onclick="mostrarConfirmacion(this, '¿Estás seguro de que deseas borrar la calificación?')">Borrar calificación</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">No hay calificaciones editables/eliminables en este momento.</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+<!-- Modal fuera del flujo principal -->
+<div id="modalConfirmacion" class="modal-bg">
+  <div class="modal-confirm">
+    <div class="mb-3">¿Estás seguro de que deseas borrar la calificación?</div>
+    <div class="d-flex justify-content-center">
+      <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn btn-danger" id="btnConfirmarBorrar">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('modalConfirmacion').classList.remove('active');
+    let idAEliminar = null;
+    window.abrirModal = function(id) {
+      idAEliminar = id;
+      document.getElementById('modalConfirmacion').classList.add('active');
+    }
+    window.cerrarModal = function() {
+      document.getElementById('modalConfirmacion').classList.remove('active');
+      idAEliminar = null;
+    }
+    document.getElementById('btnConfirmarBorrar').onclick = function() {
+      if (idAEliminar) {
+        document.getElementById('formBorrar' + idAEliminar).submit();
+        window.cerrarModal();
+      }
+    };
+  });
+</script>
+
+<!-- Script de Bootstrap solo para esta página (sin defer, para modales) -->
+<script src="/static/js/bootstrap.bundle.min.js"></script> 

@@ -63,3 +63,27 @@ class ReservaRepository:
                 if not ya_calificada:
                     calificables.append(reserva)
         return calificables
+
+    def get_reservas_calificaciones_editables_por_encargado(self, encargado_id, hoy):
+        from models.calificacion_cliente import CalificacionCliente
+        from models.propiedad import Propiedad
+        from sqlalchemy.orm import joinedload
+        reservas = (
+            db.session.query(Reserva)
+            .join(Propiedad)
+            .filter(Propiedad.encargado_id == encargado_id)
+            .filter(Reserva.estado == 'concretada')
+            .options(joinedload(Reserva.cliente), joinedload(Reserva.propiedad))
+            .all()
+        )
+        editables = []
+        for reserva in reservas:
+            fecha_limite = reserva.fecha_fin
+            if fecha_limite is None:
+                continue
+            calif_cliente = CalificacionCliente.query.filter_by(reserva_id=reserva.id).first()
+            if calif_cliente and (hoy > fecha_limite) and ((hoy - fecha_limite).days <= 30):
+                # Adjuntamos la calificación al objeto reserva para la vista
+                reserva.calificacion_cliente = calif_cliente
+                editables.append(reserva)
+        return editables

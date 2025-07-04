@@ -10,7 +10,7 @@
             <form method="post">
                 <div class="mb-3">
                     <label for="opinion" class="form-label">Opinión sobre el cliente</label>
-                    <textarea class="form-control" id="opinion" name="opinion" rows="4" required></textarea>
+                    <textarea class="form-control" id="opinion" name="opinion" rows="4" required>{{ calificacion.opinion if calificacion is defined else '' }}</textarea>
                 </div>
                 <div class="d-flex justify-content-between">
                     <a href="{{ url_for('main.clientes_calificables') }}" class="btn btn-secondary">Cancelar</a>
