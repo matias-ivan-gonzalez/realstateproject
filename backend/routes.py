@@ -500,3 +500,56 @@ def calificar_cliente(reserva_id):
         flash('Calificación registrada correctamente.', 'success')
         return redirect(url_for('main.clientes_calificables'))
     return render_template('encargado/calificar_cliente.html', reserva=reserva)
+
+@main.route('/calificaciones-editables-clientes')
+@login_required
+def calificaciones_editables_clientes():
+    if 'user_id' not in session or session.get('rol') != 'encargado':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('main.index'))
+    from architectural_patterns.service.user_service import UserService
+    user_service = UserService()
+    reservas = user_service.get_calificaciones_editables_clientes_por_encargado(session['user_id'])
+    return render_template('calificaciones_editables_encargado.html', reservas=reservas)
+
+@main.route('/editar-calificacion-cliente/<int:calificacion_id>', methods=['GET', 'POST'])
+@login_required
+def editar_calificacion_cliente(calificacion_id):
+    from models.calificacion_cliente import CalificacionCliente
+    from database import db
+    from datetime import date
+    calificacion = CalificacionCliente.query.get_or_404(calificacion_id)
+    reserva = calificacion.reserva
+    hoy = date.today()
+    dias_diferencia = (hoy - reserva.fecha_fin).days
+    if dias_diferencia > 30:
+        flash('Solo puedes editar la calificación hasta 30 días después de la estadía.', 'warning')
+        return redirect(url_for('main.calificaciones_editables_clientes'))
+    if request.method == 'POST':
+        opinion = request.form.get('opinion', '').strip()
+        if not opinion:
+            flash('Debes ingresar una opinión.', 'warning')
+            return render_template('encargado/calificar_cliente.html', reserva=reserva, calificacion=calificacion, editar=True)
+        calificacion.opinion = opinion
+        db.session.commit()
+        flash('Calificación modificada con éxito', 'success')
+        return redirect(url_for('main.calificaciones_editables_clientes'))
+    return render_template('encargado/calificar_cliente.html', reserva=reserva, calificacion=calificacion, editar=True)
+
+@main.route('/eliminar-calificacion-cliente/<int:calificacion_id>', methods=['POST'])
+@login_required
+def eliminar_calificacion_cliente(calificacion_id):
+    from models.calificacion_cliente import CalificacionCliente
+    from database import db
+    from datetime import date
+    calificacion = CalificacionCliente.query.get_or_404(calificacion_id)
+    reserva = calificacion.reserva
+    hoy = date.today()
+    dias_diferencia = (hoy - reserva.fecha_fin).days
+    if dias_diferencia > 30:
+        flash('Solo puedes eliminar la calificación hasta 30 días después de la estadía.', 'warning')
+        return redirect(url_for('main.calificaciones_editables_clientes'))
+    db.session.delete(calificacion)
+    db.session.commit()
+    flash('Calificación eliminada exitosamente.', 'success')
+    return redirect(url_for('main.calificaciones_editables_clientes'))
