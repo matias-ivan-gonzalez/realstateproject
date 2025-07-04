@@ -1,5 +1,7 @@
 {% extends "base_hero.html" %}
 
+{% import "components/extender_reserva.html" as extender_reserva %}
+
 {% block title %}Reservas Activas - Alquilando{% endblock %}
 
 {% block hero_content %}
@@ -42,10 +44,7 @@
                                         {% else %}
                                             <a href="{{ chat_url }}" class="btn btn-outline-primary btn-sm">Iniciar chat</a>
                                         {% endif %}
-                                        {% set dias_para_salida = (reserva.fecha_fin_obj - current_date).days %}
-                                        {% if dias_para_salida > 2 %}
-                                            <button class="btn btn-info btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalExtenderReserva" data-reserva-id="{{ reserva.id }}" data-fecha-fin="{{ reserva.fecha_fin }}">Extender Reserva</button>
-                                        {% endif %}
+                                        {{ extender_reserva.extender_reserva_button(reserva, current_date, 'curso') }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -58,4 +57,5 @@
         </div>
     </div>
 </div>
+{{ extender_reserva.extender_reserva_modal() }}
 {% endblock %} 

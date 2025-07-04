@@ -1,0 +1,122 @@
+{% macro extender_reserva_button(reserva, current_date, tipo) %}
+    {% set dias_para_salida = (reserva.fecha_fin_obj - current_date).days %}
+    {% if dias_para_salida > 2 %}
+        <button class="btn btn-outline-primary btn-sm ms-2 extender-reserva-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#modalExtenderReserva"
+                data-reserva-id="{{ reserva.id }}"
+                data-fecha-fin="{{ reserva.fecha_fin }}"
+                data-precio="{{ reserva.precio if reserva.precio is defined else reserva.propiedad.precio }}"
+                data-porcentaje="{{ reserva.porcentaje_pago_reserva if reserva.porcentaje_pago_reserva is defined else reserva.propiedad.porcentaje_pago_reserva }}">
+            Extender Reserva
+        </button>
+    {% endif %}
+{% endmacro %}
+
+{% macro extender_reserva_modal() %}
+<!-- Modal para Extender Reserva -->
+<div class="modal fade" id="modalExtenderReserva" tabindex="-1" aria-labelledby="modalExtenderReservaLabel" aria-hidden="true" data-bs-backdrop="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExtenderReservaLabel">Extender Reserva</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formExtenderReserva">
+          <input type="hidden" id="extenderReservaId" name="reserva_id">
+          <div class="mb-2">
+            <label class="form-label">Fecha de salida actual</label>
+            <input type="text" class="form-control" id="fechaFinActual" readonly>
+          </div>
+          <div class="mb-2">
+            <label for="nuevaFechaFin" class="form-label">Nueva fecha de salida</label>
+            <input type="date" class="form-control" id="nuevaFechaFin" name="nueva_fecha_fin" required>
+            <div id="msgNuevaFechaFin" class="text-danger small"></div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Monto total por la extensión</label>
+            <input type="text" class="form-control" id="montoExtension" readonly>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" id="btnConfirmarExtension">Confirmar y pagar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Script para pasar datos al modal de extensión y calcular monto
+(function() {
+  var modalExtender = document.getElementById('modalExtenderReserva');
+  if (!modalExtender) return;
+  modalExtender.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var reservaId = button.getAttribute('data-reserva-id');
+    var fechaFinActual = button.getAttribute('data-fecha-fin');
+    var precio = parseFloat(button.getAttribute('data-precio'));
+    var porcentaje = parseInt(button.getAttribute('data-porcentaje'));
+    var inputReservaId = document.getElementById('extenderReservaId');
+    var inputNuevaFechaFin = document.getElementById('nuevaFechaFin');
+    var inputFechaFinActual = document.getElementById('fechaFinActual');
+    var inputMonto = document.getElementById('montoExtension');
+    inputReservaId.value = reservaId;
+    inputFechaFinActual.value = fechaFinActual;
+    inputNuevaFechaFin.value = '';
+    inputNuevaFechaFin.min = fechaFinActual;
+    inputMonto.value = '';
+    document.getElementById('msgNuevaFechaFin').textContent = '';
+    inputNuevaFechaFin.oninput = function() {
+      var nueva = inputNuevaFechaFin.value;
+      if (!nueva || nueva <= fechaFinActual) {
+        inputMonto.value = '';
+        return;
+      }
+      var fecha1 = new Date(fechaFinActual);
+      var fecha2 = new Date(nueva);
+      var noches = (fecha2 - fecha1) / (1000*60*60*24);
+      if (noches < 1) {
+        inputMonto.value = '';
+        return;
+      }
+      var total = precio * noches;
+      var monto = Math.round(total * (porcentaje/100));
+      inputMonto.value = monto > 0 ? `$${monto}` : `$${total}`;
+    };
+  });
+  var btnConfirmar = document.getElementById('btnConfirmarExtension');
+  if (btnConfirmar) {
+    btnConfirmar.onclick = async function() {
+      const reservaId = document.getElementById('extenderReservaId').value;
+      const nuevaFechaFin = document.getElementById('nuevaFechaFin').value;
+      const msg = document.getElementById('msgNuevaFechaFin');
+      msg.textContent = '';
+      if (!nuevaFechaFin) {
+        msg.textContent = 'Selecciona la nueva fecha de salida.';
+        return;
+      }
+      try {
+        const resp = await fetch('/extender_reserva', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reserva_id: reservaId, nueva_fecha_fin: nuevaFechaFin })
+        });
+        const data = await resp.json();
+        if (data.init_point) {
+          window.location.href = data.init_point;
+        } else if (data.success) {
+          location.reload();
+        } else if (data.error) {
+          msg.textContent = data.error;
+        }
+      } catch (e) {
+        msg.textContent = 'Error al procesar la extensión.';
+      }
+    };
+  }
+})();
+</script>
+{% endmacro %} 
