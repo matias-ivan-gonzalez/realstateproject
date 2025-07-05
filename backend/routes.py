@@ -314,6 +314,9 @@ def chat():
     conversacion = None
     if conversacion_id:
         conversacion = Conversacion.query.get(conversacion_id)
+        if conversacion:
+            reserva_id = conversacion.reserva_id
+            tipo = conversacion.tipo
     elif session.get('rol') == 'cliente':
         conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
     estado_chat = conversacion.estado if conversacion else 'abierta'

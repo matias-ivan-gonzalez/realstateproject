@@ -74,10 +74,18 @@ Chat
     var conversacionId = null;
 
 
-    // Cliente: solo puede iniciar su conversación y ver su propio chat
+    // Cliente: puede ver su chat por conversacion_id (cerrado o abierto) o por reserva_id+tipo (solo abierto)
     if (window.isCliente) {
-        socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
-        socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedConversacionId = urlParams.get('conversacion_id');
+        if (preselectedConversacionId) {
+            conversacionId = preselectedConversacionId;
+            socket.emit('join_chat', { conversacion_id: conversacionId });
+            socket.emit('get_chat_history', { conversacion_id: conversacionId });
+        } else {
+            socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+            socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        }
         // Cambiar el título visible
         if (chatTitleH2) chatTitleH2.textContent = 'Chat con Alquilando';
     }
