@@ -14,7 +14,7 @@ from database import db
 from config import MERCADOPAGO_ACCESS_TOKEN
 import mercadopago
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from models.reserva import Reserva
 from models.pago import Pago
 
@@ -660,3 +660,30 @@ def eliminar_reserva(reserva_id):
     db.session.commit()
     flash(f'Reserva cancelada exitosamente. {mensaje_reembolso}', 'success')
     return redirect(url_for('main.reservas_futuras'))
+
+@main.route('/mis-pagos')
+@login_required
+def mis_pagos():
+    user_controller = UserController()
+    return user_controller.ver_pagos_cliente(session)
+
+@main.route('/ver-pago/<int:reserva_id>')
+def ver_pago_reserva(reserva_id):
+    from models.reserva import Reserva
+    from models.pago import Pago
+    from datetime import datetime, timedelta
+    reserva = Reserva.query.get_or_404(reserva_id)
+    pagos = reserva.pagos
+    hoy = datetime.now().date()
+    cambios = False
+    for pago in pagos:
+        if pago.status == 'pendiente':
+            fecha_cobro = reserva.fecha_inicio - timedelta(days=2)
+            if hoy >= fecha_cobro:
+                pago.status = 'pagado'
+                pago.fecha_cobro_total = datetime.combine(fecha_cobro, datetime.min.time())
+                cambios = True
+    if cambios:
+        from database import db
+        db.session.commit()
+    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos, timedelta=timedelta)
