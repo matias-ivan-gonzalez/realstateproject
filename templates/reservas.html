@@ -66,7 +66,6 @@
                                         {% elif tipo_reserva == 'pendientes' %}
                                             <span class="badge bg-warning text-dark">Pendiente de calificar</span>
                                         {% elif tipo_reserva == 'editables' %}
-                                            <span class="badge bg-success">Calificada</span>
                                             <a href="{{ url_for('main.editar_calificacion', calificacion_id=reserva.calificacion.id) }}" class="btn btn-primary btn-sm ms-2">Editar calificación</a>
                                             <form method="POST" action="{{ url_for('main.borrar_calificacion', calificacion_id=reserva.calificacion.id) }}" style="display:inline;">
                                                 <button type="button" class="btn btn-danger btn-sm ms-2" onclick="mostrarConfirmacion(this, '¿Estás seguro de que deseas borrar la calificación?')">Borrar calificación</button>

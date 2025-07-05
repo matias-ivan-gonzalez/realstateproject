@@ -1,0 +1,37 @@
+{% extends "base_hero.html" %}
+{% block hero_content %}
+<h2 class="mb-4">Propiedades sin encargado</h2>
+<div class="table-responsive">
+<table class="table table-striped table-hover align-middle bg-white rounded shadow">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for propiedad in propiedades %}
+        <tr>
+            <td>{{ propiedad.nombre }}</td>
+            <td>{{ propiedad.direccion }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('main.asignar_encargado_a_propiedad', propiedad_id=propiedad.id) }}" class="d-flex gap-2 align-items-center">
+                    <select name="encargado_id" class="form-select" required>
+                        <option value="">Selecciona un encargado</option>
+                        {% for encargado in encargados %}
+                            <option value="{{ encargado.id }}">{{ encargado.nombre }} {{ encargado.apellido }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-success">Asignar</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% if not propiedades %}
+  <div class="alert alert-info mt-4">No hay propiedades sin encargado.</div>
+{% endif %}
+{% endblock %} 

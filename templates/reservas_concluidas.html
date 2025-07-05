@@ -25,8 +25,7 @@
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
                                 <th>Estado</th>
-                                <th>Chat en curso</th>
-                                <th>Chat futuro</th>
+                                <th>Chat</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -45,15 +44,8 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if reserva.chat_existio_curso %}
-                                            <a href="/chat?reserva_id={{ reserva.id }}&tipo=curso" class="btn btn-outline-primary">Ver chat</a>
-                                        {% else %}
-                                            <span class="text-muted">No hubo chat</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if reserva.chat_existio_futuro %}
-                                            <a href="/chat?reserva_id={{ reserva.id }}&tipo=futuro" class="btn btn-outline-primary">Ver chat</a>
+                                        {% if reserva.chat_existio_curso or reserva.chat_existio_futuro %}
+                                            <a href="/chat?reserva_id={{ reserva.id }}" class="btn btn-outline-primary">Ver chat</a>
                                         {% else %}
                                             <span class="text-muted">No hubo chat</span>
                                         {% endif %}
