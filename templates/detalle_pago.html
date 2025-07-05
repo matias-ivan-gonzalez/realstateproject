@@ -37,8 +37,16 @@
                                     {% else %}-{% endif %}
                                 </td>
                                 <td>
-                                    {{ pago.status }}
-                                    {% if pago.status == 'pendiente' %}
+                                    {% if pago.status == 'paid' %}
+                                        Pagado
+                                    {% elif pago.status == 'pending' %}
+                                        Pendiente
+                                    {% elif pago.status == 'canceled' %}
+                                        Cancelado
+                                    {% else %}
+                                        {{ pago.status }}
+                                    {% endif %}
+                                    {% if pago.status == 'pending' %}
                                         <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="Se debitará de la tarjeta registrada del cliente el {{ (reserva.fecha_inicio - timedelta(days=2)).strftime('%d/%m/%Y') }}">*</span>
                                     {% endif %}
                                 </td>
