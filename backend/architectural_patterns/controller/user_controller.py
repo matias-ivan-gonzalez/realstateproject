@@ -298,10 +298,9 @@ class UserController:
             flash('Solo los clientes pueden ver sus reservas.', 'danger')
             return redirect(url_for('main.index'))
         cliente = Cliente.query.get(user_id)
-        reservas = cliente.reservas if cliente else []
+        reservas = [r for r in cliente.reservas if getattr(r, 'estado', None) != 'cancelada'] if cliente else []
         current_date = date.today()
         # Pasar una variable para ocultar la columna de acciones
-        
         return render_template('reservas.html', reservas=reservas, current_date=current_date, ocultar_acciones=True)
 
     def mostrar_formulario_calificacion(self, session, reserva_id):
@@ -408,18 +407,20 @@ class UserController:
         from models.user import Cliente
         user_id = session.get('user_id')
         user_tipo = session.get('rol')
-        if user_tipo != 'cliente':
-            return []
-        cliente = Cliente.query.get(user_id)
-        reservas = cliente.reservas if cliente else []
-        return reservas
+        if user_tipo == 'cliente':
+            cliente = Cliente.query.get(user_id)
+            if cliente:
+                return [r for r in cliente.reservas if getattr(r, 'estado', None) != 'cancelada']
+            else:
+                return []
+        return []
 
     def obtener_reservas_futuras(self, session):
         reservas = self.obtener_lista_reservas(session)
         hoy = datetime.now().date()
         user_id = session.get('user_id')
         from models.conversacion import Conversacion
-        futuras = [r for r in reservas if r.fecha_inicio > hoy]
+        futuras = [r for r in reservas if r.fecha_inicio > hoy and getattr(r, 'estado', None) != 'cancelada']
         reservas_serializadas = []
         for r in futuras:
             chat_iniciado_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro', estado='abierta').first() is not None
@@ -531,3 +532,31 @@ class UserController:
         if not pagos_por_reserva:
             return render_template('mis_pagos.html', pagos_por_reserva=None)
         return render_template('mis_pagos.html', pagos_por_reserva=pagos_por_reserva)
+
+    def obtener_reservas_canceladas(self, session):
+        reservas = self.obtener_lista_reservas_todas(session)
+        canceladas = [r for r in reservas if getattr(r, 'estado', None) == 'cancelada']
+        reservas_serializadas = []
+        for r in canceladas:
+            reservas_serializadas.append({
+                'id': r.id,
+                'propiedad': r.propiedad.nombre if r.propiedad else '',
+                'direccion': r.propiedad.direccion if r.propiedad else '',
+                'fecha_inicio': r.fecha_inicio.strftime('%d/%m/%Y'),
+                'fecha_fin': r.fecha_fin.strftime('%d/%m/%Y'),
+                'cantidad_personas': r.cantidad_personas,
+                'estado': r.estado
+            })
+        return reservas_serializadas
+
+    def obtener_lista_reservas_todas(self, session):
+        from models.user import Cliente
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo == 'cliente':
+            cliente = Cliente.query.get(user_id)
+            if cliente:
+                return cliente.reservas
+            else:
+                return []
+        return []
