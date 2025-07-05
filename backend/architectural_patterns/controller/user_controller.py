@@ -508,3 +508,26 @@ class UserController:
                 'chat_iniciado_curso': chat_iniciado_curso
             })
         return reservas_serializadas
+
+    def ver_pagos_cliente(self, session):
+        from models.user import Cliente
+        from models.reserva import Reserva
+        from models.pago import Pago
+        user_id = session.get('user_id')
+        user_tipo = session.get('rol')
+        if user_tipo != 'cliente':
+            flash('Solo los clientes pueden ver sus pagos.', 'danger')
+            return redirect(url_for('main.index'))
+        cliente = Cliente.query.get(user_id)
+        reservas = cliente.reservas if cliente else []
+        pagos_por_reserva = []
+        for reserva in reservas:
+            pagos = reserva.pagos  # Relación definida en el modelo
+            if pagos:
+                pagos_por_reserva.append({
+                    'reserva': reserva,
+                    'pagos': pagos
+                })
+        if not pagos_por_reserva:
+            return render_template('mis_pagos.html', pagos_por_reserva=None)
+        return render_template('mis_pagos.html', pagos_por_reserva=pagos_por_reserva)

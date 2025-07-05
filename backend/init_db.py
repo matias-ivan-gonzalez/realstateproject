@@ -11,6 +11,7 @@ from models.reserva import Reserva
 from datetime import datetime, date, timedelta
 from models.conversacion import Conversacion
 from models.mensaje_chat import MensajeChat
+from models.pago import Pago
 
 
 def init_db():
@@ -366,6 +367,46 @@ def init_db():
     # Quitar el encargado asignado a prop2
     prop2.encargado_id = None
     db.session.commit()
+
+    # Reserva solicitada por HU: Juan López en Casa Córdoba Nueva Córdoba
+    fecha_inicio_juan = '2025-07-08'
+    fecha_fin_juan = '2025-07-12'
+    fecha_inicio_juan_dt = datetime.strptime(fecha_inicio_juan, '%Y-%m-%d')
+    fecha_fin_juan_dt = datetime.strptime(fecha_fin_juan, '%Y-%m-%d')
+    reserva_juan = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop7.id, fecha_inicio=fecha_inicio_juan_dt, fecha_fin=fecha_fin_juan_dt).first()
+    if not reserva_juan:
+        reserva_juan = Reserva(cliente=cliente, propiedad=prop7, fecha_inicio=fecha_inicio_juan_dt, fecha_fin=fecha_fin_juan_dt, cantidad_personas=4, estado='concretada')
+        db.session.add(reserva_juan)
+        db.session.commit()  # Commit inmediato para asegurar el ID
+    else:
+        db.session.commit()  # Por si la reserva ya existía pero no estaba en sesión
+
+    # Pagos para la reserva de Juan López en Casa Córdoba Nueva Córdoba
+    if 'reserva_juan' in locals():
+        monto_total = prop7.precio
+        monto_adelanto = monto_total * 0.2
+        monto_restante = monto_total * 0.8
+        pago_adelanto = Pago.query.filter_by(reserva_id=reserva_juan.id, monto=monto_adelanto).first()
+        if not pago_adelanto:
+            pago_adelanto = Pago(
+                monto=monto_adelanto,
+                fecha_emision=datetime.now(),
+                fecha_cobro_total=datetime.now(),
+                status='pagado',
+                reserva_id=reserva_juan.id
+            )
+            db.session.add(pago_adelanto)
+        pago_restante = Pago.query.filter_by(reserva_id=reserva_juan.id, monto=monto_restante).first()
+        if not pago_restante:
+            pago_restante = Pago(
+                monto=monto_restante,
+                fecha_emision=datetime.now(),
+                fecha_cobro_total=None,
+                status='pendiente',
+                reserva_id=reserva_juan.id
+            )
+            db.session.add(pago_restante)
+        db.session.commit()  # Commit tras crear los pagos
 
     db.session.commit()
     
