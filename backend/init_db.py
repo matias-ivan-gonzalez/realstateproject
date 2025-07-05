@@ -402,7 +402,7 @@ def init_db():
                 monto=monto_adelanto,
                 fecha_emision=datetime.now(),
                 fecha_cobro_total=datetime.now(),
-                status='pagado',
+                status='paid',
                 reserva_id=reserva_juan.id
             )
             db.session.add(pago_adelanto)
@@ -412,7 +412,7 @@ def init_db():
                 monto=monto_restante,
                 fecha_emision=datetime.now(),
                 fecha_cobro_total=None,
-                status='pendiente',
+                status='pending',
                 reserva_id=reserva_juan.id
             )
             db.session.add(pago_restante)

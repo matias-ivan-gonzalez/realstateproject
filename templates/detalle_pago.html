@@ -28,18 +28,23 @@
                             <tr>
                                 <td>${{ pago.monto }}</td>
                                 <td>
-                                    {% if pago.status == 'pendiente' %}
-                                        {# Fecha de cobro automática: dos días antes de la fecha de inicio de la reserva #}
-                                        {% set fecha_cobro = (reserva.fecha_inicio - timedelta(days=2)) %}
-                                        {{ fecha_cobro.strftime('%d/%m/%Y') }}
-                                    {% elif pago.fecha_cobro_total %}
+                                    {% if pago.fecha_cobro_total %}
                                         {{ pago.fecha_cobro_total.strftime('%d/%m/%Y') }}
-                                    {% else %}-{% endif %}
+                                    {% else %}
+                                        {% set fecha_cobro = (reserva.fecha_fin - timedelta(days=2)) %}
+                                        {{ fecha_cobro.strftime('%d/%m/%Y') }}
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    {{ pago.status }}
-                                    {% if pago.status == 'pendiente' %}
-                                        <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="Se debitará de la tarjeta registrada del cliente el {{ (reserva.fecha_inicio - timedelta(days=2)).strftime('%d/%m/%Y') }}">*</span>
+                                    {% if pago.status == 'paid' %}
+                                        Pagado
+                                    {% elif pago.status == 'pending' %}
+                                        Pendiente
+                                        <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="El pago se debitará de la tarjeta registrada por el cliente en el día de cobro indicado">*</span>
+                                    {% elif pago.status == 'cancelled' %}
+                                        Cancelado
+                                    {% else %}
+                                        {{ pago.status }}
                                     {% endif %}
                                 </td>
                             </tr>
