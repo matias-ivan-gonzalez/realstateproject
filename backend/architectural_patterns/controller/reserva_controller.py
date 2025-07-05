@@ -1,8 +1,9 @@
 from models.reserva import Reserva
 from models.user import Cliente
 from models.propiedad import Propiedad
+from models.pago import Pago
 from database import db
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import redirect, url_for, flash, jsonify
 import mercadopago
 from config import MERCADOPAGO_ACCESS_TOKEN
@@ -30,6 +31,64 @@ class ReservaController:
                 cantidad_personas=cantidad_huespedes
             )
             db.session.add(reserva)
+            db.session.commit()
+            # Calcular el monto del pago según el porcentaje de la propiedad
+            noches = (fecha_fin_dt - fecha_inicio_dt).days
+            if noches < 1:
+                noches = 1
+            monto_total = float(propiedad.precio * noches)
+            porcentaje = propiedad.porcentaje_pago_reserva
+            fecha_cobro_total = fecha_inicio_dt
+            print(f"[DEBUG] porcentaje_pago_reserva: {porcentaje} (type: {type(porcentaje)})")
+            print(f"[DEBUG] fecha_cobro_total: {fecha_cobro_total}")
+            if int(porcentaje) == 20:
+                # Pago del 20% (pagado)
+                monto_adelanto = round(monto_total * 0.2, 2)
+                if monto_adelanto < 1:
+                    monto_adelanto = 1
+                pago_adelanto = Pago(
+                    monto=monto_adelanto,
+                    reserva_id=reserva.id,
+                    fecha_emision=datetime.utcnow(),
+                    status='paid',
+                    fecha_cobro_total=None
+                )
+                db.session.add(pago_adelanto)
+                # Pago del 80% (pendiente)
+                monto_restante = round(monto_total * 0.8, 2)
+                if monto_restante < 1:
+                    monto_restante = 1
+                fecha_cobro_pending = fecha_inicio_dt - timedelta(days=2)
+                pago_restante = Pago(
+                    monto=monto_restante,
+                    reserva_id=reserva.id,
+                    fecha_emision=None,
+                    status='pending',
+                    fecha_cobro_total=fecha_cobro_pending
+                )
+                db.session.add(pago_restante)
+            elif int(porcentaje) == 0:
+                print("[DEBUG] Creando pago pending 100% para porcentaje 0%")
+                # Pago pendiente por el 100%
+                fecha_cobro_pending = fecha_inicio_dt - timedelta(days=2)
+                pago_pendiente = Pago(
+                    monto=monto_total,
+                    reserva_id=reserva.id,
+                    fecha_emision=None,
+                    status='pending',
+                    fecha_cobro_total=fecha_cobro_pending
+                )
+                db.session.add(pago_pendiente)
+            elif int(porcentaje) == 100:
+                # Pago completo, pagado
+                pago_total = Pago(
+                    monto=monto_total,
+                    reserva_id=reserva.id,
+                    fecha_emision=datetime.utcnow(),
+                    status='paid',
+                    fecha_cobro_total=datetime.utcnow()
+                )
+                db.session.add(pago_total)
             db.session.commit()
             # Setear bandera para mostrar flash message en la vista
             session['show_reserva_exitosa_flash'] = propiedad.porcentaje_pago_reserva
@@ -89,6 +148,21 @@ class ReservaController:
         )
         db.session.add(reserva)
         db.session.commit()
+
+        # Crear pago pending 100% para reservas con 0%
+        if int(porcentaje) == 0:
+            monto_total = float(propiedad.precio * noches)
+            fecha_cobro_total = fecha_inicio_dt - timedelta(days=2)
+            pago_pendiente = Pago(
+                monto=monto_total,
+                reserva_id=reserva.id,
+                fecha_emision=None,
+                status='pending',
+                fecha_cobro_total=fecha_cobro_total
+            )
+            db.session.add(pago_pendiente)
+            db.session.commit()
+
         flash(mensaje_pago, 'success')
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
 
@@ -104,10 +178,6 @@ class ReservaController:
             if noches < 1:
                 noches = 1
             monto_total = float(propiedad.precio * noches)
-            porcentaje = propiedad.porcentaje_pago_reserva
-            monto_a_cobrar = round(monto_total * (porcentaje / 100), 2)
-            if monto_a_cobrar < 1:
-                monto_a_cobrar = 1
             sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
             base_url = "https://liked-indirectly-finch.ngrok-free.app"
             preference_data = {
@@ -116,7 +186,7 @@ class ReservaController:
                         "title": f"Reserva de {propiedad.nombre}",
                         "quantity": 1,
                         "currency_id": "ARS",
-                        "unit_price": monto_a_cobrar
+                        "unit_price": monto_total
                     }
                 ],
                 "back_urls": {
@@ -163,7 +233,6 @@ class ReservaController:
             preference = preference_response["response"]
             print("Respuesta de Mercado Pago:", preference)  # Log para depuración
             if "init_point" in preference:
-                # No crear la reserva aquí
                 return jsonify(init_point=preference["init_point"])
             else:
                 print("Error al crear preferencia:", preference)
