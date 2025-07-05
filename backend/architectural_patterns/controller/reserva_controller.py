@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from flask import redirect, url_for, flash, jsonify
 import mercadopago
 from config import MERCADOPAGO_ACCESS_TOKEN
+import os
 
 class ReservaController:
     def crear_reserva_checkout(self, user_id, propiedad_id, fecha_inicio, fecha_fin, cantidad_huespedes):
@@ -179,7 +180,7 @@ class ReservaController:
                 noches = 1
             monto_total = float(propiedad.precio * noches)
             sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
-            base_url = "https://liked-indirectly-finch.ngrok-free.app"
+            base_url = os.environ.get("BASE_URL")
             preference_data = {
                 "items": [
                     {
