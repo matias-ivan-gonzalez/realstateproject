@@ -631,34 +631,22 @@ def eliminar_reserva(reserva_id):
     propiedad = reserva.propiedad
     ahora = datetime.utcnow().date()
     dias_antes = (reserva.fecha_inicio - ahora).days
-    reembolso_realizado = False
-    mensaje_reembolso = None
-    if propiedad.reembolsable:
-        if dias_antes >= 2:
-            pagos = Pago.query.filter_by(reserva_id=reserva.id).all()
-            porcentaje = propiedad.porcentaje_pago_reserva
-            if int(porcentaje) == 20:
-                # Regla 2: No se devuelve el 20%
-                mensaje_reembolso = 'La reserva fue cancelada con al menos 48 horas de anticipación. El 20% abonado no es reembolsable.'
-            elif int(porcentaje) == 100:
-                # Regla 3: Se devuelve el 20%
-                pago_total = next((p for p in pagos if p.status == 'paid'), None)
-                if pago_total:
-                    monto_reembolso = round(pago_total.monto * 0.2, 2)
-                    mensaje_reembolso = f'Se reembolsará el 20% del pago anticipado: ${monto_reembolso}.'
-                    reembolso_realizado = True
-                else:
-                    mensaje_reembolso = 'No se encontró el pago para reembolsar.'
-            elif int(porcentaje) == 0:
-                # Regla 1: No hay pago realizado, solo pending
-                mensaje_reembolso = 'La reserva fue cancelada con al menos 48 horas de anticipación. No se realizó ningún pago, por lo que no hay reembolso.'
-        else:
-            mensaje_reembolso = 'La reserva fue cancelada con menos de 48 horas de anticipación. No corresponde reembolso.'
-    else:
-        mensaje_reembolso = 'La propiedad no es reembolsable. No corresponde reembolso.'
+    pagos = Pago.query.filter_by(reserva_id=reserva.id).all()
+    porcentaje = propiedad.porcentaje_pago_reserva
+    mensaje_reembolso = 'Cancelación exitosa.'
+
+    # Cambiar pagos pendientes a cancelados
+    for pago in pagos:
+        if pago.status == 'pending':
+            pago.status = 'cancelled'
+    db.session.commit()
+
+    if propiedad.reembolsable and dias_antes >= 2 and int(porcentaje) == 100:
+        mensaje_reembolso = 'Cancelación con reembolso exitosa.'
+
     db.session.delete(reserva)
     db.session.commit()
-    flash(f'Reserva cancelada exitosamente. {mensaje_reembolso}', 'success')
+    flash(mensaje_reembolso, 'success')
     return redirect(url_for('main.reservas_futuras'))
 
 @main.route('/mis-pagos')
