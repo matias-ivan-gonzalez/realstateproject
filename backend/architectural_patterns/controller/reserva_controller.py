@@ -3,7 +3,7 @@ from models.user import Cliente
 from models.propiedad import Propiedad
 from models.pago import Pago
 from database import db
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import redirect, url_for, flash, jsonify
 import mercadopago
 from config import MERCADOPAGO_ACCESS_TOKEN
@@ -58,23 +58,25 @@ class ReservaController:
                 monto_restante = round(monto_total * 0.8, 2)
                 if monto_restante < 1:
                     monto_restante = 1
+                fecha_cobro_pending = fecha_inicio_dt - timedelta(days=2)
                 pago_restante = Pago(
                     monto=monto_restante,
                     reserva_id=reserva.id,
                     fecha_emision=None,
                     status='pending',
-                    fecha_cobro_total=fecha_cobro_total
+                    fecha_cobro_total=fecha_cobro_pending
                 )
                 db.session.add(pago_restante)
             elif int(porcentaje) == 0:
                 print("[DEBUG] Creando pago pending 100% para porcentaje 0%")
                 # Pago pendiente por el 100%
+                fecha_cobro_pending = fecha_inicio_dt - timedelta(days=2)
                 pago_pendiente = Pago(
                     monto=monto_total,
                     reserva_id=reserva.id,
                     fecha_emision=None,
                     status='pending',
-                    fecha_cobro_total=fecha_cobro_total
+                    fecha_cobro_total=fecha_cobro_pending
                 )
                 db.session.add(pago_pendiente)
             elif int(porcentaje) == 100:
@@ -150,7 +152,7 @@ class ReservaController:
         # Crear pago pending 100% para reservas con 0%
         if int(porcentaje) == 0:
             monto_total = float(propiedad.precio * noches)
-            fecha_cobro_total = fecha_inicio_dt
+            fecha_cobro_total = fecha_inicio_dt - timedelta(days=2)
             pago_pendiente = Pago(
                 monto=monto_total,
                 reserva_id=reserva.id,
