@@ -29,7 +29,8 @@ class ReservaController:
                 propiedad_id=propiedad.id,
                 fecha_inicio=fecha_inicio_dt,
                 fecha_fin=fecha_fin_dt,
-                cantidad_personas=cantidad_huespedes
+                cantidad_personas=cantidad_huespedes,
+                reembolsable=propiedad.reembolsable
             )
             db.session.add(reserva)
             db.session.commit()
@@ -145,7 +146,8 @@ class ReservaController:
             propiedad_id=propiedad.id,
             fecha_inicio=fecha_inicio_dt,
             fecha_fin=fecha_fin_dt,
-            cantidad_personas=cantidad_huespedes
+            cantidad_personas=cantidad_huespedes,
+            reembolsable=propiedad.reembolsable
         )
         db.session.add(reserva)
         db.session.commit()
