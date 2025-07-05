@@ -1,6 +1,7 @@
 from models.reserva import Reserva
 from models.user import Cliente
 from models.propiedad import Propiedad
+from models.pago import Pago
 from database import db
 from datetime import datetime
 from flask import redirect, url_for, flash, jsonify
@@ -30,6 +31,18 @@ class ReservaController:
                 cantidad_personas=cantidad_huespedes
             )
             db.session.add(reserva)
+            db.session.commit()
+            # Calcular el monto del pago según el porcentaje de la propiedad
+            noches = (fecha_fin_dt - fecha_inicio_dt).days
+            if noches < 1:
+                noches = 1
+            monto_total = float(propiedad.precio * noches)
+            porcentaje = propiedad.porcentaje_pago_reserva
+            monto_a_cobrar = round(monto_total * (porcentaje / 100), 2)
+            if monto_a_cobrar < 1:
+                monto_a_cobrar = 1
+            pago = Pago(monto=monto_a_cobrar, reserva_id=reserva.id, fecha_emision=datetime.utcnow())
+            db.session.add(pago)
             db.session.commit()
             # Setear bandera para mostrar flash message en la vista
             session['show_reserva_exitosa_flash'] = propiedad.porcentaje_pago_reserva
