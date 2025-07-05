@@ -1,0 +1,23 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Calificar cliente{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Calificar cliente</h2>
+    <div class="card mx-auto" style="max-width: 500px;">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="opinion" class="form-label">Opinión sobre el cliente</label>
+                    <textarea class="form-control" id="opinion" name="opinion" rows="4" required>{{ calificacion.opinion if calificacion is defined else '' }}</textarea>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('main.clientes_calificables') }}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

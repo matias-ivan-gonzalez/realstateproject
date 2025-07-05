@@ -1,0 +1,63 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Detalle de Pagos - Alquilando{% endblock %}
+
+{% block hero_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h2 class="mb-4 text-center">Detalle de Pagos</h2>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <strong>Propiedad:</strong> {{ reserva.propiedad.nombre }}<br>
+                    <strong>Dirección:</strong> {{ reserva.propiedad.direccion }}<br>
+                    <strong>Fecha Inicio:</strong> {{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}<br>
+                    <strong>Fecha Fin:</strong> {{ reserva.fecha_fin.strftime('%d/%m/%Y') }}
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Monto</th>
+                                <th>Fecha de Cobro</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pago in pagos %}
+                            <tr>
+                                <td>${{ pago.monto }}</td>
+                                <td>
+                                    {% if pago.status == 'pendiente' %}
+                                        {# Fecha de cobro automática: dos días antes de la fecha de inicio de la reserva #}
+                                        {% set fecha_cobro = (reserva.fecha_inicio - timedelta(days=2)) %}
+                                        {{ fecha_cobro.strftime('%d/%m/%Y') }}
+                                    {% elif pago.fecha_cobro_total %}
+                                        {{ pago.fecha_cobro_total.strftime('%d/%m/%Y') }}
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td>
+                                    {{ pago.status }}
+                                    {% if pago.status == 'pendiente' %}
+                                        <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="Se debitará de la tarjeta registrada del cliente el {{ (reserva.fecha_inicio - timedelta(days=2)).strftime('%d/%m/%Y') }}">*</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="/mis-pagos" class="btn btn-secondary">Volver a Mis Pagos</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+{% endblock %} 

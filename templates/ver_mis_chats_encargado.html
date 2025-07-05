@@ -1,0 +1,36 @@
+{% extends 'base_hero.html' %}
+{% block hero_content %}
+<div class="container mt-4">
+    <h2>Mis chats de propiedades</h2>
+    {% if chats and chats|length > 0 %}
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Propiedad</th>
+                    <th>Fecha inicio</th>
+                    <th>Fecha fin</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chat in chats %}
+                <tr>
+                    <td>{{ chat.cliente_nombre }}</td>
+                    <td>{{ chat.casa_nombre }}</td>
+                    <td>{{ chat.fecha_inicio }}</td>
+                    <td>{{ chat.fecha_fin }}</td>
+                    <td>
+                        {% if chat.id %}
+                        <a href="{{ url_for('main.chat', conversacion_id=chat.id, cliente_nombre=chat.cliente_nombre|urlencode) }}" class="btn btn-primary btn-sm">Ver chat</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info mt-3">No tienes chats asociados a tus propiedades.</div>
+    {% endif %}
+</div>
+{% endblock %}

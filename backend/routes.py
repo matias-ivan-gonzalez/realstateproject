@@ -1,3 +1,4 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 from models.propiedad import Propiedad
 from sqlalchemy.sql.expression import func
@@ -7,44 +8,13 @@ from architectural_patterns.controller.propiedad_controller import PropiedadCont
 from architectural_patterns.controller.busqueda_controller import SearchController
 import os
 from models.calificacion import Calificacion
-def estadisticas_propiedad(propiedad_id):
-    from models.propiedad import Propiedad
-    propiedad = Propiedad.query.get_or_404(propiedad_id)
-    # Parámetros de mes y año
-    mes = request.args.get('mes', datetime.now().month, type=int)
-    anio = request.args.get('anio', datetime.now().year, type=int)
-    reservas = Reserva.query.filter_by(propiedad_id=propiedad_id).all()
-    # Filtrar reservas del mes/año
-    reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
-    reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
-    reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
-    total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
-    promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
-    # Porcentaje de ocupación
-    dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
-    porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
-    # Ingresos estimados
-    ingresos_estimados = round(total_noches * propiedad.precio, 2)
-def estadisticas_propiedad(propiedad_id):
-    from models.propiedad import Propiedad
-    propiedad = Propiedad.query.get_or_404(propiedad_id)
-    # Parámetros de mes y año
-    mes = request.args.get('mes', datetime.now().month, type=int)
-    anio = request.args.get('anio', datetime.now().year, type=int)
-    reservas = Reserva.query.filter_by(propiedad_id=propiedad_id).all()
-    # Filtrar reservas del mes/año
-    reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
-    reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
-    reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
-    total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
-    promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
-    # Porcentaje de ocupación
-    dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
-    porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
-    # Ingresos estimados
-    ingresos_estimados = round(total_noches * propiedad.precio, 2)
+from models.reserva import Reserva
+from models.user import Cliente
+from database import db
+from config import MERCADOPAGO_ACCESS_TOKEN
+import mercadopago
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from models.reserva import Reserva
 
 # Crear un Blueprint para las rutas
@@ -52,28 +22,17 @@ main = Blueprint('main', __name__)
 
 @main.route('/propiedad/<int:propiedad_id>/estadisticas')
 def estadisticas_propiedad(propiedad_id):
-    from models.propiedad import Propiedad
-    propiedad = Propiedad.query.get_or_404(propiedad_id)
-    # Parámetros de mes y año
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    from datetime import datetime
     mes = request.args.get('mes', datetime.now().month, type=int)
     anio = request.args.get('anio', datetime.now().year, type=int)
-    reservas = Reserva.query.filter_by(propiedad_id=propiedad_id).all()
-    # Filtrar reservas del mes/año
-    reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
-    reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
-    reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
-    total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
-    promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
-    # Porcentaje de ocupación
-    dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
-    porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
-    # Ingresos estimados
-    ingresos_estimados = round(total_noches * propiedad.precio, 2)
-    reservas_anio = len([r for r in reservas if r.fecha_inicio.year == anio and r.estado == 'concretada'])
+    controller = PropiedadController()
+    propiedad, estadisticas = controller.get_estadisticas_propiedad(propiedad_id, mes, anio)
     anio_actual = datetime.now().year
-    return render_template('estadisticas_propiedad.html', propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
-        reservas_concretadas=reservas_concretadas, reservas_canceladas=reservas_canceladas, promedio_dias_reserva=promedio_dias_reserva,
-        total_noches=total_noches, porcentaje_ocupacion=porcentaje_ocupacion, ingresos_estimados=ingresos_estimados, reservas_anio=reservas_anio)
+    return render_template('estadisticas_propiedad.html',
+        propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
+        **estadisticas
+    )
     reservas_anio = len([r for r in reservas if r.fecha_inicio.year == anio and r.estado == 'concretada'])
     anio_actual = datetime.now().year
     return render_template('estadisticas_propiedad.html', propiedad=propiedad, mes=mes, anio=anio, anio_actual=anio_actual,
@@ -161,6 +120,18 @@ def ver_propiedades():
 
 @main.route('/propiedad/<int:id>')
 def detalle_propiedad(id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    pago_status = request.args.get('pago')
+    if pago_status == 'success':
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        huespedes = request.args.get('huespedes')
+        if fecha_inicio and fecha_fin and huespedes:
+            ReservaController().crear_reserva_checkout(session.get('user_id'), id, fecha_inicio, fecha_fin, int(huespedes))
+        return redirect(url_for('main.detalle_propiedad', id=id))
+    elif pago_status == 'failure':
+        session['show_reserva_fallida_flash'] = True
+        return redirect(url_for('main.detalle_propiedad', id=id))
     propiedad_controller = PropiedadController()
     return propiedad_controller.get_propiedad(id)
    
@@ -312,6 +283,18 @@ def borrar_calificacion(calificacion_id):
     user_controller = UserController()
     return user_controller.borrar_calificacion(session, calificacion_id)
 
+@main.route('/propiedad/<int:propiedad_id>/reservar', methods=['POST'])
+@login_required
+def reservar_propiedad(propiedad_id):
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    return ReservaController().reservar_propiedad_post(request, session, propiedad_id)
+
+@main.route('/crear_preferencia_checkout', methods=['POST'])
+@login_required
+def crear_preferencia_checkout():
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    return ReservaController().crear_preferencia_checkout(request, session)
+
 @main.route('/propiedad/<int:propiedad_id>/reservas')
 @login_required
 def ver_reservas_propiedad(propiedad_id):
@@ -347,11 +330,37 @@ def ver_chats():
     from models.reserva import Reserva
     from models.propiedad import Propiedad
 
-    # Obtener todas las conversaciones abiertas, agrupadas por tipo
-    chats_futuro = Conversacion.query.filter_by(tipo='futuro', estado='abierta').all()
-    chats_curso = Conversacion.query.filter_by(tipo='curso', estado='abierta').all()
-    chats_futuro_cerradas = Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all()
-    chats_curso_cerradas = Conversacion.query.filter_by(tipo='curso', estado='cerrada').all()
+
+    # Solo mostrar a los administradores/superusuarios los chats donde la propiedad NO tiene encargado asignado
+
+    def filtrar_chats_para_admin(chats, tipo):
+        filtrados = []
+        for chat in chats:
+            reserva = Reserva.query.get(chat.reserva_id)
+            if not reserva:
+                continue
+            propiedad = Propiedad.query.get(reserva.propiedad_id)
+            if tipo == 'futuro':
+                # Para reservas a futuro, siempre son los administradores
+                if session.get('rol') == 'superusuario':
+                    filtrados.append(chat)
+                elif session.get('rol') == 'administrador':
+                    if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                        filtrados.append(chat)
+            else:
+                # Para reservas en curso, solo si NO hay encargado asignado
+                if propiedad and not propiedad.encargado_id:
+                    if session.get('rol') == 'superusuario':
+                        filtrados.append(chat)
+                    elif session.get('rol') == 'administrador':
+                        if session.get('user_id') in [a.id for a in propiedad.administradores]:
+                            filtrados.append(chat)
+        return filtrados
+
+    chats_futuro = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='abierta').all(), 'futuro')
+    chats_curso = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='abierta').all(), 'curso')
+    chats_futuro_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all(), 'futuro')
+    chats_curso_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='cerrada').all(), 'curso')
 
     def serializar_chat(chat):
         cliente = Cliente.query.get(chat.cliente_id)
@@ -407,3 +416,234 @@ def reservas_activas():
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
     return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+
+
+@main.route('/ver-mis-chats-encargado')
+def ver_mis_chats_encargado():
+    if session.get('rol') != 'encargado':
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.conversacion import Conversacion
+    from models.user import Cliente
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+
+
+    # Obtener las conversaciones del encargado a través de sus propiedades
+    encargado_id = session.get('user_id')
+    propiedades_encargado = Propiedad.query.filter_by(encargado_id=encargado_id).all()
+    propiedad_ids = [p.id for p in propiedades_encargado]
+    reservas_encargado = Reserva.query.filter(Reserva.propiedad_id.in_(propiedad_ids)).all() if propiedad_ids else []
+    reserva_ids = [r.id for r in reservas_encargado]
+    # Solo mostrar conversaciones en curso (tipo='curso')
+    chats = Conversacion.query.filter(
+        Conversacion.reserva_id.in_(reserva_ids),
+        Conversacion.tipo == 'curso'
+    ).all() if reserva_ids else []
+
+    def serializar_chat(chat):
+        cliente = Cliente.query.get(chat.cliente_id)
+        reserva = Reserva.query.get(chat.reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        return {
+            'id': chat.id,
+            'cliente_id': chat.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat.cliente_id}",
+            'reserva_id': chat.reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida"
+        }
+
+    chats_serializados = [serializar_chat(c) for c in chats]
+    return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)
+
+@main.route('/clientes-calificables')
+@login_required
+def clientes_calificables():
+    from architectural_patterns.service.user_service import UserService
+    if 'user_id' not in session or session.get('rol') != 'encargado':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('main.index'))
+    user_service = UserService()
+    reservas = user_service.get_reservas_calificables_por_encargado(session['user_id'])
+    return render_template('encargado/clientes_calificables.html', reservas=reservas)
+
+@main.route('/calificar-cliente/<int:reserva_id>', methods=['GET', 'POST'])
+@login_required
+def calificar_cliente(reserva_id):
+    from models.reserva import Reserva
+    from models.calificacion_cliente import CalificacionCliente
+    from models.user import Encargado
+    if 'user_id' not in session or session.get('rol') != 'encargado':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('main.index'))
+    reserva = Reserva.query.get_or_404(reserva_id)
+    if request.method == 'POST':
+        opinion = request.form.get('opinion', '').strip()
+        if not opinion:
+            flash('Debes ingresar una opinión.', 'warning')
+            return render_template('encargado/calificar_cliente.html', reserva=reserva)
+        ya_calificada = CalificacionCliente.query.filter_by(reserva_id=reserva.id).first()
+        if ya_calificada:
+            flash('Ya has calificado a este cliente para esta reserva.', 'info')
+            return redirect(url_for('main.clientes_calificables'))
+        calif = CalificacionCliente(
+            reserva_id=reserva.id,
+            encargado_id=session['user_id'],
+            cliente_id=reserva.cliente_id,
+            opinion=opinion
+        )
+        from database import db
+        db.session.add(calif)
+        db.session.commit()
+        flash('Calificación registrada correctamente.', 'success')
+        return redirect(url_for('main.clientes_calificables'))
+    return render_template('encargado/calificar_cliente.html', reserva=reserva)
+
+@main.route('/calificaciones-editables-clientes')
+@login_required
+def calificaciones_editables_clientes():
+    if 'user_id' not in session or session.get('rol') != 'encargado':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('main.index'))
+    from architectural_patterns.service.user_service import UserService
+    user_service = UserService()
+    reservas = user_service.get_calificaciones_editables_clientes_por_encargado(session['user_id'])
+    return render_template('calificaciones_editables_encargado.html', reservas=reservas)
+
+@main.route('/editar-calificacion-cliente/<int:calificacion_id>', methods=['GET', 'POST'])
+@login_required
+def editar_calificacion_cliente(calificacion_id):
+    from models.calificacion_cliente import CalificacionCliente
+    from database import db
+    from datetime import date
+    calificacion = CalificacionCliente.query.get_or_404(calificacion_id)
+    reserva = calificacion.reserva
+    hoy = date.today()
+    dias_diferencia = (hoy - reserva.fecha_fin).days
+    if dias_diferencia > 30:
+        flash('Solo puedes editar la calificación hasta 30 días después de la estadía.', 'warning')
+        return redirect(url_for('main.calificaciones_editables_clientes'))
+    if request.method == 'POST':
+        opinion = request.form.get('opinion', '').strip()
+        if not opinion:
+            flash('Debes ingresar una opinión.', 'warning')
+            return render_template('encargado/calificar_cliente.html', reserva=reserva, calificacion=calificacion, editar=True)
+        calificacion.opinion = opinion
+        db.session.commit()
+        flash('Calificación modificada con éxito', 'success')
+        return redirect(url_for('main.calificaciones_editables_clientes'))
+    return render_template('encargado/calificar_cliente.html', reserva=reserva, calificacion=calificacion, editar=True)
+
+@main.route('/eliminar-calificacion-cliente/<int:calificacion_id>', methods=['POST'])
+@login_required
+def eliminar_calificacion_cliente(calificacion_id):
+    from models.calificacion_cliente import CalificacionCliente
+    from database import db
+    from datetime import date
+    calificacion = CalificacionCliente.query.get_or_404(calificacion_id)
+    reserva = calificacion.reserva
+    hoy = date.today()
+    dias_diferencia = (hoy - reserva.fecha_fin).days
+    if dias_diferencia > 30:
+        flash('Solo puedes eliminar la calificación hasta 30 días después de la estadía.', 'warning')
+        return redirect(url_for('main.calificaciones_editables_clientes'))
+    db.session.delete(calificacion)
+    db.session.commit()
+    flash('Calificación eliminada exitosamente.', 'success')
+    return redirect(url_for('main.calificaciones_editables_clientes'))
+
+@main.route('/propiedades/sin-encargado')
+@login_required
+def propiedades_sin_encargado():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    from architectural_patterns.repository.empleado_repository import EmpleadoRepository
+    propiedades = Propiedad.query.filter_by(encargado_id=None, eliminado=False).all()
+    encargados = EmpleadoRepository().get_encargados()
+    return render_template('propiedades_sin_encargado.html', propiedades=propiedades, encargados=encargados)
+
+@main.route('/propiedad/<int:propiedad_id>/asignar-encargado', methods=['POST'])
+@login_required
+def asignar_encargado_a_propiedad(propiedad_id):
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para realizar esta acción.', 'danger')
+        return redirect(url_for('main.index'))
+    encargado_id = request.form.get('encargado_id')
+    if not encargado_id:
+        flash('Debes seleccionar un encargado.', 'warning')
+        return redirect(url_for('main.propiedades_sin_encargado'))
+    from models.propiedad import Propiedad
+    from models.reserva import Reserva
+    from database import db
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Validar si hay reservas en curso
+    reservas_curso = Reserva.query.filter_by(propiedad_id=propiedad.id, estado='curso').all()
+    if reservas_curso:
+        flash('No se puede asignar la propiedad porque tiene una reserva en curso.', 'warning')
+        return redirect(url_for('main.propiedades_sin_encargado'))
+    propiedad.encargado_id = int(encargado_id)
+    db.session.commit()
+    flash('Encargado asignado correctamente.', 'success')
+    return redirect(url_for('main.propiedades_sin_encargado'))
+
+@main.route('/propiedades/asignadas')
+@login_required
+def propiedades_asignadas():
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    from models.user import Encargado
+    propiedades = Propiedad.query.filter(Propiedad.encargado_id.isnot(None), Propiedad.eliminado == False).all()
+    return render_template('propiedades_asignadas.html', propiedades=propiedades)
+
+@main.route('/propiedad/<int:propiedad_id>/desasignar-encargado', methods=['POST'])
+@login_required
+def desasignar_encargado_de_propiedad(propiedad_id):
+    if session.get('rol') not in ['administrador', 'superusuario']:
+        flash('No tienes permiso para realizar esta acción.', 'danger')
+        return redirect(url_for('main.index'))
+    from models.propiedad import Propiedad
+    from models.reserva import Reserva
+    from database import db
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    # Validar si hay reservas en curso
+    reservas_curso = Reserva.query.filter_by(propiedad_id=propiedad.id, estado='curso').all()
+    if reservas_curso:
+        flash('No se puede desasignar el encargado porque hay una estadía en curso en esta propiedad.', 'warning')
+        return redirect(url_for('main.propiedades_asignadas'))
+    propiedad.encargado_id = None
+    db.session.commit()
+    flash('Encargado desasignado correctamente.', 'success')
+    return redirect(url_for('main.propiedades_asignadas'))
+
+@main.route('/mis-pagos')
+@login_required
+def mis_pagos():
+    user_controller = UserController()
+    return user_controller.ver_pagos_cliente(session)
+
+@main.route('/ver-pago/<int:reserva_id>')
+def ver_pago_reserva(reserva_id):
+    from models.reserva import Reserva
+    from models.pago import Pago
+    from datetime import datetime, timedelta
+    reserva = Reserva.query.get_or_404(reserva_id)
+    pagos = reserva.pagos
+    hoy = datetime.now().date()
+    cambios = False
+    for pago in pagos:
+        if pago.status == 'pendiente':
+            fecha_cobro = reserva.fecha_inicio - timedelta(days=2)
+            if hoy >= fecha_cobro:
+                pago.status = 'pagado'
+                pago.fecha_cobro_total = datetime.combine(fecha_cobro, datetime.min.time())
+                cambios = True
+    if cambios:
+        from database import db
+        db.session.commit()
+    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos, timedelta=timedelta)
