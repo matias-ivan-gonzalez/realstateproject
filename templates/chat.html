@@ -199,6 +199,17 @@ Chat
             mensajesCliente = history.filter(function(data) {
                 return data.rol === 'cliente';
             }).length;
+            // Enviar automáticamente el mensaje de saludo si es el primer mensaje del cliente
+            if (mensajesCliente === 0) {
+                var data = {
+                    msg: 'Hola, me gustaria contactarme con Alquilando',
+                    user: window.username,
+                    reserva_id: window.reserva_id,
+                    tipo: window.tipo_chat
+                };
+                socket.emit('cliente_mensaje', data);
+                window.location.reload();
+            }
         }
         history.forEach(function(data) {
             renderChatMessage(data);
