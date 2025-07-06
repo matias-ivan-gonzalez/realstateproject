@@ -751,18 +751,26 @@ def ver_pago_reserva(reserva_id):
     reserva = Reserva.query.get_or_404(reserva_id)
     pagos = reserva.pagos
     hoy = datetime.now().date()
-    cambios = False
+    porcentaje = reserva.propiedad.porcentaje_pago_reserva
+    dias_antes = (reserva.fecha_inicio - hoy).days
+    pagos_vista = []
+    regla_especial = dias_antes <= 2 and porcentaje in [0, 20]
     for pago in pagos:
-        if pago.status == 'pendiente':
-            fecha_cobro = reserva.fecha_inicio - timedelta(days=2)
-            if hoy >= fecha_cobro:
-                pago.status = 'pagado'
-                pago.fecha_cobro_total = datetime.combine(fecha_cobro, datetime.min.time())
-                cambios = True
-    if cambios:
-        from database import db
-        db.session.commit()
-    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos, timedelta=timedelta)
+        pago_dict = pago.__dict__.copy()
+        # Si es el pago del 20% (anticipo), la fecha de cobro siempre es hoy
+        if porcentaje == 20 and pago.monto == round((reserva.propiedad.precio * (reserva.fecha_fin - reserva.fecha_inicio).days) * 0.2, 2):
+            pago_dict['fecha_cobro_total'] = datetime.now()
+            if regla_especial:
+                pago_dict['status'] = 'paid'
+        # Si aplica la regla especial (reserva inmediata), todos los pagos son pagados hoy
+        elif regla_especial:
+            pago_dict['status'] = 'paid'
+            pago_dict['fecha_cobro_total'] = datetime.now()
+        # Si es porcentaje 0 o 100, la fecha de cobro es hoy
+        elif porcentaje in [0, 100]:
+            pago_dict['fecha_cobro_total'] = datetime.now()
+        pagos_vista.append(pago_dict)
+    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos_vista, timedelta=timedelta)
 
 @main.route('/reservas/canceladas')
 def reservas_canceladas():
