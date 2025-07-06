@@ -13,6 +13,7 @@
                 <a href="/reservas/concluidas" class="btn btn-outline-primary mx-2">Reservas Concluidas</a>
                 <a href="/reservas/pendientes" class="btn btn-outline-primary mx-2">Calificaciones Pendientes</a>
                 <a href="/reservas/editables" class="btn btn-outline-primary mx-2">Calificaciones Modificables</a>
+                <a href="/mis-pagos" class="btn btn-outline-primary mx-2">Mis Pagos</a>
             </div>
             <h2 class="mb-4 text-center">Mi Historial de Reservas</h2>
             <div class="row g-3">
@@ -75,7 +76,6 @@
                                         {% elif tipo_reserva == 'pendientes' %}
                                             <span class="badge bg-warning text-dark">Pendiente de calificar</span>
                                         {% elif tipo_reserva == 'editables' %}
-                                            <span class="badge bg-success">Calificada</span>
                                             <a href="{{ url_for('main.editar_calificacion', calificacion_id=reserva.calificacion.id) }}" class="btn btn-primary btn-sm ms-2">Editar calificación</a>
                                             <form method="POST" action="{{ url_for('main.borrar_calificacion', calificacion_id=reserva.calificacion.id) }}" style="display:inline;">
                                                 <button type="button" class="btn btn-danger btn-sm ms-2" onclick="mostrarConfirmacion(this, '¿Estás seguro de que deseas borrar la calificación?')">Borrar calificación</button>

@@ -1,0 +1,91 @@
+{% extends "base_hero.html" %}
+{% block hero_content %}
+<h2 class="mb-4">Propiedades asignadas</h2>
+<div class="table-responsive">
+<table class="table table-striped table-hover align-middle bg-white rounded shadow">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Encargado</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for propiedad in propiedades %}
+        <tr>
+            <td>{{ propiedad.nombre }}</td>
+            <td>{{ propiedad.direccion }}</td>
+            <td>
+                {% if propiedad.encargado %}
+                    {{ propiedad.encargado.nombre }} {{ propiedad.encargado.apellido }}
+                {% else %}
+                    <span class="text-danger">Sin encargado</span>
+                {% endif %}
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('main.desasignar_encargado_de_propiedad', propiedad_id=propiedad.id) }}" class="form-desasignar-encargado">
+                    <button type="button" class="btn btn-danger btn-abrir-modal-desasignar" data-propiedad="{{ propiedad.id }}">Desasignar</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% if not propiedades %}
+  <div class="alert alert-info mt-4">No hay propiedades asignadas a encargados.</div>
+{% endif %}
+
+<!-- Modal de confirmación personalizado para desasignar encargado -->
+<div id="modalDesasignarEncargado" class="custom-modal" style="display:none;">
+  <div class="custom-modal-backdrop"></div>
+  <div class="custom-modal-content">
+    <form id="formConfirmarDesasignar" method="POST">
+      <div class="mb-3">
+        <h5>Desasignar encargado</h5>
+        <p class="mb-3 text-danger fw-bold">
+          ¿Estás seguro de que deseas desasignar el encargado de esta propiedad?
+        </p>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" id="cancelarDesasignar">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalDesasignarEncargado');
+    const cerrarBtn = document.getElementById('cancelarDesasignar');
+    const backdrop = modal.querySelector('.custom-modal-backdrop');
+    let formAction = '';
+
+    // Abrir modal y setear acción del form
+    document.querySelectorAll('.btn-abrir-modal-desasignar').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const propiedadId = this.getAttribute('data-propiedad');
+            const form = this.closest('form');
+            formAction = form.getAttribute('action');
+            document.getElementById('formConfirmarDesasignar').setAttribute('action', formAction);
+            modal.style.display = 'flex';
+        });
+    });
+
+    // Cerrar modal
+    function cerrarModal(e) {
+        if (e) e.preventDefault();
+        modal.style.display = 'none';
+        document.getElementById('formConfirmarDesasignar').setAttribute('action', '');
+    }
+    cerrarBtn.addEventListener('click', cerrarModal);
+    backdrop.addEventListener('click', cerrarModal);
+    modal.querySelector('.custom-modal-content').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
+{% endblock %} 
