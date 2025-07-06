@@ -536,7 +536,7 @@ class PropiedadController:
                 )
                 db.session.add(ocupacion)
                 db.session.commit()
-                return True, f'Propiedad inhabilitada y {len(reservas_afectadas)} reserva(s) reintegrada(s) correctamente.', 'success'
+                return True, 'Propiedad inhabilitada correctamente.', 'success'
                 
             elif accion_reserva == 'upgrade':
                 # Guardar reservas afectadas en sesión temporal para upgrade
@@ -755,26 +755,9 @@ class PropiedadController:
             session.pop('upgrade_reservas', None)
             session.pop('upgrade_inhabilitacion', None)
             
-            # Mensaje de éxito
-            mensaje = f'Se procesaron {reservas_procesadas} reserva(s) y se inhabilitó la propiedad correctamente.'
-            if ocupaciones_encargado:
-                mensaje += f' Se eliminaron {len(ocupaciones_encargado)} ocupación(es) de encargado(s).'
-            if ocupaciones_admin:
-                mensaje += f' Se eliminaron {len(ocupaciones_admin)} ocupación(es) de administrador(es).'
-            
-            flash(mensaje, 'success')
-            
-            # Redirigir a la propiedad destino si hubo upgrade, si no a la original
-            prop_id_upgrade = None
-            for reserva in reservas:
-                nueva_prop_id = upgrades.get(reserva['id'])
-                if nueva_prop_id:
-                    prop_id_upgrade = nueva_prop_id
-                    break
-            
-            if prop_id_upgrade:
-                return redirect(url_for('main.detalle_propiedad', id=prop_id_upgrade))
-            else:
-                return redirect(url_for('main.detalle_propiedad', id=prop_id))
+            # Mensaje de éxito genérico
+            flash('Upgrade exitoso', 'success')
+            # Redirigir siempre al detalle de la propiedad inhabilitada
+            return redirect(url_for('main.detalle_propiedad', id=prop_id))
 
 

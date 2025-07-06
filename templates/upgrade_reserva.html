@@ -56,9 +56,10 @@
       <a href="{{ url_for('main.detalle_propiedad', id=propiedad_id) }}" class="btn btn-secondary">
         <i class="fas fa-times"></i> Cancelar
       </a>
-      <button type="submit" class="btn btn-success">
+      <button type="submit" class="btn btn-success" id="btn-confirmar-upgrade" disabled>
         <i class="fas fa-check"></i> Confirmar Upgrades
       </button>
+<script src="{{ url_for('static', filename='js/upgrade_reserva.js') }}"></script>
     </div>
   </form>
 </div>
