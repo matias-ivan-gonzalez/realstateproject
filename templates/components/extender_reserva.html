@@ -96,12 +96,24 @@ function setupFlatpickrExtenderReserva(fechaFinActual) {
   const blockedDates = getBlockedDates();
   const today = new Date().toISOString().slice(0,10);
   const minDate = today > fechaFinActual ? today : fechaFinActual;
+
+  // Buscar la primera fecha bloqueada futura después de la fecha de fin actual
+  const futuras = blockedDates.filter(f => f > fechaFinActual).sort();
+  let maxDate = null;
+  if (futuras.length > 0) {
+    // El día anterior a la primera fecha bloqueada
+    const d = new Date(futuras[0]);
+    d.setDate(d.getDate() - 1);
+    maxDate = d.toISOString().slice(0,10);
+  }
+
   if (window.flatpickrNuevaFin) {
     window.flatpickrNuevaFin.destroy();
   }
   window.flatpickrNuevaFin = flatpickr('#nuevaFechaFin', {
     dateFormat: 'Y-m-d',
     minDate: minDate,
+    maxDate: maxDate,
     disable: blockedDates.concat([fechaFinActual]),
     locale: 'es',
     allowInput: false,
