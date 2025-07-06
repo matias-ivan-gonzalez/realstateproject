@@ -323,7 +323,7 @@ def init_db():
     fecha_fin_convertida3 = datetime.strptime(fecha_fin3, '%Y-%m-%d')
     reserva3 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3).first()
     if not reserva3:
-        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2, estado='pendiente')
+        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2, estado='futura')
         db.session.add(reserva3)
 
     # Cuarta reserva en julio (cancelada) - Casa Palermo
@@ -333,7 +333,7 @@ def init_db():
     fecha_fin_convertida4 = datetime.strptime(fecha_fin4, '%Y-%m-%d')
     reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
     if not reserva4:
-        reserva4 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='cancelada')
+        reserva4 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='futura')
         db.session.add(reserva4)
 
     # Reserva cancelada en agosto (Casa Palermo, fechas no superpuestas)
@@ -343,7 +343,7 @@ def init_db():
     fecha_fin_convertida6 = datetime.strptime(fecha_fin6, '%Y-%m-%d')
     reserva6 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6).first()
     if not reserva6:
-        reserva6 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6, cantidad_personas=3, estado='cancelada')
+        reserva6 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6, cantidad_personas=3, estado='futura')
         db.session.add(reserva6)
 
     # Reserva concretada en agosto (Casa Palermo, fechas no superpuestas)

@@ -150,12 +150,13 @@ class PropiedadController:
             })
         fechas_reservadas = []
         for res in propiedad.reservas:
-            fechas_reservadas.append({
-                'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
-                'fin': res.fecha_fin.strftime('%Y-%m-%d'),
-                'estado': str(res.estado),
-                'cliente_id': res.cliente_id
-            })
+            if str(res.estado).lower() != 'cancelada':
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d'),
+                    'estado': str(res.estado),
+                    'cliente_id': res.cliente_id
+                })
         # Mostrar días ocupados si es encargado y la propiedad está asignada
         dias_ocupados_encargado = None
         if session.get('rol') == 'encargado' and propiedad.encargado_id == session.get('user_id'):
@@ -434,12 +435,13 @@ class PropiedadController:
         # Fechas reservadas (TODAS las reservas, igual que en get_propiedad)
         fechas_reservadas = []
         for res in propiedad.reservas:
-            fechas_reservadas.append({
-                'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
-                'fin': res.fecha_fin.strftime('%Y-%m-%d'),
-                'estado': str(res.estado),
-                'cliente_id': res.cliente_id
-            })
+            if str(res.estado).lower() != 'cancelada':
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d'),
+                    'estado': str(res.estado),
+                    'cliente_id': res.cliente_id
+                })
         
         return render_template(
             'inhabilitar_propiedad.html',
@@ -477,12 +479,12 @@ class PropiedadController:
         if fecha_inicio_dt < hoy or fecha_fin_dt < hoy:
             return False, 'No se pueden seleccionar fechas anteriores a hoy.', 'danger'
 
-        # Buscar reservas pendientes en el rango que se solapen con el rango seleccionado
+        # Buscar reservas futuras en el rango que se solapen con el rango seleccionado
         reservas_afectadas = Reserva.query.filter(
             Reserva.propiedad_id == propiedad_id,
             Reserva.fecha_inicio <= fecha_fin_dt,
             Reserva.fecha_fin >= fecha_inicio_dt,
-            Reserva.estado == 'pendiente'
+            Reserva.estado == 'futura'
         ).all()
 
         # Buscar ocupaciones en el rango
@@ -517,14 +519,13 @@ class PropiedadController:
                 return False, 'Debe seleccionar una acción para las reservas afectadas.', 'danger'
             
             if accion_reserva == 'reintegrar':
-                # Eliminar reservas afectadas
+                # Borrado lógico: marcar reservas afectadas como canceladas
                 for reserva in reservas_afectadas:
-                    db.session.delete(reserva)
-                
+                    reserva.estado = 'cancelada'
+                db.session.commit()
                 # Eliminar ocupaciones futuras
                 for ocup in ocupaciones_futuras_encargado + ocupaciones_futuras_admin:
                     db.session.delete(ocup)
-                
                 # Crear nueva ocupación de inhabilitación
                 ocupacion = Ocupacion(
                     fecha_inicio=fecha_inicio_dt,
@@ -535,7 +536,6 @@ class PropiedadController:
                 )
                 db.session.add(ocupacion)
                 db.session.commit()
-                
                 return True, f'Propiedad inhabilitada y {len(reservas_afectadas)} reserva(s) reintegrada(s) correctamente.', 'success'
                 
             elif accion_reserva == 'upgrade':
@@ -709,7 +709,7 @@ class PropiedadController:
                             fecha_inicio=reserva_obj.fecha_inicio,
                             fecha_fin=reserva_obj.fecha_fin,
                             cantidad_personas=reserva_obj.cantidad_personas,
-                            estado='concretada',  # Mantener como concretada
+                            estado='futura',  # Estado correcto para upgrade
                             cliente_id=reserva_obj.cliente_id,
                             propiedad_id=nueva_prop_id
                         )

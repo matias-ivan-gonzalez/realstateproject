@@ -26,14 +26,15 @@ document.addEventListener('DOMContentLoaded', function() {
         window.fechasReservadas.forEach(function(reserva) {
             let rIni = new Date(reserva.inicio);
             let rFin = new Date(reserva.fin);
-            // Mostrar todas las reservas en el calendario
-            if (reserva.estado === 'pendiente') {
+            // Normalizar estado a minúsculas para evitar problemas de mayúsculas/minúsculas
+            let estado = (reserva.estado || '').toLowerCase();
+            if (estado === 'futura') {
                 if (rIni <= hoy && rFin >= hoy) {
                     reservasEnCurso.push(reserva);
                 } else {
                     reservasPendientes.push(reserva);
                 }
-            } else if (reserva.estado === 'concretada') {
+            } else if (estado === 'concretada') {
                 if (rIni <= hoy && rFin >= hoy) {
                     reservasEnCurso.push(reserva);
                 } else if (rIni > hoy) {
@@ -102,28 +103,24 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.flatpickr-day').forEach(function(day) {
                 let fecha = day.dateObj ? day.dateObj.toISOString().slice(0,10) : day.getAttribute('aria-label');
                 if (!fecha) return;
-                // Reservas pendientes
+                // Solo mostrar reservas futuras
                 for (let r of reservasPendientes) {
                     if (fecha >= r.inicio && fecha <= r.fin) {
                         day.classList.add('fecha-reserva-futura');
                     }
                 }
-                // Reservas concretadas
-                for (let r of reservasConcretadas) {
-                    if (fecha >= r.inicio && fecha <= r.fin) {
-                        day.classList.add('fecha-reserva-futura');
-                        day.style.background = '#0d3a5e';
-                        day.style.color = '#fff';
-                    }
-                }
-                // Ocupaciones futuras
+                // Solo mostrar ocupaciones futuras (empleado/encargado/admin)
                 for (let o of ocupacionesFuturas) {
                     if (fecha >= o.inicio && fecha <= o.fin) {
-                        if (o.tipo === 'inhabilitacion') {
-                            day.classList.add('fecha-bloqueada');
-                        } else {
-                            day.classList.add('fecha-ocupacion-futura');
-                        }
+                        day.classList.add('fecha-ocupacion-futura');
+                    }
+                }
+                // Bloquear visualmente días con reservas en curso
+                for (let r of reservasEnCurso) {
+                    if (fecha >= r.inicio && fecha <= r.fin) {
+                        day.classList.add('flatpickr-disabled');
+                        day.classList.add('flatpickr-disabled-day');
+                        day.setAttribute('aria-disabled', 'true');
                     }
                 }
             });
@@ -149,20 +146,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const inicio = new Date(fechaInicioVal);
         const fin = new Date(fechaFinVal);
         // Si hay reserva u ocupación en curso en el rango, bloquear
-        if (hayReservaEnCursoEnRango(inicio, fin) || hayOcupacionEnCursoEnRango(inicio, fin)) {
+        // PERO SI HAY RESERVA FUTURA EN EL RANGO, mostrar los botones igual
+        const reservasPendientesEnRango = hayReservaPendienteEnRango(inicio, fin);
+        if ((hayReservaEnCursoEnRango(inicio, fin) || hayOcupacionEnCursoEnRango(inicio, fin)) && reservasPendientesEnRango.length === 0) {
             if (btnConfirmar) btnConfirmar.disabled = true;
             mostrarReservasAfectadas([]);
             mostrarOcupacionesAfectadas([]);
             return;
         }
-        // Si hay reserva pendiente en el rango, mostrar opciones de upgrade/reembolso
-        const reservasPendientesEnRango = hayReservaPendienteEnRango(inicio, fin);
-        console.log('Reservas pendientes en el rango:', reservasPendientesEnRango);
+        // Mostrar SIEMPRE los botones si hay reservas futuras, aunque haya reservas/ocupaciones en curso
         mostrarReservasAfectadas(reservasPendientesEnRango);
         // Ocupaciones futuras en el rango
         const ocupacionesFuturasEnRango = hayOcupacionFuturaEnRango(inicio, fin);
         mostrarOcupacionesAfectadas(ocupacionesFuturasEnRango);
-        // Habilitar botón solo si no hay reservas pendientes o si hay y se seleccionó acción
+        // Habilitar botón solo si no hay reservas futuras o si hay y se seleccionó acción
         if (reservasPendientesEnRango.length > 0) {
             document.getElementById('reservas-afectadas').style.display = 'block';
             if (btnConfirmar) btnConfirmar.disabled = !accionReserva.value;
@@ -207,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return ocupaciones;
     }
 
-    // Mostrar reservas afectadas (solo pendientes)
+    // Mostrar reservas afectadas (solo futuras)
     function mostrarReservasAfectadas(reservas) {
         const panel = document.getElementById('reservas-afectadas');
         const lista = document.getElementById('lista-reservas');
@@ -216,11 +213,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const accionReserva = document.getElementById('accion_reserva');
         const btnConfirmar = document.getElementById('btn-inhabilitar');
         if (!panel || !lista) return;
-        panel.style.display = 'none';
         lista.innerHTML = '';
-        if (btnReintegrar) { btnReintegrar.style.display = 'none'; btnReintegrar.onclick = null; }
-        if (btnUpgrade) { btnUpgrade.style.display = 'none'; btnUpgrade.onclick = null; }
+        // Siempre ocultar botones y limpiar acciones al inicio
+        if (btnReintegrar) { btnReintegrar.style.display = 'none'; btnReintegrar.onclick = null; btnReintegrar.classList.remove('active'); }
+        if (btnUpgrade) { btnUpgrade.style.display = 'none'; btnUpgrade.onclick = null; btnUpgrade.classList.remove('active'); }
         if (accionReserva) accionReserva.value = '';
+        panel.style.display = 'none';
         if (reservas.length > 0) {
             reservas.forEach(function(reserva) {
                 const item = document.createElement('div');
@@ -233,6 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lista.appendChild(item);
             });
             panel.style.display = 'block';
+            // Mostrar SIEMPRE los botones si hay reservas futuras
             if (btnReintegrar && btnUpgrade && accionReserva && btnConfirmar) {
                 btnReintegrar.style.display = 'inline-block';
                 btnUpgrade.style.display = 'inline-block';
@@ -248,8 +247,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     btnUpgrade.classList.add('active');
                     btnReintegrar.classList.remove('active');
                 };
+                // El botón de confirmar debe estar deshabilitado hasta que se seleccione una acción
                 btnConfirmar.disabled = true;
             }
+        } else {
+            // Si no hay reservas futuras, ocultar panel y botones
+            panel.style.display = 'none';
+            if (btnReintegrar) btnReintegrar.style.display = 'none';
+            if (btnUpgrade) btnUpgrade.style.display = 'none';
         }
     }
     

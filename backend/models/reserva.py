@@ -7,7 +7,7 @@ class Reserva(db.Model):
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
     cantidad_personas = db.Column(db.Integer, nullable=False)
-    estado = db.Column(db.String(50), nullable=False, default='pendiente')  # Ej: 'pendiente', 'concretada', 'cancelada'
+    estado = db.Column(db.String(50), nullable=False, default='futura')  # Ej: 'futura', 'concretada', 'cancelada'
     reembolsable = db.Column(db.Boolean, nullable=False, default=False)
 
     # Claves foráneas
