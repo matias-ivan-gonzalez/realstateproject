@@ -1,0 +1,152 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Inhabilitar Propiedad - Alquilando{% endblock %}
+
+{% block hero_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  .fecha-reserva-futura {
+    background: #b3d8fd !important;
+    color: #0d3a5e !important;
+    border-radius: 50% !important;
+  }
+  .fecha-ocupacion-futura {
+    background: #ffd59e !important;
+    color: #7a4a00 !important;
+    border-radius: 50% !important;
+  }
+  .fecha-bloqueada, .flatpickr-day.disabled {
+    background: #e0e0e0 !important;
+    color: #888 !important;
+    border-radius: 50% !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+  }
+  .info-panel {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  .reserva-afectada {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+  .ocupacion-afectada {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+</style>
+
+<div class="container mt-4 fade-in">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+          <h4 class="mb-0">
+            <i class="fas fa-ban"></i> Inhabilitar Propiedad
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="info-panel">
+            <h6><i class="fas fa-info-circle"></i> Información de la Propiedad</h6>
+            <p class="mb-1"><strong>Nombre:</strong> {{ propiedad.nombre }}</p>
+            <p class="mb-1"><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
+            <p class="mb-0"><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+          </div>
+
+          <form method="POST" action="{{ url_for('main.inhabilitar_propiedad', propiedad_id=propiedad.id) }}" id="form-inhabilitar">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="fecha_inicio"><strong>Fecha de Inicio:</strong></label>
+                  <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                         value="{{ fecha_inicio or '' }}" required readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="fecha_fin"><strong>Fecha de Fin:</strong></label>
+                  <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" 
+                         value="{{ fecha_fin or '' }}" required readonly>
+                </div>
+              </div>
+            </div>
+
+            <!-- Leyenda mejorada del calendario -->
+            <div class="info-panel mt-3">
+              <h6><i class="fas fa-calendar-alt"></i> Leyenda del Calendario</h6>
+              <div class="row">
+                <div class="col-md-3">
+                  <span class="badge" style="background:#b3d8fd; color:#0d3a5e;">Reserva pendiente</span>
+                </div>
+                <div class="col-md-3">
+                  <span class="badge" style="background:#0d3a5e; color:#fff;">Reserva concretada</span>
+                </div>
+                <div class="col-md-3">
+                  <span class="badge" style="background:#ffd59e; color:#7a4a00;">Ocupación</span>
+                </div>
+                <div class="col-md-3">
+                  <span class="badge bg-secondary">Fechas bloqueadas</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel de reservas afectadas y opciones de acción, siempre presente pero oculto por defecto -->
+            <div id="reservas-afectadas" style="display:none; margin-bottom:1rem;">
+              <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Reservas afectadas en el rango seleccionado:</h6>
+                <div id="lista-reservas"></div>
+                <hr>
+                <p class="mb-2"><strong>Seleccione una acción:</strong></p>
+                <input type="hidden" name="accion_reserva" id="accion_reserva" value="">
+                <button type="button" class="btn btn-danger me-2" id="btn-reintegrar">
+                  <i class="fas fa-undo"></i> Reintegrar dinero
+                </button>
+                <button type="button" class="btn btn-info" id="btn-upgrade">
+                  <i class="fas fa-arrow-up"></i> Upgrade a otra propiedad
+                </button>
+              </div>
+            </div>
+
+            <!-- Panel de ocupaciones afectadas, siempre presente pero oculto por defecto -->
+            <div id="ocupaciones-afectadas" style="display:none; margin-bottom:1rem;">
+              <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Ocupaciones Afectadas</h6>
+                <p>Se han detectado ocupaciones que se solapan con el período seleccionado:</p>
+                <div id="lista-ocupaciones"></div>
+              </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-warning btn-lg" id="btn-inhabilitar" disabled>
+                <i class="fas fa-ban"></i> Inhabilitar Propiedad
+              </button>
+              <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-secondary btn-lg ml-2">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ url_for('static', filename='js/inhabilitar_propiedad_fecha.js') }}"></script>
+
+<script>
+  window.fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
+  window.fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+  window.propiedadId = {{ propiedad.id|tojson|safe }};
+</script>
+
+{% endblock %} 

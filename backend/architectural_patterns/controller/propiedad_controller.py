@@ -152,7 +152,9 @@ class PropiedadController:
         for res in propiedad.reservas:
             fechas_reservadas.append({
                 'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
-                'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                'fin': res.fecha_fin.strftime('%Y-%m-%d'),
+                'estado': str(res.estado),
+                'cliente_id': res.cliente_id
             })
         # Mostrar días ocupados si es encargado y la propiedad está asignada
         dias_ocupados_encargado = None
@@ -405,5 +407,374 @@ class PropiedadController:
             flash('Ocupación exitosa.', 'success')
             return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+
+    def inhabilitar_propiedad_form(self, request, session, propiedad_id):
+        """
+        Renderiza el formulario de inhabilitación de propiedad, mostrando fechas ocupadas, reservadas y posibles conflictos.
+        """
+        from models.propiedad import Propiedad
+        from models.reserva import Reserva
+        from models.ocupacion import Ocupacion
+        from datetime import date
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        hoy = date.today()
+        
+        # Fechas ocupadas (ocupaciones) con información adicional
+        fechas_ocupadas = []
+        for ocup in propiedad.ocupaciones:
+            fechas_ocupadas.append({
+                'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'), 
+                'fin': ocup.fecha_fin.strftime('%Y-%m-%d'),
+                'tipo': 'encargado' if hasattr(ocup, 'encargado_id') and getattr(ocup, 'encargado_id', None) else 'admin',
+                'fecha_inicio': ocup.fecha_inicio,
+                'fecha_fin': ocup.fecha_fin,
+                'encargado_id': getattr(ocup, 'encargado_id', None)
+            })
+        
+        # Fechas reservadas (TODAS las reservas, igual que en get_propiedad)
+        fechas_reservadas = []
+        for res in propiedad.reservas:
+            fechas_reservadas.append({
+                'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                'fin': res.fecha_fin.strftime('%Y-%m-%d'),
+                'estado': str(res.estado),
+                'cliente_id': res.cliente_id
+            })
+        
+        return render_template(
+            'inhabilitar_propiedad.html',
+            propiedad=propiedad,
+            fechas_ocupadas=fechas_ocupadas,
+            fechas_reservadas=fechas_reservadas,
+            request=request
+        )
+
+    def inhabilitar_propiedad(self, propiedad_id, fecha_inicio, fecha_fin, accion_reserva, session):
+        """
+        Bloquea la propiedad para el rango de fechas indicado.
+        Si hay reservas en ese rango, requiere acción (reintegrar/upgrade).
+        Si hay ocupaciones de encargado futuras, las elimina y devuelve días.
+        Si hay ocupaciones de admin/superuser futuras, las elimina.
+        Valida fechas y solapamientos.
+        """
+        from models.propiedad import Propiedad
+        from models.reserva import Reserva
+        from models.ocupacion import Ocupacion
+        from database import db
+        from datetime import datetime, date
+
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        hoy = date.today()
+
+        # Validación de fechas
+        try:
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+            fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+        except Exception:
+            return False, 'Formato de fecha inválido.', 'danger'
+        if fecha_fin_dt < fecha_inicio_dt:
+            return False, 'La fecha de fin no puede ser anterior a la de inicio.', 'danger'
+        if fecha_inicio_dt < hoy or fecha_fin_dt < hoy:
+            return False, 'No se pueden seleccionar fechas anteriores a hoy.', 'danger'
+
+        # Buscar reservas pendientes en el rango que se solapen con el rango seleccionado
+        reservas_afectadas = Reserva.query.filter(
+            Reserva.propiedad_id == propiedad_id,
+            Reserva.fecha_inicio <= fecha_fin_dt,
+            Reserva.fecha_fin >= fecha_inicio_dt,
+            Reserva.estado == 'pendiente'
+        ).all()
+
+        # Buscar ocupaciones en el rango
+        ocupaciones_afectadas = Ocupacion.query.filter(
+            Ocupacion.propiedad_id == propiedad_id,
+            Ocupacion.fecha_inicio <= fecha_fin_dt,
+            Ocupacion.fecha_fin >= fecha_inicio_dt
+        ).all()
+
+        # Verificar si hay ocupaciones en curso o pasadas que se solapan
+        ocupaciones_bloqueantes = []
+        ocupaciones_futuras_encargado = []
+        ocupaciones_futuras_admin = []
+        
+        for ocup in ocupaciones_afectadas:
+            if ocup.fecha_inicio <= hoy <= ocup.fecha_fin:
+                # Ocupación en curso - NO permitir inhabilitar
+                return False, 'No se puede inhabilitar la propiedad porque hay una ocupación en curso en el rango seleccionado.', 'danger'
+            elif ocup.fecha_fin < hoy:
+                # Ocupación pasada - NO permitir inhabilitar
+                return False, 'No se puede inhabilitar la propiedad porque hay una ocupación pasada en el rango seleccionado.', 'danger'
+            elif ocup.fecha_inicio > hoy:
+                # Ocupación futura - se puede eliminar
+                if hasattr(ocup, 'encargado_id') and getattr(ocup, 'encargado_id', None):
+                    ocupaciones_futuras_encargado.append(ocup)
+                else:
+                    ocupaciones_futuras_admin.append(ocup)
+
+        # Si hay reservas futuras, requiere acción
+        if reservas_afectadas:
+            if not accion_reserva:
+                return False, 'Debe seleccionar una acción para las reservas afectadas.', 'danger'
+            
+            if accion_reserva == 'reintegrar':
+                # Eliminar reservas afectadas
+                for reserva in reservas_afectadas:
+                    db.session.delete(reserva)
+                
+                # Eliminar ocupaciones futuras
+                for ocup in ocupaciones_futuras_encargado + ocupaciones_futuras_admin:
+                    db.session.delete(ocup)
+                
+                # Crear nueva ocupación de inhabilitación
+                ocupacion = Ocupacion(
+                    fecha_inicio=fecha_inicio_dt,
+                    fecha_fin=fecha_fin_dt,
+                    administrador_id=session.get('user_id'),
+                    propiedad_id=propiedad_id,
+                    tipo='inhabilitacion'
+                )
+                db.session.add(ocupacion)
+                db.session.commit()
+                
+                return True, f'Propiedad inhabilitada y {len(reservas_afectadas)} reserva(s) reintegrada(s) correctamente.', 'success'
+                
+            elif accion_reserva == 'upgrade':
+                # Guardar reservas afectadas en sesión temporal para upgrade
+                session['upgrade_reservas'] = [
+                    {
+                        'id': r.id,
+                        'cliente_id': r.cliente_id,
+                        'cliente_nombre': f"{r.cliente.nombre} {r.cliente.apellido}",
+                        'fecha_inicio': r.fecha_inicio.strftime('%Y-%m-%d'),
+                        'fecha_fin': r.fecha_fin.strftime('%Y-%m-%d'),
+                        'cantidad_personas': r.cantidad_personas,
+                        'propiedad_id': r.propiedad_id
+                    } for r in reservas_afectadas
+                ]
+                session['upgrade_inhabilitacion'] = {
+                    'propiedad_id': propiedad_id,
+                    'fecha_inicio': fecha_inicio,
+                    'fecha_fin': fecha_fin,
+                    'ocupaciones_encargado': [
+                        {
+                            'id': o.id,
+                            'encargado_id': o.encargado_id,
+                            'fecha_inicio': o.fecha_inicio.strftime('%Y-%m-%d'),
+                            'fecha_fin': o.fecha_fin.strftime('%Y-%m-%d')
+                        } for o in ocupaciones_futuras_encargado
+                    ],
+                    'ocupaciones_admin': [
+                        {
+                            'id': o.id,
+                            'administrador_id': o.administrador_id,
+                            'fecha_inicio': o.fecha_inicio.strftime('%Y-%m-%d'),
+                            'fecha_fin': o.fecha_fin.strftime('%Y-%m-%d')
+                        } for o in ocupaciones_futuras_admin
+                    ]
+                }
+                return 'upgrade', 'Redirigir a selección de propiedades alternativas', 'info'
+            else:
+                return False, 'Acción de reserva no válida.', 'danger'
+
+        # Si no hay reservas pero hay ocupaciones futuras de encargado
+        if ocupaciones_futuras_encargado:
+            # Eliminar ocupaciones de encargado y devolver días
+            for ocup in ocupaciones_futuras_encargado:
+                # Aquí podrías implementar la lógica de devolución de días al encargado
+                # Por ahora solo eliminamos la ocupación
+                db.session.delete(ocup)
+            
+            # Eliminar ocupaciones de admin
+            for ocup in ocupaciones_futuras_admin:
+                db.session.delete(ocup)
+            
+            # Crear nueva ocupación de inhabilitación
+            ocupacion = Ocupacion(
+                fecha_inicio=fecha_inicio_dt,
+                fecha_fin=fecha_fin_dt,
+                administrador_id=session.get('user_id'),
+                propiedad_id=propiedad_id,
+                tipo='inhabilitacion'
+            )
+            db.session.add(ocupacion)
+            db.session.commit()
+            
+            return True, f'Propiedad inhabilitada. Se eliminaron {len(ocupaciones_futuras_encargado)} ocupación(es) de encargado(s) y {len(ocupaciones_futuras_admin)} ocupación(es) de administrador(es).', 'success'
+
+        # Si no hay reservas ni ocupaciones futuras, solo bloquear
+        ocupacion = Ocupacion(
+            fecha_inicio=fecha_inicio_dt,
+            fecha_fin=fecha_fin_dt,
+            administrador_id=session.get('user_id'),
+            propiedad_id=propiedad_id,
+            tipo='inhabilitacion'
+        )
+        db.session.add(ocupacion)
+        db.session.commit()
+        return True, 'Propiedad inhabilitada correctamente para el rango seleccionado.', 'success'
+
+    def upgrade_reservas(self, request, session):
+        """
+        Maneja GET y POST para el flujo de upgrade de reservas afectadas por inhabilitación.
+        GET: muestra UI para seleccionar propiedades alternativas.
+        POST: procesa la selección y actualiza reservas, elimina ocupaciones, etc.
+        """
+        from models.reserva import Reserva
+        from models.propiedad import Propiedad
+        from models.ocupacion import Ocupacion
+        from database import db
+        from datetime import datetime
+        from flask import flash, redirect, url_for, render_template
+        
+        # --- GET: mostrar selección de propiedades alternativas ---
+        if request.method == 'GET':
+            reservas = session.get('upgrade_reservas', [])
+            inhabilitacion = session.get('upgrade_inhabilitacion', {})
+            if not reservas or not inhabilitacion:
+                flash('No hay reservas para upgrade.', 'warning')
+                return redirect(url_for('main.ver_propiedades'))
+            
+            # Buscar propiedades alternativas para cada reserva (no ocupadas ni reservadas en el rango)
+            alternativas = {}
+            for reserva in reservas:
+                alternativas_reserva = Propiedad.query.filter(
+                    Propiedad.eliminado == False,
+                    Propiedad.id != reserva['propiedad_id']
+                ).all()
+                
+                # Filtrar propiedades que no estén ocupadas ni reservadas en el rango
+                disponibles = []
+                fecha_inicio = datetime.strptime(reserva['fecha_inicio'], '%Y-%m-%d').date()
+                fecha_fin = datetime.strptime(reserva['fecha_fin'], '%Y-%m-%d').date()
+                
+                for prop in alternativas_reserva:
+                    ocupado = False
+                    # Verificar ocupaciones
+                    for ocup in prop.ocupaciones:
+                        if not (fecha_fin < ocup.fecha_inicio or fecha_inicio > ocup.fecha_fin):
+                            ocupado = True
+                            break
+                    # Verificar reservas concretadas
+                    for res in prop.reservas:
+                        if res.estado == 'concretada' and not (fecha_fin < res.fecha_inicio or fecha_inicio > res.fecha_fin):
+                            ocupado = True
+                            break
+                    if not ocupado:
+                        disponibles.append(prop)
+                alternativas[reserva['id']] = disponibles
+            
+            # Adjuntar propiedades_libres a cada reserva para el template
+            for reserva in reservas:
+                reserva['propiedades_libres'] = alternativas.get(reserva['id'], [])
+            
+            # Obtener propiedad_id para el template (usado en el botón Cancelar)
+            propiedad_id = inhabilitacion.get('propiedad_id')
+            return render_template(
+                'upgrade_reserva.html',
+                reservas=reservas,
+                inhabilitacion=inhabilitacion,
+                propiedad_id=propiedad_id
+            )
+        
+        # --- POST: procesar selección de upgrades ---
+        elif request.method == 'POST':
+            reservas = session.get('upgrade_reservas', [])
+            inhabilitacion = session.get('upgrade_inhabilitacion', {})
+            if not reservas or not inhabilitacion:
+                flash('No hay reservas para upgrade.', 'warning')
+                return redirect(url_for('main.ver_propiedades'))
+            
+            # Recibir selección del formulario: mapping reserva_id -> propiedad_id nueva
+            upgrades = {}
+            for reserva in reservas:
+                key = f'upgrade_{reserva["id"]}'
+                nueva_prop_id = request.form.get(key)
+                if nueva_prop_id:
+                    upgrades[reserva['id']] = int(nueva_prop_id)
+
+            # Procesar upgrades: cancelar reserva original y crear nueva en la propiedad seleccionada
+            reservas_procesadas = 0
+            for reserva in reservas:
+                reserva_obj = Reserva.query.get(reserva['id'])
+                # Solo procesar si la reserva no está ya cancelada
+                if reserva_obj and reserva_obj.estado != 'cancelada':
+                    nueva_prop_id = upgrades.get(reserva['id'])
+                    if nueva_prop_id:
+                        # Cancelar la reserva original
+                        reserva_obj.estado = 'cancelada'
+                        db.session.commit()
+                        
+                        # Crear nueva reserva con los mismos datos pero en la nueva propiedad
+                        nueva_reserva = Reserva(
+                            fecha_inicio=reserva_obj.fecha_inicio,
+                            fecha_fin=reserva_obj.fecha_fin,
+                            cantidad_personas=reserva_obj.cantidad_personas,
+                            estado='concretada',  # Mantener como concretada
+                            cliente_id=reserva_obj.cliente_id,
+                            propiedad_id=nueva_prop_id
+                        )
+                        db.session.add(nueva_reserva)
+                        db.session.commit()
+                        reservas_procesadas += 1
+            
+            # Eliminar ocupaciones futuras de la propiedad original
+            ocupaciones_encargado = inhabilitacion.get('ocupaciones_encargado', [])
+            ocupaciones_admin = inhabilitacion.get('ocupaciones_admin', [])
+            
+            # Eliminar ocupaciones de encargado
+            for ocup_data in ocupaciones_encargado:
+                ocup = Ocupacion.query.get(ocup_data['id'])
+                if ocup:
+                    db.session.delete(ocup)
+            
+            # Eliminar ocupaciones de administrador
+            for ocup_data in ocupaciones_admin:
+                ocup = Ocupacion.query.get(ocup_data['id'])
+                if ocup:
+                    db.session.delete(ocup)
+            
+            # Crear ocupación para bloquear la propiedad original
+            prop_id = inhabilitacion.get('propiedad_id')
+            fecha_inicio = inhabilitacion.get('fecha_inicio')
+            fecha_fin = inhabilitacion.get('fecha_fin')
+            
+            if prop_id and fecha_inicio and fecha_fin:
+                fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+                fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+                ocupacion = Ocupacion(
+                    fecha_inicio=fecha_inicio_dt,
+                    fecha_fin=fecha_fin_dt,
+                    administrador_id=session.get('user_id'),
+                    propiedad_id=prop_id,
+                    tipo='inhabilitacion'
+                )
+                db.session.add(ocupacion)
+                db.session.commit()
+            
+            # Limpiar sesión temporal
+            session.pop('upgrade_reservas', None)
+            session.pop('upgrade_inhabilitacion', None)
+            
+            # Mensaje de éxito
+            mensaje = f'Se procesaron {reservas_procesadas} reserva(s) y se inhabilitó la propiedad correctamente.'
+            if ocupaciones_encargado:
+                mensaje += f' Se eliminaron {len(ocupaciones_encargado)} ocupación(es) de encargado(s).'
+            if ocupaciones_admin:
+                mensaje += f' Se eliminaron {len(ocupaciones_admin)} ocupación(es) de administrador(es).'
+            
+            flash(mensaje, 'success')
+            
+            # Redirigir a la propiedad destino si hubo upgrade, si no a la original
+            prop_id_upgrade = None
+            for reserva in reservas:
+                nueva_prop_id = upgrades.get(reserva['id'])
+                if nueva_prop_id:
+                    prop_id_upgrade = nueva_prop_id
+                    break
+            
+            if prop_id_upgrade:
+                return redirect(url_for('main.detalle_propiedad', id=prop_id_upgrade))
+            else:
+                return redirect(url_for('main.detalle_propiedad', id=prop_id))
 
 
