@@ -389,6 +389,8 @@ user_controller = UserController()
 
 @main.route('/reservas/futuras')
 def reservas_futuras():
+    if session.pop('show_extension_flash', None):
+        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
     # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
@@ -430,6 +432,8 @@ def calificaciones_editables():
 
 @main.route('/reservas/activas')
 def reservas_activas():
+    if session.pop('show_extension_flash', None):
+        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()

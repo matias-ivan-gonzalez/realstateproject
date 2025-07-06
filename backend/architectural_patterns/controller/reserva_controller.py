@@ -282,76 +282,33 @@ class ReservaController:
         ).all()
         if reservas_solapadas or ocupaciones_solapadas:
             return jsonify({'error': 'Reserva fallida por indisponibilidad de la propiedad'}), 400
-        # Regla 2: Si faltan 2 días o menos para el inicio, o ya comenzó, debe abonar inmediatamente
+        # Siempre NO requiere pago inmediato
         requiere_pago = False
-        if (reserva.fecha_inicio - hoy).days <= 2 or hoy >= reserva.fecha_inicio:
-            requiere_pago = True
+
         noches_adicionales = (nueva_fecha_fin_dt - reserva.fecha_fin).days
         if noches_adicionales < 1:
             return jsonify({'error': 'Debes seleccionar al menos una noche adicional'}), 400
         monto_total = float(propiedad.precio * noches_adicionales)
         porcentaje = propiedad.porcentaje_pago_reserva if requiere_pago else 0
         monto_a_cobrar = round(monto_total * (porcentaje / 100), 2) if porcentaje > 0 else monto_total
-        if requiere_pago and monto_a_cobrar > 0:
-            # Mercado Pago
-            sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
-            base_url = "https://liked-indirectly-finch.ngrok-free.app"
-            preference_data = {
-                "items": [
-                    {
-                        "title": f"Extensión de reserva de {propiedad.nombre}",
-                        "quantity": 1,
-                        "currency_id": "ARS",
-                        "unit_price": monto_a_cobrar
-                    }
-                ],
-                "back_urls": {
-                    "success": f"{base_url}/extender_reserva_success?reserva_id={reserva.id}&nueva_fecha_fin={nueva_fecha_fin_dt}",
-                    "failure": f"{base_url}/extender_reserva_failure",
-                    "pending": f"{base_url}/extender_reserva_pending"
-                },
-                "auto_return": "approved",
-                "binary_mode": True,
-                "payment_methods": {
-                    "excluded_payment_types": [
-                        {"id": "debit_card"},
-                        {"id": "ticket"},
-                        {"id": "atm"},
-                        {"id": "prepaid_card"}
-                    ],
-                    "excluded_payment_methods": [
-                        {"id": "amex"},
-                        {"id": "naranja"},
-                        {"id": "cabal"},
-                        {"id": "argencard"},
-                        {"id": "cencosud"},
-                        {"id": "tarshop"},
-                        {"id": "diners"},
-                        {"id": "pagofacil"},
-                        {"id": "rapipago"},
-                        {"id": "cmr"},
-                        {"id": "cordobesa"},
-                        {"id": "maestro"},
-                        {"id": "mercadopago"},
-                        {"id": "pagoefectivo"},
-                        {"id": "visa_debit"},
-                        {"id": "master_debit"},
-                        {"id": "debmaster"},
-                        {"id": "debvisa"}
-                    ],
-                    "installments": 1
-                },
-                "payer": {
-                    "email": session.get("email", "")
-                }
-            }
-            preference_response = sdk.preference().create(preference_data)
-            preference = preference_response["response"]
-            if "init_point" in preference:
-                return jsonify(init_point=preference["init_point"])
-            else:
-                return jsonify({"error": "No se pudo crear la preferencia de pago"}), 400
-        # Si no requiere pago, actualizar la reserva directamente
+
+        # Nunca entra a Mercado Pago, siempre genera pago pendiente
         reserva.fecha_fin = nueva_fecha_fin_dt
         db.session.commit()
+
+        # Crear pago pendiente por la extensión
+        if noches_adicionales > 0 and monto_total > 0:
+            from models.pago import Pago
+            fecha_cobro_total = nueva_fecha_fin_dt - timedelta(days=2)
+            pago_pendiente = Pago(
+                monto=monto_total,
+                reserva_id=reserva.id,
+                fecha_emision=None,
+                status='pending',
+                fecha_cobro_total=fecha_cobro_total
+            )
+            db.session.add(pago_pendiente)
+            db.session.commit()
+
+        session['show_extension_flash'] = True
         return jsonify({'success': True})
