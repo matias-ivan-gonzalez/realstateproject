@@ -391,7 +391,24 @@ user_controller = UserController()
 def reservas_futuras():
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
-    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date)
+    # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 @main.route('/reservas/concluidas')
 def reservas_concluidas():
@@ -416,7 +433,23 @@ def reservas_activas():
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
-    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 
 @main.route('/ver-mis-chats-encargado')

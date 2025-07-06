@@ -13,7 +13,7 @@
     {% endif %}
 {% endmacro %}
 
-{% macro extender_reserva_modal() %}
+{% macro extender_reserva_modal(fechas_ocupadas, fechas_reservadas) %}
 <!-- Modal para Extender Reserva -->
 <div class="modal fade" id="modalExtenderReserva" tabindex="-1" aria-labelledby="modalExtenderReservaLabel" aria-hidden="true" data-bs-backdrop="false">
   <div class="modal-dialog">
@@ -56,12 +56,20 @@
   </div>
 </div>
 
+<style>
+.flatpickr-day.reserved-day, .flatpickr-day.occupied-day {
+    background: #ffcccc !important;
+    color: #b30000 !important;
+    border-radius: 50% !important;
+}
+</style>
+
 <script>
-// Inyectar fechas ocupadas/reservadas desde el backend (debe hacerse en el template padre)
-// window.fechasOcupadas = [...]; window.fechasReservadas = [...];
-// Si no existen, inicializar vacías para evitar errores
-window.fechasOcupadas = window.fechasOcupadas || [];
-window.fechasReservadas = window.fechasReservadas || [];
+// Setea las fechas ocupadas/reservadas localmente para este componente
+var fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
+var fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+window.fechasOcupadas = fechasOcupadas;
+window.fechasReservadas = fechasReservadas;
 
 function getBlockedDates() {
   let fechasBloqueadas = [];
@@ -97,6 +105,12 @@ function setupFlatpickrExtenderReserva(fechaFinActual) {
     disable: blockedDates.concat([fechaFinActual]),
     locale: 'es',
     allowInput: false,
+    onDayCreate: function(dObj, dStr, fp, dayElem) {
+      const date = dayElem.dateObj.toISOString().slice(0,10);
+      if (blockedDates.includes(date)) {
+        dayElem.classList.add('fecha-reservada');
+      }
+    },
     onChange: function(selectedDates, dateStr, instance) {
       const msg = document.getElementById('msgNuevaFechaFin');
       const btn = document.getElementById('btnConfirmarExtension');
