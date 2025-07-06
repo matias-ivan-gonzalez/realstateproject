@@ -1,0 +1,235 @@
+{% macro extender_reserva_button(reserva, current_date, tipo) %}
+    {% set dias_para_salida = (reserva.fecha_fin_obj - current_date).days %}
+    {% if dias_para_salida > 2 %}
+        <button class="btn btn-outline-primary btn-sm ms-2 extender-reserva-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#modalExtenderReserva"
+                data-reserva-id="{{ reserva.id }}"
+                data-fecha-fin="{{ reserva.fecha_fin }}"
+                data-precio="{{ reserva.precio if reserva.precio is defined else reserva.propiedad.precio }}"
+                data-porcentaje="{{ reserva.porcentaje_pago_reserva if reserva.porcentaje_pago_reserva is defined else reserva.propiedad.porcentaje_pago_reserva }}">
+            Extender Reserva
+        </button>
+    {% endif %}
+{% endmacro %}
+
+{% macro extender_reserva_modal(fechas_ocupadas, fechas_reservadas) %}
+<!-- Modal para Extender Reserva -->
+<div class="modal fade" id="modalExtenderReserva" tabindex="-1" aria-labelledby="modalExtenderReservaLabel" aria-hidden="true" data-bs-backdrop="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExtenderReservaLabel">Extender Reserva</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formExtenderReserva">
+          <input type="hidden" id="extenderReservaId" name="reserva_id">
+          <div class="mb-2">
+            <label class="form-label">Fecha de salida actual</label>
+            <input type="text" class="form-control" id="fechaFinActual" readonly>
+          </div>
+          <div class="mb-2">
+            <label for="nuevaFechaFin" class="form-label">Nueva fecha de salida</label>
+            <input type="text" class="form-control" id="nuevaFechaFin" name="nueva_fecha_fin" required readonly>
+            <div id="msgNuevaFechaFin" class="text-danger small"></div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Precio total por la extensión</label>
+            <input type="text" class="form-control" id="precioTotalExtension" readonly>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Porcentaje cobrado por reserva</label>
+            <input type="text" class="form-control" id="porcentajeCobrado" readonly>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Monto a pagar por la extensión</label>
+            <input type="text" class="form-control" id="montoExtension" readonly>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" id="btnConfirmarExtension">Confirmar y pagar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.flatpickr-day.reserved-day, .flatpickr-day.occupied-day {
+    background: #ffcccc !important;
+    color: #b30000 !important;
+    border-radius: 50% !important;
+}
+</style>
+
+<script>
+// Setea las fechas ocupadas/reservadas localmente para este componente
+var fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
+var fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+window.fechasOcupadas = fechasOcupadas;
+window.fechasReservadas = fechasReservadas;
+
+function getBlockedDates() {
+  let fechasBloqueadas = [];
+  function getFechasEnRango(inicio, fin) {
+    let fechas = [];
+    let current = new Date(inicio);
+    let end = new Date(fin);
+    while (current <= end) {
+      fechas.push(current.toISOString().slice(0,10));
+      current.setDate(current.getDate() + 1);
+    }
+    return fechas;
+  }
+  (window.fechasOcupadas || []).forEach(function(r) {
+    getFechasEnRango(r.inicio, r.fin).forEach(f => fechasBloqueadas.push(f));
+  });
+  (window.fechasReservadas || []).forEach(function(r) {
+    getFechasEnRango(r.inicio, r.fin).forEach(f => fechasBloqueadas.push(f));
+  });
+  return Array.from(new Set(fechasBloqueadas));
+}
+
+function setupFlatpickrExtenderReserva(fechaFinActual) {
+  const blockedDates = getBlockedDates();
+  const today = new Date().toISOString().slice(0,10);
+  const minDate = today > fechaFinActual ? today : fechaFinActual;
+
+  // Buscar la primera fecha bloqueada futura después de la fecha de fin actual
+  const futuras = blockedDates.filter(f => f > fechaFinActual).sort();
+  let maxDate = null;
+  if (futuras.length > 0) {
+    // El día anterior a la primera fecha bloqueada
+    const d = new Date(futuras[0]);
+    d.setDate(d.getDate() - 1);
+    maxDate = d.toISOString().slice(0,10);
+  }
+
+  if (window.flatpickrNuevaFin) {
+    window.flatpickrNuevaFin.destroy();
+  }
+  window.flatpickrNuevaFin = flatpickr('#nuevaFechaFin', {
+    dateFormat: 'Y-m-d',
+    minDate: minDate,
+    maxDate: maxDate,
+    disable: blockedDates.concat([fechaFinActual]),
+    locale: 'es',
+    allowInput: false,
+    onDayCreate: function(dObj, dStr, fp, dayElem) {
+      const date = dayElem.dateObj.toISOString().slice(0,10);
+      if (blockedDates.includes(date)) {
+        dayElem.classList.add('fecha-reservada');
+      }
+    },
+    onChange: function(selectedDates, dateStr, instance) {
+      const msg = document.getElementById('msgNuevaFechaFin');
+      const btn = document.getElementById('btnConfirmarExtension');
+      if (!dateStr) {
+        msg.textContent = 'Selecciona la nueva fecha de salida.';
+        btn.disabled = true;
+        return;
+      }
+      if (dateStr <= fechaFinActual) {
+        msg.textContent = 'La nueva fecha debe ser posterior a la actual y no estar ocupada.';
+        btn.disabled = true;
+        instance.clear();
+        return;
+      }
+      if (blockedDates.includes(dateStr)) {
+        msg.textContent = 'La fecha seleccionada está ocupada o reservada.';
+        btn.disabled = true;
+        instance.clear();
+        return;
+      }
+      msg.textContent = '';
+      btn.disabled = false;
+    }
+  });
+}
+
+(function() {
+  var modalExtender = document.getElementById('modalExtenderReserva');
+  if (!modalExtender) return;
+  modalExtender.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var reservaId = button.getAttribute('data-reserva-id');
+    var fechaFinActual = button.getAttribute('data-fecha-fin');
+    var precio = parseFloat(button.getAttribute('data-precio'));
+    var porcentaje = parseInt(button.getAttribute('data-porcentaje'));
+    var inputReservaId = document.getElementById('extenderReservaId');
+    var inputNuevaFechaFin = document.getElementById('nuevaFechaFin');
+    var inputFechaFinActual = document.getElementById('fechaFinActual');
+    var inputMonto = document.getElementById('montoExtension');
+    var inputPrecioTotal = document.getElementById('precioTotalExtension');
+    var inputPorcentaje = document.getElementById('porcentajeCobrado');
+    inputReservaId.value = reservaId;
+    inputFechaFinActual.value = fechaFinActual;
+    inputNuevaFechaFin.value = '';
+    inputMonto.value = '';
+    inputPrecioTotal.value = '';
+    inputPorcentaje.value = porcentaje + '%';
+    document.getElementById('msgNuevaFechaFin').textContent = '';
+    document.getElementById('btnConfirmarExtension').disabled = true;
+    setupFlatpickrExtenderReserva(fechaFinActual);
+    inputNuevaFechaFin.oninput = function() {
+      var nueva = inputNuevaFechaFin.value;
+      if (!nueva || nueva <= fechaFinActual) {
+        inputMonto.value = '';
+        inputPrecioTotal.value = '';
+        return;
+      }
+      var fecha1 = new Date(fechaFinActual);
+      var fecha2 = new Date(nueva);
+      var noches = (fecha2 - fecha1) / (1000*60*60*24);
+      if (noches < 1) {
+        inputMonto.value = '';
+        inputPrecioTotal.value = '';
+        return;
+      }
+      var total = precio * noches;
+      var monto = Math.round(total * (porcentaje/100));
+      inputPrecioTotal.value = `$${total}`;
+      inputMonto.value = monto > 0 ? `$${monto}` : `$${total}`;
+    };
+  });
+  var btnConfirmar = document.getElementById('btnConfirmarExtension');
+  if (btnConfirmar) {
+    btnConfirmar.onclick = async function() {
+      const reservaId = document.getElementById('extenderReservaId').value;
+      const nuevaFechaFin = document.getElementById('nuevaFechaFin').value;
+      const msg = document.getElementById('msgNuevaFechaFin');
+      msg.textContent = '';
+      if (!nuevaFechaFin) {
+        msg.textContent = 'Selecciona la nueva fecha de salida.';
+        return;
+      }
+      // Validar que la fecha sea al menos 1 día después
+      const fechaFinActual = document.getElementById('fechaFinActual').value;
+      if (nuevaFechaFin <= fechaFinActual) {
+        msg.textContent = 'La nueva fecha de salida debe ser al menos 1 día después de la actual.';
+        return;
+      }
+      try {
+        const resp = await fetch('/extender_reserva', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reserva_id: reservaId, nueva_fecha_fin: nuevaFechaFin })
+        });
+        const data = await resp.json();
+        if (data.init_point) {
+          window.location.href = data.init_point;
+        } else if (data.success) {
+          location.reload();
+        } else if (data.error) {
+          msg.textContent = data.error;
+        }
+      } catch (e) {
+        msg.textContent = 'Error al procesar la extensión.';
+      }
+    };
+  }
+})();
+</script>
+{% endmacro %} 

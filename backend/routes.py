@@ -391,7 +391,24 @@ user_controller = UserController()
 def reservas_futuras():
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
-    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date)
+    # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 @main.route('/reservas/concluidas')
 def reservas_concluidas():
@@ -416,7 +433,23 @@ def reservas_activas():
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
-    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 
 @main.route('/ver-mis-chats-encargado')
@@ -458,6 +491,52 @@ def ver_mis_chats_encargado():
 
     chats_serializados = [serializar_chat(c) for c in chats]
     return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)
+
+@main.route('/extender_reserva', methods=['POST'])
+@login_required
+def extender_reserva():
+    from flask import request, jsonify
+    from datetime import datetime, timedelta
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    data = request.get_json()
+    reserva_id = data.get('reserva_id')
+    nueva_fecha_fin = data.get('nueva_fecha_fin')
+    if not reserva_id or not nueva_fecha_fin:
+        return jsonify({'error': 'Datos incompletos'}), 400
+    try:
+        nueva_fecha_fin_dt = datetime.strptime(nueva_fecha_fin, '%Y-%m-%d').date()
+    except Exception:
+        return jsonify({'error': 'Fecha inválida'}), 400
+    controller = ReservaController()
+    return controller.extender_reserva(session, reserva_id, nueva_fecha_fin_dt)
+
+@main.route('/extender_reserva_success')
+@login_required
+def extender_reserva_success():
+    from flask import request, redirect, url_for, flash
+    reserva_id = request.args.get('reserva_id')
+    nueva_fecha_fin = request.args.get('nueva_fecha_fin')
+    if not reserva_id or not nueva_fecha_fin:
+        flash('Extensión de reserva fallida (datos incompletos)', 'danger')
+        return redirect(url_for('main.ver_reservas'))
+    from models.reserva import Reserva
+    from database import db
+    from datetime import datetime
+    reserva = Reserva.query.get(reserva_id)
+    if not reserva:
+        flash('Reserva no encontrada', 'danger')
+        return redirect(url_for('main.ver_reservas'))
+    try:
+        nueva_fecha_fin_dt = datetime.strptime(nueva_fecha_fin, '%Y-%m-%d').date()
+        if nueva_fecha_fin_dt > reserva.fecha_fin:
+            reserva.fecha_fin = nueva_fecha_fin_dt
+            db.session.commit()
+            flash('Reserva extendida', 'success')
+        else:
+            flash('La nueva fecha de salida debe ser posterior a la actual', 'danger')
+    except Exception:
+        flash('Error al procesar la extensión', 'danger')
+    return redirect(url_for('main.ver_reservas'))
 
 @main.route('/clientes-calificables')
 @login_required

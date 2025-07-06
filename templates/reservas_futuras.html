@@ -1,5 +1,7 @@
 {% extends "base_hero.html" %}
 
+{% import "components/extender_reserva.html" as extender_reserva %}
+
 {% block title %}Reservas Futuras - Alquilando{% endblock %}
 
 {% block hero_content %}
@@ -42,6 +44,8 @@
                                         <a href="/chat?reserva_id={{ reserva.id }}&tipo=futuro" class="btn btn-outline-primary">
                                             {% if reserva.chat_iniciado_futuro %}Ver chat{% else %}Iniciar chat{% endif %}
                                         </a>
+                                        {{ extender_reserva.extender_reserva_button(reserva, current_date, 'futuro') }}
+                                        <!-- Botón para abrir el modal -->
                                         <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#cancelarReservaModal{{ reserva.id }}">
                                             Cancelar reserva
                                         </button>
@@ -78,4 +82,5 @@
         </div>
     </div>
 </div>
+{{ extender_reserva.extender_reserva_modal(fechas_ocupadas, fechas_reservadas) }}
 {% endblock %} 
