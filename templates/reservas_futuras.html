@@ -1,5 +1,7 @@
 {% extends "base_hero.html" %}
 
+{% import "components/extender_reserva.html" as extender_reserva %}
+
 {% block title %}Reservas Futuras - Alquilando{% endblock %}
 
 {% block hero_content %}
@@ -10,6 +12,7 @@
                 <a href="/reservas/futuras" class="btn btn-primary mx-2">Reservas Futuras</a>
                 <a href="/reservas/activas" class="btn btn-outline-primary mx-2">Reservas Activas</a>
                 <a href="/reservas/concluidas" class="btn btn-outline-primary mx-2">Reservas Concluidas</a>
+                <a href="/reservas/canceladas" class="btn btn-outline-primary mx-2">Reservas Canceladas</a>
                 <a href="/reservas/pendientes" class="btn btn-outline-primary mx-2">Calificaciones Pendientes</a>
                 <a href="/reservas/editables" class="btn btn-outline-primary mx-2">Calificaciones Modificables</a>
                 <a href="/mis-pagos" class="btn btn-outline-primary mx-2">Mis Pagos</a>
@@ -25,7 +28,7 @@
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
-                                <th>Chat</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -41,6 +44,31 @@
                                         <a href="/chat?reserva_id={{ reserva.id }}&tipo=futuro" class="btn btn-outline-primary">
                                             {% if reserva.chat_iniciado_futuro %}Ver chat{% else %}Iniciar chat{% endif %}
                                         </a>
+                                        {{ extender_reserva.extender_reserva_button(reserva, current_date, 'futuro') }}
+                                        <!-- Botón para abrir el modal -->
+                                        <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#cancelarReservaModal{{ reserva.id }}">
+                                            Cancelar reserva
+                                        </button>
+                                        <!-- Modal de confirmación -->
+                                        <div class="modal fade modal-nonblock" id="cancelarReservaModal{{ reserva.id }}" tabindex="-1" aria-labelledby="cancelarReservaLabel{{ reserva.id }}" aria-hidden="true" data-bs-backdrop="false">
+                                          <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                              <div class="modal-header">
+                                                <h5 class="modal-title" id="cancelarReservaLabel{{ reserva.id }}">Confirmar cancelación</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                              </div>
+                                              <div class="modal-body">
+                                                ¿Estás seguro de que deseas cancelar esta reserva?
+                                              </div>
+                                              <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
+                                                <form method="POST" action="/reserva/eliminar/{{ reserva.id }}" style="display:inline;">
+                                                  <button type="submit" class="btn btn-danger">Sí, cancelar reserva</button>
+                                                </form>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endif %}
@@ -54,4 +82,5 @@
         </div>
     </div>
 </div>
+{{ extender_reserva.extender_reserva_modal(fechas_ocupadas, fechas_reservadas) }}
 {% endblock %} 

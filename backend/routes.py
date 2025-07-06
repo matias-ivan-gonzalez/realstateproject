@@ -16,6 +16,7 @@ import mercadopago
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date, timedelta
 from models.reserva import Reserva
+from models.pago import Pago
 
 # Crear un Blueprint para las rutas
 main = Blueprint('main', __name__)
@@ -391,9 +392,28 @@ user_controller = UserController()
 
 @main.route('/reservas/futuras')
 def reservas_futuras():
+    if session.pop('show_extension_flash', None):
+        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
-    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date)
+    # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 @main.route('/reservas/concluidas')
 def reservas_concluidas():
@@ -415,10 +435,28 @@ def calificaciones_editables():
 
 @main.route('/reservas/activas')
 def reservas_activas():
+    if session.pop('show_extension_flash', None):
+        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
-    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 
 @main.route('/ver-mis-chats-encargado')
@@ -460,6 +498,52 @@ def ver_mis_chats_encargado():
 
     chats_serializados = [serializar_chat(c) for c in chats]
     return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)
+
+@main.route('/extender_reserva', methods=['POST'])
+@login_required
+def extender_reserva():
+    from flask import request, jsonify
+    from datetime import datetime, timedelta
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    data = request.get_json()
+    reserva_id = data.get('reserva_id')
+    nueva_fecha_fin = data.get('nueva_fecha_fin')
+    if not reserva_id or not nueva_fecha_fin:
+        return jsonify({'error': 'Datos incompletos'}), 400
+    try:
+        nueva_fecha_fin_dt = datetime.strptime(nueva_fecha_fin, '%Y-%m-%d').date()
+    except Exception:
+        return jsonify({'error': 'Fecha inválida'}), 400
+    controller = ReservaController()
+    return controller.extender_reserva(session, reserva_id, nueva_fecha_fin_dt)
+
+@main.route('/extender_reserva_success')
+@login_required
+def extender_reserva_success():
+    from flask import request, redirect, url_for, flash
+    reserva_id = request.args.get('reserva_id')
+    nueva_fecha_fin = request.args.get('nueva_fecha_fin')
+    if not reserva_id or not nueva_fecha_fin:
+        flash('Extensión de reserva fallida (datos incompletos)', 'danger')
+        return redirect(url_for('main.ver_reservas'))
+    from models.reserva import Reserva
+    from database import db
+    from datetime import datetime
+    reserva = Reserva.query.get(reserva_id)
+    if not reserva:
+        flash('Reserva no encontrada', 'danger')
+        return redirect(url_for('main.ver_reservas'))
+    try:
+        nueva_fecha_fin_dt = datetime.strptime(nueva_fecha_fin, '%Y-%m-%d').date()
+        if nueva_fecha_fin_dt > reserva.fecha_fin:
+            reserva.fecha_fin = nueva_fecha_fin_dt
+            db.session.commit()
+            flash('Reserva extendida', 'success')
+        else:
+            flash('La nueva fecha de salida debe ser posterior a la actual', 'danger')
+    except Exception:
+        flash('Error al procesar la extensión', 'danger')
+    return redirect(url_for('main.ver_reservas'))
 
 @main.route('/clientes-calificables')
 @login_required
@@ -624,6 +708,42 @@ def desasignar_encargado_de_propiedad(propiedad_id):
     flash('Encargado desasignado correctamente.', 'success')
     return redirect(url_for('main.propiedades_asignadas'))
 
+@main.route('/reserva/eliminar/<int:reserva_id>', methods=['POST'])
+def eliminar_reserva(reserva_id):
+    from models.reserva import Reserva
+    from flask import redirect, url_for, flash
+    from datetime import datetime, timedelta
+    reserva = Reserva.query.get_or_404(reserva_id)
+    propiedad = reserva.propiedad
+    ahora = datetime.utcnow().date()
+    dias_antes = (reserva.fecha_inicio - ahora).days
+    pagos = Pago.query.filter_by(reserva_id=reserva.id).all()
+    porcentaje = propiedad.porcentaje_pago_reserva
+
+    # Cambiar pagos pendientes a cancelados antes de cancelar la reserva
+    for pago in pagos:
+        if pago.status == 'pending':
+            pago.status = 'cancelled'
+    
+    # Cambiar estado de la reserva a cancelada
+    reserva.estado = 'cancelada'
+    db.session.commit()
+
+    # Mensajes claros según reglas de negocio
+    if not propiedad.reembolsable:
+        mensaje_reembolso = 'Cancelación exitosa. No se realiza reembolso porque la propiedad no es reembolsable.'
+    elif dias_antes < 2 and int(porcentaje) == 100:
+        mensaje_reembolso = 'Cancelación exitosa. No se realiza reembolso porque la cancelación fue con menos de 48 horas de anticipación.'
+    elif int(porcentaje) == 20:
+        mensaje_reembolso = 'Cancelación exitosa. No se realiza reembolso porque solo se abonó el 20% de reserva.'
+    elif int(porcentaje) == 100:
+        mensaje_reembolso = 'Cancelación con reembolso exitosa. Se reembolsa el 20% del pago anticipado.'
+    else:
+        mensaje_reembolso = 'Cancelación exitosa.'
+
+    flash(mensaje_reembolso, 'success')
+    return redirect(url_for('main.reservas_futuras'))
+
 @main.route('/mis-pagos')
 @login_required
 def mis_pagos():
@@ -638,15 +758,29 @@ def ver_pago_reserva(reserva_id):
     reserva = Reserva.query.get_or_404(reserva_id)
     pagos = reserva.pagos
     hoy = datetime.now().date()
-    cambios = False
+    porcentaje = reserva.propiedad.porcentaje_pago_reserva
+    dias_antes = (reserva.fecha_inicio - hoy).days
+    pagos_vista = []
+    regla_especial = dias_antes <= 2 and porcentaje in [0, 20]
     for pago in pagos:
-        if pago.status == 'pendiente':
-            fecha_cobro = reserva.fecha_inicio - timedelta(days=2)
-            if hoy >= fecha_cobro:
-                pago.status = 'pagado'
-                pago.fecha_cobro_total = datetime.combine(fecha_cobro, datetime.min.time())
-                cambios = True
-    if cambios:
-        from database import db
-        db.session.commit()
-    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos, timedelta=timedelta)
+        pago_dict = pago.__dict__.copy()
+        # Si es el pago del 20% (anticipo), la fecha de cobro siempre es hoy
+        if porcentaje == 20 and pago.monto == round((reserva.propiedad.precio * (reserva.fecha_fin - reserva.fecha_inicio).days) * 0.2, 2):
+            pago_dict['fecha_cobro_total'] = datetime.now()
+            if regla_especial:
+                pago_dict['status'] = 'paid'
+        # Si aplica la regla especial (reserva inmediata), todos los pagos son pagados hoy
+        elif regla_especial:
+            pago_dict['status'] = 'paid'
+            pago_dict['fecha_cobro_total'] = datetime.now()
+        # Si es porcentaje 0 o 100, la fecha de cobro es hoy
+        elif porcentaje in [0, 100]:
+            pago_dict['fecha_cobro_total'] = datetime.now()
+        pagos_vista.append(pago_dict)
+    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos_vista, timedelta=timedelta)
+
+@main.route('/reservas/canceladas')
+def reservas_canceladas():
+    reservas = user_controller.obtener_reservas_canceladas(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_canceladas.html', reservas=reservas, current_date=current_date)

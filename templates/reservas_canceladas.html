@@ -1,6 +1,6 @@
 {% extends "base_hero.html" %}
 
-{% block title %}Calificaciones Pendientes - Alquilando{% endblock %}
+{% block title %}Reservas Canceladas - Alquilando{% endblock %}
 
 {% block hero_content %}
 <div class="container mt-4">
@@ -10,12 +10,12 @@
                 <a href="/reservas/futuras" class="btn btn-outline-primary mx-2">Reservas Futuras</a>
                 <a href="/reservas/activas" class="btn btn-outline-primary mx-2">Reservas Activas</a>
                 <a href="/reservas/concluidas" class="btn btn-outline-primary mx-2">Reservas Concluidas</a>
-                <a href="/reservas/canceladas" class="btn btn-outline-primary mx-2">Reservas Canceladas</a>
-                <a href="/reservas/pendientes" class="btn btn-primary mx-2">Calificaciones Pendientes</a>
+                <a href="/reservas/canceladas" class="btn btn-primary mx-2">Reservas Canceladas</a>
+                <a href="/reservas/pendientes" class="btn btn-outline-primary mx-2">Calificaciones Pendientes</a>
                 <a href="/reservas/editables" class="btn btn-outline-primary mx-2">Calificaciones Modificables</a>
                 <a href="/mis-pagos" class="btn btn-outline-primary mx-2">Mis Pagos</a>
             </div>
-            <h2 class="mb-4 text-center">Calificaciones Pendientes</h2>
+            <h2 class="mb-4 text-center">Reservas Canceladas</h2>
             <div class="row g-3">
                 {% if reservas and reservas|length > 0 %}
                     <table class="table table-striped">
@@ -26,29 +26,24 @@
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
-                                <th>Acciones</th>
+                                <th>Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for reserva in reservas %}
-                                {# Solo mostrar reservas no calificadas y en periodo calificable #}
-                                {% if reserva.calificacion is none and reserva.fecha_fin < current_date and (current_date - reserva.fecha_fin).days <= 30 %}
                                 <tr>
-                                    <td>{{ reserva.propiedad.nombre }}</td>
-                                    <td>{{ reserva.propiedad.direccion }}</td>
-                                    <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-                                    <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ reserva.propiedad }}</td>
+                                    <td>{{ reserva.direccion }}</td>
+                                    <td>{{ reserva.fecha_inicio }}</td>
+                                    <td>{{ reserva.fecha_fin }}</td>
                                     <td>{{ reserva.cantidad_personas }}</td>
-                                    <td>
-                                        <a href="{{ url_for('main.calificar_propiedad', reserva_id=reserva.id) }}" class="btn btn-warning btn-sm">Calificar Propiedad</a>
-                                    </td>
+                                    <td><span class="badge bg-danger">Cancelada</span></td>
                                 </tr>
-                                {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
                 {% else %}
-                    <div class="alert alert-info text-center">No tienes calificaciones pendientes.</div>
+                    <div class="alert alert-info text-center">No tienes reservas canceladas.</div>
                 {% endif %}
             </div>
         </div>
