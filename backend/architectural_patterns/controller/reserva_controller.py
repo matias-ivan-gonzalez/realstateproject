@@ -181,6 +181,8 @@ class ReservaController:
             if noches < 1:
                 noches = 1
             monto_total = float(propiedad.precio * noches)
+            porcentaje = propiedad.porcentaje_pago_reserva
+            monto_a_pagar = round(monto_total * (porcentaje / 100), 2) if porcentaje > 0 else monto_total
             sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
             base_url = os.environ.get("BASE_URL")
             preference_data = {
@@ -189,7 +191,7 @@ class ReservaController:
                         "title": f"Reserva de {propiedad.nombre}",
                         "quantity": 1,
                         "currency_id": "ARS",
-                        "unit_price": monto_total
+                        "unit_price": monto_a_pagar
                     }
                 ],
                 "back_urls": {
