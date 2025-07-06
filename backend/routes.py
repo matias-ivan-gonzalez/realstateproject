@@ -730,3 +730,9 @@ def ver_pago_reserva(reserva_id):
         from database import db
         db.session.commit()
     return render_template('detalle_pago.html', reserva=reserva, pagos=pagos, timedelta=timedelta)
+
+@main.route('/reservas/canceladas')
+def reservas_canceladas():
+    reservas = user_controller.obtener_reservas_canceladas(session)
+    current_date = datetime.now().date()
+    return render_template('reservas_canceladas.html', reservas=reservas, current_date=current_date)

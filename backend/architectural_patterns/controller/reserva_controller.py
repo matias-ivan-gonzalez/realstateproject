@@ -53,7 +53,7 @@ class ReservaController:
                     reserva_id=reserva.id,
                     fecha_emision=datetime.utcnow(),
                     status='paid',
-                    fecha_cobro_total=None
+                    fecha_cobro_total=datetime.utcnow()
                 )
                 db.session.add(pago_adelanto)
                 # Pago del 80% (pendiente)
