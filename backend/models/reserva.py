@@ -9,6 +9,8 @@ class Reserva(db.Model):
     cantidad_personas = db.Column(db.Integer, nullable=False)
     estado = db.Column(db.String(50), nullable=False, default='pendiente')  # Ej: 'pendiente', 'concretada', 'cancelada'
     reembolsable = db.Column(db.Boolean, nullable=False, default=False)
+    checkout_realizado = db.Column(db.Boolean, nullable=False, default=False)
+    checkout_estado = db.Column(db.String(255), nullable=True)  # Ej: 'pendiente', 'en proceso', 'completado', etc.
 
     # Claves foráneas
     cliente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)

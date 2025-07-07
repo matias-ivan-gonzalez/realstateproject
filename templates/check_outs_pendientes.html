@@ -1,0 +1,45 @@
+{% extends "base_hero.html" %}
+{% block title %}Check-out pendientes{% endblock %}
+{% block hero_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Check-out pendientes</h2>
+    {% if reservas and reservas|length > 0 %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Propiedad</th>
+                <th>Cliente</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reserva in reservas %}
+            <tr>
+                <td>{{ reserva.propiedad.nombre }}</td>
+                <td>{{ reserva.cliente.nombre }} {{ reserva.cliente.apellido }}</td>
+                <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                <td>{{ reserva.estado }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('main.realizar_checkout', reserva_id=reserva.id) }}" class="d-flex flex-column gap-2 align-items-start checkout-form">
+                        <input type="text" name="checkout_estado" class="form-control mb-1" placeholder="Estado de checkout" required>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" name="inhabilitar_propiedad" id="inhabilitar-{{ reserva.id }}">
+                            <label class="form-check-label" for="inhabilitar-{{ reserva.id }}">Inhabilitar propiedad</label>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm">Realizar checkout</button>
+                    </form>
+                </td>
+            </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">No hay check-outs pendientes.</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,3 +1,6 @@
+
+
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 from models.propiedad import Propiedad
@@ -800,3 +803,46 @@ def reservas_canceladas():
     reservas = user_controller.obtener_reservas_canceladas(session)
     current_date = datetime.now().date()
     return render_template('reservas_canceladas.html', reservas=reservas, current_date=current_date)
+
+
+# Check-outs pendientes para encargado
+@main.route('/check-outs-pendientes')
+def check_outs_pendientes():
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+    from models.user import Cliente
+    from database import db
+    if not (session.get('rol') == 'encargado' and session.get('user_id')):
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    encargado_id = session.get('user_id')
+    # Propiedades asignadas al encargado
+    propiedades = Propiedad.query.filter_by(encargado_id=encargado_id, eliminado=False).all()
+    propiedad_ids = [p.id for p in propiedades]
+    # Reservas concretadas, finalizadas, sin checkout realizado
+    reservas = Reserva.query.filter(
+        Reserva.propiedad_id.in_(propiedad_ids),
+        Reserva.estado == 'concretada',
+        Reserva.fecha_fin < db.func.current_date(),
+        (Reserva.checkout_realizado == False)
+    ).all()
+    return render_template('check_outs_pendientes.html', reservas=reservas)
+
+# Ruta para realizar checkout de una reserva
+@main.route('/realizar-checkout/<int:reserva_id>', methods=['POST'])
+def realizar_checkout(reserva_id):
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+    from database import db
+    reserva = Reserva.query.get_or_404(reserva_id)
+    checkout_estado = request.form.get('checkout_estado', '').strip()
+    reserva.checkout_realizado = True
+    reserva.checkout_estado = checkout_estado
+    db.session.commit()
+    # Si el checkbox de inhabilitar propiedad está marcado, redirigir al detalle de la propiedad
+    if request.form.get('inhabilitar_propiedad'):
+        flash('Check-out realizado.', 'success')
+        return redirect(url_for('main.detalle_propiedad', id=reserva.propiedad_id))
+    # Si no, recargar la página de check-outs pendientes
+    flash('Check-out realizado.', 'success')
+    return redirect(url_for('main.check_outs_pendientes'))
