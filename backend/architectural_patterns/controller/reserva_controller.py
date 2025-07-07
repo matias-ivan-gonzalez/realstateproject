@@ -299,15 +299,14 @@ class ReservaController:
         # Crear pago pendiente por la extensión
         if noches_adicionales > 0 and monto_total > 0:
             from models.pago import Pago
-            fecha_cobro_total = nueva_fecha_fin_dt - timedelta(days=2)
-            pago_pendiente = Pago(
+            pago_ext = Pago(
                 monto=monto_total,
                 reserva_id=reserva.id,
-                fecha_emision=None,
-                status='pending',
-                fecha_cobro_total=fecha_cobro_total
+                fecha_emision=datetime.utcnow(),
+                status='paid',
+                fecha_cobro_total=datetime.now()
             )
-            db.session.add(pago_pendiente)
+            db.session.add(pago_ext)
             db.session.commit()
 
         session['show_extension_flash'] = True
