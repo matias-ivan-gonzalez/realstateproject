@@ -737,3 +737,9 @@ def upgrade_reservas():
         return redirect(url_for('main.index'))
     propiedad_controller = PropiedadController()
     return propiedad_controller.upgrade_reservas(request, session)
+
+@main.route('/propiedad/ocupar/<int:propiedad_id>', methods=['GET'])
+@login_required
+def ocupar_propiedad_form(propiedad_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    return PropiedadController().ocupar_propiedad_form(request, session, propiedad_id)

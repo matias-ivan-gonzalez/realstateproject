@@ -421,6 +421,42 @@ class PropiedadController:
             return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
         return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
 
+    def ocupar_propiedad_form(self, request, session, propiedad_id):
+        propiedad = Propiedad.query.get_or_404(propiedad_id)
+        # Obtener fechas ocupadas y reservadas igual que en get_propiedad
+        fechas_ocupadas = []
+        for ocup in propiedad.ocupaciones:
+            fechas_ocupadas.append({
+                'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+            })
+        fechas_reservadas = []
+        for res in propiedad.reservas:
+            if str(res.estado).lower() in ('futura', 'en_curso'):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d'),
+                    'estado': str(res.estado),
+                    'cliente_id': res.cliente_id
+                })
+        dias_ocupados_encargado = None
+        if session.get('rol') == 'encargado' and propiedad.encargado_id == session.get('user_id'):
+            from models.ocupacion import Ocupacion
+            from datetime import date
+            year = date.today().year
+            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id')).all()
+            dias_ocupados = 0
+            for ocup in ocupaciones_encargado:
+                if ocup.fecha_inicio.year == year:
+                    dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
+            dias_ocupados_encargado = dias_ocupados
+        return render_template('ocupar_propiedad.html',
+                              propiedad=propiedad,
+                              fechas_ocupadas=fechas_ocupadas,
+                              fechas_reservadas=fechas_reservadas,
+                              dias_ocupados_encargado=dias_ocupados_encargado,
+                              request=request)
+
     def inhabilitar_propiedad_form(self, request, session, propiedad_id):
         """
         Renderiza el formulario de inhabilitación de propiedad, mostrando fechas ocupadas, reservadas y posibles conflictos.

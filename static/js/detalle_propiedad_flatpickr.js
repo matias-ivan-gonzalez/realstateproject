@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         disables.push(function(date) {
                             return date.toISOString().slice(0,10) < dateStr;
                         });
+                        window.flatpickrFin.set('minDate', dateStr);
+                    } else {
+                        window.flatpickrFin.set('minDate', today);
                     }
                     window.flatpickrFin.set('disable', disables);
                     // Forzar redibujado visual del calendario de fin
@@ -69,7 +72,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (document.getElementById('fecha_fin')) {
         window.flatpickrFin = flatpickr('#fecha_fin', Object.assign(flatpickrOptions('fecha_fin'), {
-            // No minDate aquí, solo disables
+            minDate: today,
+            disable: blockedDates,
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+                const dateStr = date.toISOString().slice(0,10);
+                // Bloquear visualmente fechas menores a la de inicio
+                const inicioVal = document.getElementById('fecha_inicio').value;
+                if (inicioVal && dateStr < inicioVal) {
+                    dayElem.classList.add('flatpickr-disabled');
+                    dayElem.classList.add('flatpickr-disabled-day');
+                    dayElem.setAttribute('aria-disabled', 'true');
+                }
+                if (blockedDates.includes(dateStr)) {
+                    dayElem.classList.add('fecha-reservada');
+                }
+            }
         }));
     }
 
