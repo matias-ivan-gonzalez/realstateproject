@@ -8,6 +8,8 @@ from models.user import Cliente
 from flask import request
 from sqlalchemy import desc
 from config import MERCADOPAGO_PUBLIC_KEY
+from models.ocupacion import Ocupacion
+from models.reserva import Reserva
 
 class PropiedadController:
 
@@ -150,7 +152,7 @@ class PropiedadController:
             })
         fechas_reservadas = []
         for res in propiedad.reservas:
-            if str(res.estado).lower() != 'cancelada':
+            if str(res.estado).lower() in ('futura', 'en_curso'):
                 fechas_reservadas.append({
                     'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
                     'fin': res.fecha_fin.strftime('%Y-%m-%d'),
@@ -384,6 +386,16 @@ class PropiedadController:
                 if not (fecha_fin_dt < ocup.fecha_inicio or fecha_inicio_dt > ocup.fecha_fin):
                     flash('Ya existe una ocupación en ese rango de fechas.', 'danger')
                     return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+            # Validar solapamiento de reservas futuras/en curso
+            reservas_conflictivas = Reserva.query.filter(
+                Reserva.propiedad_id == propiedad_id,
+                Reserva.fecha_inicio <= fecha_fin_dt,
+                Reserva.fecha_fin >= fecha_inicio_dt,
+                Reserva.estado.in_(['futura', 'en_curso'])
+            ).all()
+            if reservas_conflictivas:
+                flash('Ya existe una ocupación en ese rango de fechas.', 'danger')
+                return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
             # Restricción de 15 días por año para encargados
             if rol == 'encargado':
                 year = fecha_inicio_dt.year
@@ -435,7 +447,7 @@ class PropiedadController:
         # Fechas reservadas (TODAS las reservas, igual que en get_propiedad)
         fechas_reservadas = []
         for res in propiedad.reservas:
-            if str(res.estado).lower() != 'cancelada':
+            if str(res.estado).lower() in ('futura', 'en_curso'):
                 fechas_reservadas.append({
                     'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
                     'fin': res.fecha_fin.strftime('%Y-%m-%d'),
