@@ -34,14 +34,22 @@ Chat
         <button type="submit" class="btn btn-primary" id="chat-send-btn">Enviar</button>
     </form>
     <script>
-     if (window.estado_chat === 'cerrada') {
-        document.getElementById('chat-input').disabled = true;
-        document.getElementById('chat-send-btn').disabled = true;
-        document.getElementById('chat-send-btn').textContent = 'Chat cerrado';
-        document.getElementById('chat-cerrado-aviso').style.display = 'block';
-     }
-     // Bloquear envío de mensajes para todos si el chat está cerrado
-     
+    // Esperar a que el DOM y los scripts de abajo estén listos
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var chatInput = document.getElementById('chat-input');
+            var chatSendBtn = document.getElementById('chat-send-btn');
+            var chatCerradoAviso = document.getElementById('chat-cerrado-aviso');
+            if (window.estado_chat === 'cerrada') {
+                if (chatInput) chatInput.disabled = true;
+                if (chatSendBtn) {
+                    chatSendBtn.disabled = true;
+                    chatSendBtn.textContent = 'Chat cerrado';
+                }
+                if (chatCerradoAviso) chatCerradoAviso.style.display = 'block';
+            }
+        }, 0);
+    });
     </script>
     
 </div>
@@ -74,10 +82,21 @@ Chat
     var conversacionId = null;
 
 
-    // Cliente: solo puede iniciar su conversación y ver su propio chat
+    // Cliente: puede ver su chat por conversacion_id (cerrado o abierto) o por reserva_id+tipo (solo abierto) o merge de ambos
     if (window.isCliente) {
-        socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
-        socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedConversacionId = urlParams.get('conversacion_id');
+        const mergeChats = urlParams.get('merge') === '1';
+        if (mergeChats) {
+            socket.emit('get_chat_history', {reserva_id: window.reserva_id, merge: true});
+        } else if (preselectedConversacionId) {
+            conversacionId = preselectedConversacionId;
+            socket.emit('join_chat', { conversacion_id: conversacionId });
+            socket.emit('get_chat_history', { conversacion_id: conversacionId });
+        } else {
+            socket.emit('join_chat', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+            socket.emit('get_chat_history', {reserva_id: window.reserva_id, tipo: window.tipo_chat});
+        }
         // Cambiar el título visible
         if (chatTitleH2) chatTitleH2.textContent = 'Chat con Alquilando';
     }
@@ -191,6 +210,17 @@ Chat
             mensajesCliente = history.filter(function(data) {
                 return data.rol === 'cliente';
             }).length;
+            // Enviar automáticamente el mensaje de saludo si es el primer mensaje del cliente
+            if (mensajesCliente === 0) {
+                var data = {
+                    msg: 'Hola, me gustaria contactarme con Alquilando',
+                    user: window.username,
+                    reserva_id: window.reserva_id,
+                    tipo: window.tipo_chat
+                };
+                socket.emit('cliente_mensaje', data);
+                window.location.reload();
+            }
         }
         history.forEach(function(data) {
             renderChatMessage(data);

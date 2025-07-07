@@ -53,7 +53,7 @@ class ReservaController:
                     reserva_id=reserva.id,
                     fecha_emision=datetime.utcnow(),
                     status='paid',
-                    fecha_cobro_total=None
+                    fecha_cobro_total=datetime.utcnow()
                 )
                 db.session.add(pago_adelanto)
                 # Pago del 80% (pendiente)
@@ -181,6 +181,8 @@ class ReservaController:
             if noches < 1:
                 noches = 1
             monto_total = float(propiedad.precio * noches)
+            porcentaje = propiedad.porcentaje_pago_reserva
+            monto_a_pagar = round(monto_total * (porcentaje / 100), 2) if porcentaje > 0 else monto_total
             sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
             base_url = os.environ.get("BASE_URL")
             preference_data = {
@@ -189,7 +191,7 @@ class ReservaController:
                         "title": f"Reserva de {propiedad.nombre}",
                         "quantity": 1,
                         "currency_id": "ARS",
-                        "unit_price": monto_total
+                        "unit_price": monto_a_pagar
                     }
                 ],
                 "back_urls": {
@@ -247,3 +249,65 @@ class ReservaController:
             traceback.print_exc()
             session['show_reserva_fallida_flash'] = True
             return jsonify({"error": "Error interno en el servidor", "detalle": str(e)}), 500
+
+    def extender_reserva(self, session, reserva_id, nueva_fecha_fin_dt):
+        from flask import jsonify
+        from datetime import timedelta
+        reserva = Reserva.query.get(reserva_id)
+        if not reserva:
+            return jsonify({'error': 'Reserva no encontrada'}), 404
+        propiedad = reserva.propiedad
+        hoy = datetime.now().date()
+        # Regla 1: Solo puede extenderse hasta como mínimo dos días antes de la fecha de salida prevista
+        if (reserva.fecha_fin - hoy).days < 2:
+            return jsonify({'error': 'Solo puedes extender la reserva hasta 2 días antes de la fecha de salida'}), 400
+        # La nueva fecha debe ser posterior a la actual
+        if nueva_fecha_fin_dt <= reserva.fecha_fin:
+            return jsonify({'error': 'La nueva fecha de salida debe ser posterior a la actual'}), 400
+        # Verificar disponibilidad (no debe haber reservas solapadas ni ocupaciones)
+        from architectural_patterns.repository.reserva_repository import ReservaRepository
+        repo = ReservaRepository()
+        reservas_solapadas = Reserva.query.filter(
+            Reserva.propiedad_id == propiedad.id,
+            Reserva.id != reserva.id,
+            Reserva.fecha_fin > reserva.fecha_fin,
+            Reserva.fecha_inicio < nueva_fecha_fin_dt
+        ).all()
+        # Validar ocupaciones
+        from models.ocupacion import Ocupacion
+        ocupaciones_solapadas = Ocupacion.query.filter(
+            Ocupacion.propiedad_id == propiedad.id,
+            Ocupacion.fecha_fin > reserva.fecha_fin,
+            Ocupacion.fecha_inicio < nueva_fecha_fin_dt
+        ).all()
+        if reservas_solapadas or ocupaciones_solapadas:
+            return jsonify({'error': 'Reserva fallida por indisponibilidad de la propiedad'}), 400
+        # Siempre NO requiere pago inmediato
+        requiere_pago = False
+
+        noches_adicionales = (nueva_fecha_fin_dt - reserva.fecha_fin).days
+        if noches_adicionales < 1:
+            return jsonify({'error': 'Debes seleccionar al menos una noche adicional'}), 400
+        monto_total = float(propiedad.precio * noches_adicionales)
+        porcentaje = propiedad.porcentaje_pago_reserva if requiere_pago else 0
+        monto_a_cobrar = round(monto_total * (porcentaje / 100), 2) if porcentaje > 0 else monto_total
+
+        # Nunca entra a Mercado Pago, siempre genera pago pendiente
+        reserva.fecha_fin = nueva_fecha_fin_dt
+        db.session.commit()
+
+        # Crear pago pendiente por la extensión
+        if noches_adicionales > 0 and monto_total > 0:
+            from models.pago import Pago
+            pago_ext = Pago(
+                monto=monto_total,
+                reserva_id=reserva.id,
+                fecha_emision=datetime.utcnow(),
+                status='paid',
+                fecha_cobro_total=datetime.now()
+            )
+            db.session.add(pago_ext)
+            db.session.commit()
+
+        session['show_extension_flash'] = True
+        return jsonify({'success': True})

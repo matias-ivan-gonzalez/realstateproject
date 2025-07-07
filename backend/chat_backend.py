@@ -146,9 +146,25 @@ def register_chat_events(socketio):
         emit('chat_mensaje', mensaje.to_dict(), room=f'chat_{conversacion.id}')
     @socketio.on('get_chat_history')
     def handle_get_chat_history(data=None):
-        # El cliente siempre pide su propia conversación, el admin o encargado pueden pedir la de un cliente específico
+        # Soporte para merge de chats (futuro y curso) de una reserva
         conversacion_id = None
         conversacion = None
+        merge = data.get('merge') if data else False
+        if merge:
+            cliente_id = session.get('user_id')
+            reserva_id = data.get('reserva_id') if data else None
+            if not reserva_id:
+                emit('chat_history', [])
+                return
+            # Buscar ambas conversaciones (futuro y curso) de la reserva
+            convs = Conversacion.query.filter_by(cliente_id=cliente_id, reserva_id=reserva_id).all()
+            mensajes = []
+            for conv in convs:
+                mensajes += MensajeChat.query.filter_by(conversacion_id=conv.id).all()
+            # Ordenar todos los mensajes por timestamp
+            mensajes.sort(key=lambda m: m.timestamp)
+            emit('chat_history', [m.to_dict() for m in mensajes])
+            return
         if (is_admin() or session.get('rol') == 'encargado') and data and data.get('conversacion_id'):
             conversacion_id = data['conversacion_id']
             conversacion = Conversacion.query.get(conversacion_id)

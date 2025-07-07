@@ -46,8 +46,17 @@
                                     {% if not ocultar_acciones and mostrar_acciones %}
                                     <td>
                                         {% set tipo_reserva = "" %}
+                                        {% set puede_extender = false %}
                                         {% if reserva.fecha_inicio > current_date %}
                                             {% set tipo_reserva = "futuras" %}
+                                            {% if (reserva.fecha_inicio - current_date).days > 2 or (reserva.fecha_inicio - current_date).days == 2 %}
+                                                {% set puede_extender = true %}
+                                            {% endif %}
+                                        {% elif reserva.fecha_inicio <= current_date <= reserva.fecha_fin %}
+                                            {% set tipo_reserva = "activas" %}
+                                            {% if (reserva.fecha_fin - current_date).days > 2 %}
+                                                {% set puede_extender = true %}
+                                            {% endif %}
                                         {% elif reserva.fecha_fin < current_date %}
                                             {% if (current_date - reserva.fecha_fin).days > 30 %}
                                                 {% set tipo_reserva = "concluidas" %}
@@ -73,6 +82,9 @@
                                                 <button type="button" class="btn btn-danger btn-sm ms-2" onclick="mostrarConfirmacion(this, '¿Estás seguro de que deseas borrar la calificación?')">Borrar calificación</button>
                                             </form>
                                         {% endif %}
+                                        {% if puede_extender %}
+                                            <button class="btn btn-info btn-sm ms-2 float-end" data-bs-toggle="modal" data-bs-target="#modalExtenderReserva" data-reserva-id="{{ reserva.id }}" data-fecha-fin="{{ reserva.fecha_fin.strftime('%Y-%m-%d') }}">Extender Reserva</button>
+                                        {% endif %}
                                     </td>
                                     {% endif %}
                                 </tr>
@@ -86,6 +98,78 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Extender Reserva -->
+<div class="modal fade" id="modalExtenderReserva" tabindex="-1" aria-labelledby="modalExtenderReservaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExtenderReservaLabel">Extender Reserva</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formExtenderReserva">
+          <input type="hidden" id="extenderReservaId" name="reserva_id">
+          <div class="mb-3">
+            <label for="nuevaFechaFin" class="form-label">Nueva fecha de salida</label>
+            <input type="date" class="form-control" id="nuevaFechaFin" name="nueva_fecha_fin" required>
+            <div id="msgNuevaFechaFin" class="text-danger small"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btnConfirmarExtension">Confirmar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Script para pasar datos al modal de extensión
+var modalExtender = document.getElementById('modalExtenderReserva');
+modalExtender.addEventListener('show.bs.modal', function (event) {
+  var button = event.relatedTarget;
+  var reservaId = button.getAttribute('data-reserva-id');
+  var fechaFinActual = button.getAttribute('data-fecha-fin');
+  var inputReservaId = document.getElementById('extenderReservaId');
+  var inputNuevaFechaFin = document.getElementById('nuevaFechaFin');
+  inputReservaId.value = reservaId;
+  inputNuevaFechaFin.value = '';
+  inputNuevaFechaFin.min = fechaFinActual;
+  document.getElementById('msgNuevaFechaFin').textContent = '';
+});
+
+document.getElementById('btnConfirmarExtension').onclick = async function() {
+  const reservaId = document.getElementById('extenderReservaId').value;
+  const nuevaFechaFin = document.getElementById('nuevaFechaFin').value;
+  const msg = document.getElementById('msgNuevaFechaFin');
+  msg.textContent = '';
+  if (!nuevaFechaFin) {
+    msg.textContent = 'Selecciona la nueva fecha de salida.';
+    return;
+  }
+  // Llamar al endpoint para iniciar la extensión (puede requerir pago)
+  try {
+    const resp = await fetch('/extender_reserva', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reserva_id: reservaId, nueva_fecha_fin: nuevaFechaFin })
+    });
+    const data = await resp.json();
+    if (data.init_point) {
+      // Redirigir a Mercado Pago
+      window.location.href = data.init_point;
+    } else if (data.success) {
+      location.reload();
+    } else if (data.error) {
+      msg.textContent = data.error;
+    }
+  } catch (e) {
+    msg.textContent = 'Error al procesar la extensión.';
+  }
+};
+</script>
 {% endblock %}
 
 <!-- Script de Bootstrap solo para esta vista -->

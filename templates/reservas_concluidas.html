@@ -47,7 +47,7 @@
                                     </td>
                                     <td>
                                         {% if reserva.chat_existio_curso or reserva.chat_existio_futuro %}
-                                            <a href="/chat?reserva_id={{ reserva.id }}" class="btn btn-outline-primary">Ver chat</a>
+                                            <a href="/chat?reserva_id={{ reserva.id }}&merge=1" class="btn btn-outline-primary">Ver chat</a>
                                         {% else %}
                                             <span class="text-muted">No hubo chat</span>
                                         {% endif %}
@@ -63,4 +63,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

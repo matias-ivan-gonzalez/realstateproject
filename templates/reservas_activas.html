@@ -1,5 +1,7 @@
 {% extends "base_hero.html" %}
 
+{% import "components/extender_reserva.html" as extender_reserva %}
+
 {% block title %}Reservas Activas - Alquilando{% endblock %}
 
 {% block hero_content %}
@@ -26,7 +28,7 @@
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
-                                <th>Chat</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,6 +46,7 @@
                                         {% else %}
                                             <a href="{{ chat_url }}" class="btn btn-outline-primary btn-sm">Iniciar chat</a>
                                         {% endif %}
+                                        {{ extender_reserva.extender_reserva_button(reserva, current_date, 'curso') }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -56,4 +59,5 @@
         </div>
     </div>
 </div>
+{{ extender_reserva.extender_reserva_modal(fechas_ocupadas, fechas_reservadas) }}
 {% endblock %} 

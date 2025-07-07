@@ -1,3 +1,6 @@
+
+
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 from models.propiedad import Propiedad
@@ -312,12 +315,31 @@ def chat():
     reserva_id = request.args.get('reserva_id')
     tipo = request.args.get('tipo')
     conversacion_id = request.args.get('conversacion_id')
+    merge = request.args.get('merge') == '1'
     conversacion = None
+    estado_chat = 'abierta'
     if conversacion_id:
         conversacion = Conversacion.query.get(conversacion_id)
+        if conversacion:
+            reserva_id = conversacion.reserva_id
+            tipo = conversacion.tipo
+            estado_chat = conversacion.estado
     elif session.get('rol') == 'cliente':
-        conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
-    estado_chat = conversacion.estado if conversacion else 'abierta'
+        if merge and reserva_id:
+            # Buscar todas las conversaciones de la reserva para el cliente
+            convs = Conversacion.query.filter_by(reserva_id=reserva_id, cliente_id=session.get('user_id')).all()
+            if convs:
+                # Si todas están cerradas, el chat está cerrado; si alguna está abierta, está abierto
+                if all(c.estado == 'cerrada' for c in convs):
+                    estado_chat = 'cerrada'
+                else:
+                    estado_chat = 'abierta'
+            else:
+                estado_chat = 'abierta'
+        else:
+            conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
+            if conversacion:
+                estado_chat = conversacion.estado
     return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo, estado_chat=estado_chat)
 
 @main.route('/ver-chats')
@@ -389,9 +411,28 @@ user_controller = UserController()
 
 @main.route('/reservas/futuras')
 def reservas_futuras():
+    if session.pop('show_extension_flash', None):
+        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
-    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date)
+    # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_futuras.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 @main.route('/reservas/concluidas')
 def reservas_concluidas():
@@ -413,10 +454,28 @@ def calificaciones_editables():
 
 @main.route('/reservas/activas')
 def reservas_activas():
+    if session.pop('show_extension_flash', None):
+        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
-    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date)
+    from models.propiedad import Propiedad
+    fechas_ocupadas = []
+    fechas_reservadas = []
+    for r in reservas:
+        propiedad = Propiedad.query.filter_by(nombre=r['propiedad']).first()
+        if propiedad:
+            for ocup in getattr(propiedad, 'ocupaciones', []):
+                fechas_ocupadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+            for res in getattr(propiedad, 'reservas', []):
+                fechas_reservadas.append({
+                    'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': res.fecha_fin.strftime('%Y-%m-%d')
+                })
+    return render_template('reservas_activas.html', reservas=reservas, current_date=current_date, fechas_ocupadas=fechas_ocupadas, fechas_reservadas=fechas_reservadas)
 
 
 @main.route('/ver-mis-chats-encargado')
@@ -458,6 +517,52 @@ def ver_mis_chats_encargado():
 
     chats_serializados = [serializar_chat(c) for c in chats]
     return render_template('ver_mis_chats_encargado.html', chats=chats_serializados)
+
+@main.route('/extender_reserva', methods=['POST'])
+@login_required
+def extender_reserva():
+    from flask import request, jsonify
+    from datetime import datetime, timedelta
+    from architectural_patterns.controller.reserva_controller import ReservaController
+    data = request.get_json()
+    reserva_id = data.get('reserva_id')
+    nueva_fecha_fin = data.get('nueva_fecha_fin')
+    if not reserva_id or not nueva_fecha_fin:
+        return jsonify({'error': 'Datos incompletos'}), 400
+    try:
+        nueva_fecha_fin_dt = datetime.strptime(nueva_fecha_fin, '%Y-%m-%d').date()
+    except Exception:
+        return jsonify({'error': 'Fecha inválida'}), 400
+    controller = ReservaController()
+    return controller.extender_reserva(session, reserva_id, nueva_fecha_fin_dt)
+
+@main.route('/extender_reserva_success')
+@login_required
+def extender_reserva_success():
+    from flask import request, redirect, url_for, flash
+    reserva_id = request.args.get('reserva_id')
+    nueva_fecha_fin = request.args.get('nueva_fecha_fin')
+    if not reserva_id or not nueva_fecha_fin:
+        flash('Extensión de reserva fallida (datos incompletos)', 'danger')
+        return redirect(url_for('main.ver_reservas'))
+    from models.reserva import Reserva
+    from database import db
+    from datetime import datetime
+    reserva = Reserva.query.get(reserva_id)
+    if not reserva:
+        flash('Reserva no encontrada', 'danger')
+        return redirect(url_for('main.ver_reservas'))
+    try:
+        nueva_fecha_fin_dt = datetime.strptime(nueva_fecha_fin, '%Y-%m-%d').date()
+        if nueva_fecha_fin_dt > reserva.fecha_fin:
+            reserva.fecha_fin = nueva_fecha_fin_dt
+            db.session.commit()
+            flash('Reserva extendida', 'success')
+        else:
+            flash('La nueva fecha de salida debe ser posterior a la actual', 'danger')
+    except Exception:
+        flash('Error al procesar la extensión', 'danger')
+    return redirect(url_for('main.ver_reservas'))
 
 @main.route('/clientes-calificables')
 @login_required
@@ -672,18 +777,26 @@ def ver_pago_reserva(reserva_id):
     reserva = Reserva.query.get_or_404(reserva_id)
     pagos = reserva.pagos
     hoy = datetime.now().date()
-    cambios = False
+    porcentaje = reserva.propiedad.porcentaje_pago_reserva
+    dias_antes = (reserva.fecha_inicio - hoy).days
+    pagos_vista = []
+    regla_especial = dias_antes <= 2 and porcentaje in [0, 20]
     for pago in pagos:
-        if pago.status == 'pendiente':
-            fecha_cobro = reserva.fecha_inicio - timedelta(days=2)
-            if hoy >= fecha_cobro:
-                pago.status = 'pagado'
-                pago.fecha_cobro_total = datetime.combine(fecha_cobro, datetime.min.time())
-                cambios = True
-    if cambios:
-        from database import db
-        db.session.commit()
-    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos, timedelta=timedelta)
+        pago_dict = pago.__dict__.copy()
+        # Si es el pago del 20% (anticipo), la fecha de cobro siempre es hoy
+        if porcentaje == 20 and pago.monto == round((reserva.propiedad.precio * (reserva.fecha_fin - reserva.fecha_inicio).days) * 0.2, 2):
+            pago_dict['fecha_cobro_total'] = datetime.now()
+            if regla_especial:
+                pago_dict['status'] = 'paid'
+        # Si aplica la regla especial (reserva inmediata), todos los pagos son pagados hoy
+        elif regla_especial:
+            pago_dict['status'] = 'paid'
+            pago_dict['fecha_cobro_total'] = datetime.now()
+        # Si es porcentaje 0 o 100, la fecha de cobro es hoy
+        elif porcentaje in [0, 100]:
+            pago_dict['fecha_cobro_total'] = datetime.now()
+        pagos_vista.append(pago_dict)
+    return render_template('detalle_pago.html', reserva=reserva, pagos=pagos_vista, timedelta=timedelta)
 
 @main.route('/reservas/canceladas')
 def reservas_canceladas():
@@ -747,3 +860,45 @@ def upgrade_reservas():
 def ocupar_propiedad_form(propiedad_id):
     from architectural_patterns.controller.propiedad_controller import PropiedadController
     return PropiedadController().ocupar_propiedad_form(request, session, propiedad_id)
+
+# Check-outs pendientes para encargado
+@main.route('/check-outs-pendientes')
+def check_outs_pendientes():
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+    from models.user import Cliente
+    from database import db
+    if not (session.get('rol') == 'encargado' and session.get('user_id')):
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.index'))
+    encargado_id = session.get('user_id')
+    # Propiedades asignadas al encargado
+    propiedades = Propiedad.query.filter_by(encargado_id=encargado_id, eliminado=False).all()
+    propiedad_ids = [p.id for p in propiedades]
+    # Reservas concretadas, finalizadas, sin checkout realizado
+    reservas = Reserva.query.filter(
+        Reserva.propiedad_id.in_(propiedad_ids),
+        Reserva.estado == 'concretada',
+        Reserva.fecha_fin < db.func.current_date(),
+        (Reserva.checkout_realizado == False)
+    ).all()
+    return render_template('check_outs_pendientes.html', reservas=reservas)
+
+# Ruta para realizar checkout de una reserva
+@main.route('/realizar-checkout/<int:reserva_id>', methods=['POST'])
+def realizar_checkout(reserva_id):
+    from models.reserva import Reserva
+    from models.propiedad import Propiedad
+    from database import db
+    reserva = Reserva.query.get_or_404(reserva_id)
+    checkout_estado = request.form.get('checkout_estado', '').strip()
+    reserva.checkout_realizado = True
+    reserva.checkout_estado = checkout_estado
+    db.session.commit()
+    # Si el checkbox de inhabilitar propiedad está marcado, redirigir al detalle de la propiedad
+    if request.form.get('inhabilitar_propiedad'):
+        flash('Check-out realizado.', 'success')
+        return redirect(url_for('main.detalle_propiedad', id=reserva.propiedad_id))
+    # Si no, recargar la página de check-outs pendientes
+    flash('Check-out realizado.', 'success')
+    return redirect(url_for('main.check_outs_pendientes'))

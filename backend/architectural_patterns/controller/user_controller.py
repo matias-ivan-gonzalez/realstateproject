@@ -430,6 +430,10 @@ class UserController:
                 'direccion': r.propiedad.direccion if r.propiedad else '',
                 'fecha_inicio': r.fecha_inicio.strftime('%Y-%m-%d'),
                 'fecha_fin': r.fecha_fin.strftime('%Y-%m-%d'),
+                'fecha_inicio_obj': r.fecha_inicio,
+                'fecha_fin_obj': r.fecha_fin,
+                'precio': r.propiedad.precio if r.propiedad else 0,
+                'porcentaje_pago_reserva': r.propiedad.porcentaje_pago_reserva if r.propiedad else 0,
                 'cantidad_personas': r.cantidad_personas,
                 'calificacion': r.calificacion is not None,
                 'calificacion_id': r.calificacion.id if r.calificacion else None,
@@ -452,6 +456,8 @@ class UserController:
             chat_futuro = Conversacion.query.filter_by(reserva_id=r.id, cliente_id=user_id, tipo='futuro').first()
             chat_existio_curso = chat_curso is not None
             chat_existio_futuro = chat_futuro is not None
+            conversacion_id_curso = chat_curso.id if chat_curso else None
+            conversacion_id_futuro = chat_futuro.id if chat_futuro else None
             # Si la conversación existe y está abierta, cerrarla
             from database import db
             if chat_curso and chat_curso.estado != 'cerrada':
@@ -472,7 +478,9 @@ class UserController:
                 'fecha_inicio_str': r.fecha_inicio.strftime('%d/%m/%Y'),
                 'fecha_fin_str': r.fecha_fin.strftime('%d/%m/%Y'),
                 'chat_existio_curso': chat_existio_curso,
-                'chat_existio_futuro': chat_existio_futuro
+                'chat_existio_futuro': chat_existio_futuro,
+                'conversacion_id_curso': conversacion_id_curso,
+                'conversacion_id_futuro': conversacion_id_futuro
             })
         return reservas_serializadas
 
@@ -501,6 +509,10 @@ class UserController:
                 'direccion': r.propiedad.direccion if r.propiedad else '',
                 'fecha_inicio': r.fecha_inicio.strftime('%Y-%m-%d'),
                 'fecha_fin': r.fecha_fin.strftime('%Y-%m-%d'),
+                'fecha_inicio_obj': r.fecha_inicio,
+                'fecha_fin_obj': r.fecha_fin,
+                'precio': r.propiedad.precio if r.propiedad else 0,
+                'porcentaje_pago_reserva': r.propiedad.porcentaje_pago_reserva if r.propiedad else 0,
                 'cantidad_personas': r.cantidad_personas,
                 'calificacion': r.calificacion is not None,
                 'calificacion_id': r.calificacion.id if r.calificacion else None,
