@@ -165,10 +165,11 @@ class PropiedadController:
             from models.ocupacion import Ocupacion
             from datetime import date
             year = date.today().year
-            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id')).all()
+            # Solo contar ocupaciones activas en la base de datos, no soft-deleted
+            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id'), propiedad_id=propiedad.id).all()
             dias_ocupados = 0
             for ocup in ocupaciones_encargado:
-                if ocup.fecha_inicio.year == year:
+                if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
                     dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
             dias_ocupados_encargado = dias_ocupados
         return render_template('detalle_propiedad.html', 
@@ -402,8 +403,8 @@ class PropiedadController:
                 ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=user_id).all()
                 dias_ocupados = 0
                 for ocup in ocupaciones_encargado:
-                    # Solo contar ocupaciones del mismo año
-                    if ocup.fecha_inicio.year == year:
+                    # Solo contar ocupaciones del mismo año y que NO sean de tipo inhabilitacion
+                    if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
                         dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
                 dias_nueva_ocupacion = (fecha_fin_dt - fecha_inicio_dt).days + 1
                 if dias_ocupados + dias_nueva_ocupacion > 15:
@@ -444,10 +445,11 @@ class PropiedadController:
             from models.ocupacion import Ocupacion
             from datetime import date
             year = date.today().year
-            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id')).all()
+            # Solo contar ocupaciones activas en la base de datos, no soft-deleted
+            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id'), propiedad_id=propiedad.id).all()
             dias_ocupados = 0
             for ocup in ocupaciones_encargado:
-                if ocup.fecha_inicio.year == year:
+                if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
                     dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
             dias_ocupados_encargado = dias_ocupados
         return render_template('ocupar_propiedad.html',
@@ -544,22 +546,22 @@ class PropiedadController:
 
         # Verificar si hay ocupaciones en curso o pasadas que se solapan
         ocupaciones_bloqueantes = []
-        ocupaciones_futuras_encargado = []
+        ocupaciones_encargado_a_eliminar = []
         ocupaciones_futuras_admin = []
-        
+        encargado_id_prop = propiedad.encargado_id
         for ocup in ocupaciones_afectadas:
+            # Ocupación en curso: no permitir inhabilitar
             if ocup.fecha_inicio <= hoy <= ocup.fecha_fin:
-                # Ocupación en curso - NO permitir inhabilitar
-                return False, 'No se puede inhabilitar la propiedad porque hay una ocupación en curso en el rango seleccionado.', 'danger'
+                ocupaciones_bloqueantes.append(ocup)
+            # Ocupación futura de encargado: eliminar si es del encargado asignado y no es de tipo inhabilitacion
+            elif ocup.administrador_id == encargado_id_prop and ocup.fecha_inicio > hoy and (not ocup.tipo or ocup.tipo != 'inhabilitacion'):
+                ocupaciones_encargado_a_eliminar.append(ocup)
             elif ocup.fecha_fin < hoy:
-                # Ocupación pasada - NO permitir inhabilitar
-                return False, 'No se puede inhabilitar la propiedad porque hay una ocupación pasada en el rango seleccionado.', 'danger'
+                ocupaciones_bloqueantes.append(ocup)
             elif ocup.fecha_inicio > hoy:
-                # Ocupación futura - se puede eliminar
-                if hasattr(ocup, 'encargado_id') and getattr(ocup, 'encargado_id', None):
-                    ocupaciones_futuras_encargado.append(ocup)
-                else:
-                    ocupaciones_futuras_admin.append(ocup)
+                ocupaciones_futuras_admin.append(ocup)
+        if ocupaciones_bloqueantes:
+            return False, 'No se puede inhabilitar la propiedad porque hay una ocupación en curso o pasada en el rango seleccionado.', 'danger'
 
         # Si hay reservas futuras, requiere acción
         if reservas_afectadas:
@@ -572,7 +574,7 @@ class PropiedadController:
                     reserva.estado = 'cancelada'
                 db.session.commit()
                 # Eliminar ocupaciones futuras
-                for ocup in ocupaciones_futuras_encargado + ocupaciones_futuras_admin:
+                for ocup in ocupaciones_encargado_a_eliminar + ocupaciones_futuras_admin:
                     db.session.delete(ocup)
                 # Crear nueva ocupación de inhabilitación
                 ocupacion = Ocupacion(
@@ -609,7 +611,7 @@ class PropiedadController:
                             'encargado_id': o.encargado_id,
                             'fecha_inicio': o.fecha_inicio.strftime('%Y-%m-%d'),
                             'fecha_fin': o.fecha_fin.strftime('%Y-%m-%d')
-                        } for o in ocupaciones_futuras_encargado
+                        } for o in ocupaciones_encargado_a_eliminar
                     ],
                     'ocupaciones_admin': [
                         {
@@ -624,19 +626,15 @@ class PropiedadController:
             else:
                 return False, 'Acción de reserva no válida.', 'danger'
 
-        # Si no hay reservas pero hay ocupaciones futuras de encargado
-        if ocupaciones_futuras_encargado:
-            # Eliminar ocupaciones de encargado y devolver días
-            for ocup in ocupaciones_futuras_encargado:
-                # Aquí podrías implementar la lógica de devolución de días al encargado
-                # Por ahora solo eliminamos la ocupación
+        # Si no hay reservas pero hay ocupaciones de encargado (futuras o en curso), eliminarlas y devolver días
+        if ocupaciones_encargado_a_eliminar:
+            dias_devueltos = 0
+            for ocup in ocupaciones_encargado_a_eliminar:
+                dias_ocup = (ocup.fecha_fin - ocup.fecha_inicio).days + 1
+                dias_devueltos += dias_ocup
                 db.session.delete(ocup)
-            
-            # Eliminar ocupaciones de admin
             for ocup in ocupaciones_futuras_admin:
                 db.session.delete(ocup)
-            
-            # Crear nueva ocupación de inhabilitación
             ocupacion = Ocupacion(
                 fecha_inicio=fecha_inicio_dt,
                 fecha_fin=fecha_fin_dt,
@@ -646,8 +644,7 @@ class PropiedadController:
             )
             db.session.add(ocupacion)
             db.session.commit()
-            
-            return True, f'Propiedad inhabilitada. Se eliminaron {len(ocupaciones_futuras_encargado)} ocupación(es) de encargado(s) y {len(ocupaciones_futuras_admin)} ocupación(es) de administrador(es).', 'success'
+            return True, f'Propiedad inhabilitada. Se eliminaron {len(ocupaciones_encargado_a_eliminar)} ocupación(es) de encargado(s) y {len(ocupaciones_futuras_admin)} ocupación(es) de administrador(es). Se devolvieron {dias_devueltos} día(s) al/los encargado(s).', 'success'
 
         # Si no hay reservas ni ocupaciones futuras, solo bloquear
         ocupacion = Ocupacion(
