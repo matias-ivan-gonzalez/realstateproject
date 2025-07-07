@@ -312,15 +312,31 @@ def chat():
     reserva_id = request.args.get('reserva_id')
     tipo = request.args.get('tipo')
     conversacion_id = request.args.get('conversacion_id')
+    merge = request.args.get('merge') == '1'
     conversacion = None
+    estado_chat = 'abierta'
     if conversacion_id:
         conversacion = Conversacion.query.get(conversacion_id)
         if conversacion:
             reserva_id = conversacion.reserva_id
             tipo = conversacion.tipo
+            estado_chat = conversacion.estado
     elif session.get('rol') == 'cliente':
-        conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
-    estado_chat = conversacion.estado if conversacion else 'abierta'
+        if merge and reserva_id:
+            # Buscar todas las conversaciones de la reserva para el cliente
+            convs = Conversacion.query.filter_by(reserva_id=reserva_id, cliente_id=session.get('user_id')).all()
+            if convs:
+                # Si todas están cerradas, el chat está cerrado; si alguna está abierta, está abierto
+                if all(c.estado == 'cerrada' for c in convs):
+                    estado_chat = 'cerrada'
+                else:
+                    estado_chat = 'abierta'
+            else:
+                estado_chat = 'abierta'
+        else:
+            conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
+            if conversacion:
+                estado_chat = conversacion.estado
     return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo, estado_chat=estado_chat)
 
 @main.route('/ver-chats')
