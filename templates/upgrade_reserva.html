@@ -1,0 +1,66 @@
+{% extends "base_hero.html" %}
+{% block title %}Upgrade de Reserva{% endblock %}
+{% block hero_content %}
+<div class="container mt-4 fade-in">
+  <h2><i class="fas fa-arrow-up"></i> Upgrade de reservas afectadas</h2>
+  
+  <div class="alert alert-info">
+    <h5><i class="fas fa-info-circle"></i> Información del upgrade</h5>
+    <p class="mb-0">
+      Se han detectado <strong>{{ reservas|length }} reserva(s)</strong> que se solapan con el período de inhabilitación. 
+      Por favor, seleccione una propiedad alternativa para cada reserva afectada.
+    </p>
+  </div>
+
+  <form method="POST" action="{{ url_for('main.upgrade_reservas') }}">
+    {% for reserva in reservas %}
+      <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h6 class="mb-0">
+            <i class="fas fa-calendar-alt"></i> Reserva #{{ reserva.id }}
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Cliente:</strong> {{ reserva.cliente_nombre }}</p>
+              <p><strong>Fechas:</strong> {{ reserva.fecha_inicio }} - {{ reserva.fecha_fin }}</p>
+              <p><strong>Huéspedes:</strong> {{ reserva.cantidad_personas }}</p>
+            </div>
+            <div class="col-md-6">
+              <label for="upgrade_{{ reserva.id }}" class="form-label">
+                <strong>Seleccionar propiedad alternativa:</strong>
+              </label>
+              <select class="form-select" name="upgrade_{{ reserva.id }}" id="upgrade_{{ reserva.id }}" required>
+                <option value="">-- Seleccione una propiedad --</option>
+                {% for propiedad in reserva.propiedades_libres %}
+                  <option value="{{ propiedad.id }}">
+                    {{ propiedad.nombre }} - {{ propiedad.ubicacion }} 
+                    ({{ propiedad.cantidad_habitaciones }} hab, hasta {{ propiedad.limite_personas }} personas)
+                  </option>
+                {% endfor %}
+              </select>
+              {% if not reserva.propiedades_libres %}
+                <div class="alert alert-warning mt-2">
+                  <i class="fas fa-exclamation-triangle"></i> 
+                  No hay propiedades disponibles para estas fechas.
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between">
+      <a href="{{ url_for('main.detalle_propiedad', id=propiedad_id) }}" class="btn btn-secondary">
+        <i class="fas fa-times"></i> Cancelar
+      </a>
+      <button type="submit" class="btn btn-success" id="btn-confirmar-upgrade" disabled>
+        <i class="fas fa-check"></i> Confirmar Upgrades
+      </button>
+<script src="{{ url_for('static', filename='js/upgrade_reserva.js') }}"></script>
+    </div>
+  </form>
+</div>
+{% endblock %} 

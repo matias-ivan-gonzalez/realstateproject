@@ -1,0 +1,61 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Ocupar Propiedad - Alquilando{% endblock %}
+
+{% block hero_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<div class="container mt-4 fade-in">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fa-solid fa-user-check"></i> Ocupar Propiedad
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="info-panel mb-3">
+            <h6><i class="fas fa-info-circle"></i> Información de la Propiedad</h6>
+            <p class="mb-1"><strong>Nombre:</strong> {{ propiedad.nombre }}</p>
+            <p class="mb-1"><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
+            <p class="mb-0"><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+          </div>
+          {% if session.rol == 'encargado' and propiedad.encargado_id == session.user_id and dias_ocupados_encargado is not none %}
+            <div class="alert alert-info text-center my-3" style="font-size:1.1rem;">
+              <strong>Días ocupados este año:</strong> {{ dias_ocupados_encargado }} / 15
+            </div>
+          {% endif %}
+          <form method="POST" action="{{ url_for('main.ocupar_propiedad', propiedad_id=propiedad.id) }}">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-6">
+                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+                <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="{{ request.args.get('fecha_inicio', '') }}" readonly>
+                <div id="msg_fecha_inicio" class="text-danger small"></div>
+              </div>
+              <div class="col-md-6">
+                <label for="fecha_fin" class="form-label">Fecha de fin</label>
+                <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" required value="{{ request.args.get('fecha_fin', '') }}" readonly>
+                <div id="msg_fecha_fin" class="text-danger small"></div>
+              </div>
+            </div>
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-primary btn-lg" id="btn-ocupar-admin" disabled>
+                <i class="fa-solid fa-user-check"></i> Ocupar
+              </button>
+              <a href="{{ url_for('main.detalle_propiedad', id=propiedad.id) }}" class="btn btn-secondary btn-lg ml-2">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ url_for('static', filename='js/detalle_propiedad_flatpickr.js') }}"></script>
+<script>
+  window.fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
+  window.fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+</script>
+{% endblock %} 

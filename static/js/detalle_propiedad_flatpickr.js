@@ -46,25 +46,49 @@ document.addEventListener('DOMContentLoaded', function() {
         window.flatpickrInicio = flatpickr('#fecha_inicio', Object.assign(flatpickrOptions('fecha_inicio'), {
             onChange: function(selectedDates, dateStr, instance) {
                 if (window.flatpickrFin) {
-                    // Deshabilitar la fecha de inicio en el calendario de fin
                     let disables = blockedDates.slice();
                     if (dateStr) {
-                        disables = disables.concat([dateStr]);
-                        window.flatpickrFin.set('minDate', dateStr); // ya lo tienes probablemente
-                        // Si la fecha de fin es igual a la de inicio, limpiar
-                        if (document.getElementById('fecha_fin').value === dateStr) {
-                            document.getElementById('fecha_fin').value = '';
-                        }
+                        disables.push(function(date) {
+                            return date.toISOString().slice(0,10) < dateStr;
+                        });
+                        window.flatpickrFin.set('minDate', dateStr);
                     } else {
                         window.flatpickrFin.set('minDate', today);
                     }
                     window.flatpickrFin.set('disable', disables);
+                    // Forzar redibujado visual del calendario de fin
+                    if (window.flatpickrFin.isOpen) {
+                        window.flatpickrFin.close();
+                        window.flatpickrFin.open();
+                    }
+                    // Si la fecha de fin es menor a la de inicio, limpiar
+                    const finVal = document.getElementById('fecha_fin').value;
+                    if (finVal && finVal < dateStr) {
+                        document.getElementById('fecha_fin').value = '';
+                    }
                 }
             }
         }));
     }
     if (document.getElementById('fecha_fin')) {
-        window.flatpickrFin = flatpickr('#fecha_fin', flatpickrOptions('fecha_fin'));
+        window.flatpickrFin = flatpickr('#fecha_fin', Object.assign(flatpickrOptions('fecha_fin'), {
+            minDate: today,
+            disable: blockedDates,
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+                const dateStr = date.toISOString().slice(0,10);
+                // Bloquear visualmente fechas menores a la de inicio
+                const inicioVal = document.getElementById('fecha_inicio').value;
+                if (inicioVal && dateStr < inicioVal) {
+                    dayElem.classList.add('flatpickr-disabled');
+                    dayElem.classList.add('flatpickr-disabled-day');
+                    dayElem.setAttribute('aria-disabled', 'true');
+                }
+                if (blockedDates.includes(dateStr)) {
+                    dayElem.classList.add('fecha-reservada');
+                }
+            }
+        }));
     }
 
     // --- Enable/disable Ocupar button for admin/superuser ---
@@ -91,5 +115,18 @@ document.addEventListener('DOMContentLoaded', function() {
         inputFin.addEventListener('change', checkOcuparButtonState);
         // Also check on page load in case of autofill
         checkOcuparButtonState();
+        // Validación extra para input manual
+        inputFin.addEventListener('input', function() {
+            if (inputInicio.value && inputFin.value && inputFin.value < inputInicio.value) {
+                inputFin.value = '';
+            }
+            checkOcuparButtonState();
+        });
+        inputFin.addEventListener('blur', function() {
+            if (inputInicio.value && inputFin.value && inputFin.value < inputInicio.value) {
+                inputFin.value = '';
+            }
+            checkOcuparButtonState();
+        });
     }
 });

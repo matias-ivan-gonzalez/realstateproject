@@ -804,6 +804,62 @@ def reservas_canceladas():
     current_date = datetime.now().date()
     return render_template('reservas_canceladas.html', reservas=reservas, current_date=current_date)
 
+@main.route('/propiedad/<int:propiedad_id>/inhabilitar', methods=['GET'])
+@login_required
+def inhabilitar_propiedad_form(propiedad_id):
+    if session.get('rol') not in ['administrador', 'superusuario', 'encargado']:
+        flash('No tienes permisos para inhabilitar propiedades.', 'danger')
+        return redirect(url_for('main.index'))
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    if session.get('rol') == 'encargado' and propiedad.encargado_id != session.get('user_id'):
+        flash('Solo puedes inhabilitar propiedades que tienes asignadas.', 'danger')
+        return redirect(url_for('main.index'))
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.inhabilitar_propiedad_form(request, session, propiedad_id)
+
+@main.route('/propiedad/<int:propiedad_id>/inhabilitar', methods=['POST'])
+@login_required
+def inhabilitar_propiedad(propiedad_id):
+    if session.get('rol') not in ['administrador', 'superusuario', 'encargado']:
+        flash('No tienes permisos para inhabilitar propiedades.', 'danger')
+        return redirect(url_for('main.index'))
+    propiedad = Propiedad.query.get_or_404(propiedad_id)
+    if session.get('rol') == 'encargado' and propiedad.encargado_id != session.get('user_id'):
+        flash('Solo puedes inhabilitar propiedades que tienes asignadas.', 'danger')
+        return redirect(url_for('main.index'))
+    fecha_inicio = request.form.get('fecha_inicio')
+    fecha_fin = request.form.get('fecha_fin')
+    accion_reserva = request.form.get('accion_reserva')
+    if not fecha_inicio or not fecha_fin:
+        flash('Debe seleccionar un rango de fechas.', 'danger')
+        return redirect(url_for('main.inhabilitar_propiedad_form', propiedad_id=propiedad_id))
+    propiedad_controller = PropiedadController()
+    resultado, mensaje, tipo = propiedad_controller.inhabilitar_propiedad(
+        propiedad_id, fecha_inicio, fecha_fin, accion_reserva, session
+    )
+    if resultado == 'upgrade':
+        return redirect(url_for('main.upgrade_reservas'))
+    elif resultado is True:
+        flash(mensaje, tipo)
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
+    else:
+        flash(mensaje, tipo)
+        return redirect(url_for('main.inhabilitar_propiedad_form', propiedad_id=propiedad_id))
+
+@main.route('/upgrade_reservas', methods=['GET', 'POST'])
+@login_required
+def upgrade_reservas():
+    if session.get('rol') not in ['administrador', 'superusuario', 'encargado']:
+        flash('No tienes permisos para realizar upgrades de reservas.', 'danger')
+        return redirect(url_for('main.index'))
+    propiedad_controller = PropiedadController()
+    return propiedad_controller.upgrade_reservas(request, session)
+
+@main.route('/propiedad/ocupar/<int:propiedad_id>', methods=['GET'])
+@login_required
+def ocupar_propiedad_form(propiedad_id):
+    from architectural_patterns.controller.propiedad_controller import PropiedadController
+    return PropiedadController().ocupar_propiedad_form(request, session, propiedad_id)
 
 # Check-outs pendientes para encargado
 @main.route('/check-outs-pendientes')
