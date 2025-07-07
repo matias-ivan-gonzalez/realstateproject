@@ -682,27 +682,29 @@ class PropiedadController:
                 flash('No hay reservas para upgrade.', 'warning')
                 return redirect(url_for('main.ver_propiedades'))
             
-            # Buscar propiedades alternativas para cada reserva (no ocupadas ni reservadas en el rango)
             alternativas = {}
             for reserva in reservas:
-                alternativas_reserva = Propiedad.query.filter(
-                    Propiedad.eliminado == False,
-                    Propiedad.id != reserva['propiedad_id']
-                ).all()
-                
-                # Filtrar propiedades que no estén ocupadas ni reservadas en el rango
+                if session.get('rol') == 'encargado':
+                    # Solo mostrar propiedades asignadas al encargado
+                    alternativas_reserva = Propiedad.query.filter(
+                        Propiedad.eliminado == False,
+                        Propiedad.id != reserva['propiedad_id'],
+                        Propiedad.encargado_id == session.get('user_id')
+                    ).all()
+                else:
+                    alternativas_reserva = Propiedad.query.filter(
+                        Propiedad.eliminado == False,
+                        Propiedad.id != reserva['propiedad_id']
+                    ).all()
                 disponibles = []
                 fecha_inicio = datetime.strptime(reserva['fecha_inicio'], '%Y-%m-%d').date()
                 fecha_fin = datetime.strptime(reserva['fecha_fin'], '%Y-%m-%d').date()
-                
                 for prop in alternativas_reserva:
                     ocupado = False
-                    # Verificar ocupaciones
                     for ocup in prop.ocupaciones:
                         if not (fecha_fin < ocup.fecha_inicio or fecha_inicio > ocup.fecha_fin):
                             ocupado = True
                             break
-                    # Verificar reservas concretadas
                     for res in prop.reservas:
                         if res.estado == 'concretada' and not (fecha_fin < res.fecha_inicio or fecha_inicio > res.fecha_fin):
                             ocupado = True
