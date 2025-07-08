@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const date = dayElem.dateObj;
                 const dateStr = date.toISOString().slice(0,10);
-                if (blockedDates.includes(dateStr)) {
+                if (blockedDates.includes(dateStr) && dateStr >= today) {
                     dayElem.classList.add('fecha-reservada');
                 }
             }
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayElem.classList.add('flatpickr-disabled-day');
                     dayElem.setAttribute('aria-disabled', 'true');
                 }
-                if (blockedDates.includes(dateStr)) {
+                if (blockedDates.includes(dateStr) && dateStr >= today) {
                     dayElem.classList.add('fecha-reservada');
                 }
             }
