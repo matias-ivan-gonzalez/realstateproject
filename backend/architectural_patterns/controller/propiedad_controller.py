@@ -400,10 +400,10 @@ class PropiedadController:
             # Restricción de 15 días por año para encargados
             if rol == 'encargado':
                 year = fecha_inicio_dt.year
+                # Cambiado: sumar todas las ocupaciones del encargado en el año, sin importar la propiedad
                 ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=user_id).all()
                 dias_ocupados = 0
                 for ocup in ocupaciones_encargado:
-                    # Solo contar ocupaciones del mismo año y que NO sean de tipo inhabilitacion
                     if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
                         dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
                 dias_nueva_ocupacion = (fecha_fin_dt - fecha_inicio_dt).days + 1
@@ -445,8 +445,8 @@ class PropiedadController:
             from models.ocupacion import Ocupacion
             from datetime import date
             year = date.today().year
-            # Solo contar ocupaciones activas en la base de datos, no soft-deleted
-            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id'), propiedad_id=propiedad.id).all()
+            # Cambiado: sumar todas las ocupaciones del encargado en el año, sin importar la propiedad
+            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id')).all()
             dias_ocupados = 0
             for ocup in ocupaciones_encargado:
                 if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
@@ -644,7 +644,7 @@ class PropiedadController:
             )
             db.session.add(ocupacion)
             db.session.commit()
-            return True, f'Propiedad inhabilitada. Se eliminaron {len(ocupaciones_encargado_a_eliminar)} ocupación(es) de encargado(s) y {len(ocupaciones_futuras_admin)} ocupación(es) de administrador(es). Se devolvieron {dias_devueltos} día(s) al/los encargado(s).', 'success'
+            return True, f'Propiedad inhabilitada', 'success'
 
         # Si no hay reservas ni ocupaciones futuras, solo bloquear
         ocupacion = Ocupacion(
