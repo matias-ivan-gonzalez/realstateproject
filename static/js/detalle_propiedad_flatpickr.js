@@ -29,7 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return {
             dateFormat: 'Y-m-d',
             minDate: today,
-            disable: blockedDates,
+            disable: [
+                function(date) {
+                    const todayDate = new Date();
+                    todayDate.setHours(0,0,0,0);
+                    return date.getTime() === todayDate.getTime();
+                }
+            ].concat(blockedDates),
             locale: 'es',
             allowInput: false,
             onDayCreate: function(dObj, dStr, fp, dayElem) {
