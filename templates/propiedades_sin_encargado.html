@@ -17,13 +17,19 @@
             <td>{{ propiedad.direccion }}</td>
             <td>
                 <form method="POST" action="{{ url_for('main.asignar_encargado_a_propiedad', propiedad_id=propiedad.id) }}" class="d-flex gap-2 align-items-center">
-                    <select name="encargado_id" class="form-select" required>
-                        <option value="">Selecciona un encargado</option>
-                        {% for encargado in encargados %}
-                            <option value="{{ encargado.id }}">{{ encargado.nombre }} {{ encargado.apellido }}</option>
-                        {% endfor %}
+                    <select name="encargado_id" class="form-select" {% if not encargados %}disabled{% endif %} required>
+                        {% if not encargados %}
+                            <option value="">No hay encargados en el sistema</option>
+                        {% else %}
+                            <option value="">Selecciona un encargado</option>
+                            {% for encargado in encargados %}
+                                <option value="{{ encargado.id }}">{{ encargado.nombre }} {{ encargado.apellido }}</option>
+                            {% endfor %}
+                        {% endif %}
                     </select>
-                    <button type="submit" class="btn btn-success">Asignar</button>
+                    {% if encargados %}
+                        <button type="submit" class="btn btn-success">Asignar</button>
+                    {% endif %}
                 </form>
             </td>
         </tr>

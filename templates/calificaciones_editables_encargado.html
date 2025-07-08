@@ -1,6 +1,6 @@
 {% extends "base_hero.html" %}
 
-{% block title %}Calificaciones editables/eliminables{% endblock %}
+{% block title %}Calificaciones editables y eliminables{% endblock %}
 
 <style>
   .modal-bg {
@@ -32,7 +32,7 @@
 
 {% block hero_content %}
 <div class="container mt-4">
-    <h2 class="mb-4 text-center">Calificaciones editables/eliminables</h2>
+    <h2 class="mb-4 text-center">Calificaciones editables y eliminables</h2>
     {% if reservas %}
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
@@ -64,7 +64,7 @@
         </table>
     </div>
     {% else %}
-    <div class="alert alert-info text-center">No hay calificaciones editables/eliminables en este momento.</div>
+    <div class="alert alert-info text-center">No hay calificaciones editables ni eliminables en este momento.</div>
     {% endif %}
 </div>
 {% endblock %}
