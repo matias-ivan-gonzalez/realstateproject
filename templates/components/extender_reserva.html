@@ -57,11 +57,7 @@
 </div>
 
 <style>
-.flatpickr-day.reserved-day, .flatpickr-day.occupied-day {
-    background: #ffcccc !important;
-    color: #b30000 !important;
-    border-radius: 50% !important;
-}
+/* No hay estilos especiales para días pasados, solo flatpickr-disabled debe aplicar */
 </style>
 
 <script>
@@ -97,11 +93,24 @@ function setupFlatpickrExtenderReserva(fechaFinActual) {
   const today = new Date().toISOString().slice(0,10);
   const minDate = today > fechaFinActual ? today : fechaFinActual;
 
+  // Deshabilitar todos los días previos a hoy
+  function getFechasAntesDeHoy() {
+    let fechas = [];
+    let current = new Date('2000-01-01');
+    let end = new Date(today);
+    end.setDate(end.getDate() - 1);
+    while (current <= end) {
+      fechas.push(current.toISOString().slice(0,10));
+      current.setDate(current.getDate() + 1);
+    }
+    return fechas;
+  }
+  const diasAntesDeHoy = getFechasAntesDeHoy();
+
   // Buscar la primera fecha bloqueada futura después de la fecha de fin actual
   const futuras = blockedDates.filter(f => f > fechaFinActual).sort();
   let maxDate = null;
   if (futuras.length > 0) {
-    // El día anterior a la primera fecha bloqueada
     const d = new Date(futuras[0]);
     d.setDate(d.getDate() - 1);
     maxDate = d.toISOString().slice(0,10);
@@ -112,14 +121,36 @@ function setupFlatpickrExtenderReserva(fechaFinActual) {
   }
   window.flatpickrNuevaFin = flatpickr('#nuevaFechaFin', {
     dateFormat: 'Y-m-d',
-    minDate: minDate,
+    minDate: (() => {
+      const fechaFin = new Date(fechaFinActual);
+      fechaFin.setDate(fechaFin.getDate() + 1);
+      return fechaFin.toISOString().slice(0,10);
+    })(),
     maxDate: maxDate,
-    disable: blockedDates.concat([fechaFinActual]),
+    disable: [
+      function(date) {
+        // Deshabilita todos los días menores o iguales a la fecha de salida actual
+        const fechaFin = new Date(fechaFinActual);
+        fechaFin.setHours(0,0,0,0);
+        return date <= fechaFin;
+      }
+    ].concat(blockedDates, [fechaFinActual]),
     locale: 'es',
     allowInput: false,
     onDayCreate: function(dObj, dStr, fp, dayElem) {
-      const date = dayElem.dateObj.toISOString().slice(0,10);
-      if (blockedDates.includes(date)) {
+      const date = dayElem.dateObj;
+      const dateStr = date.toISOString().slice(0,10);
+      const fechaFin = new Date(fechaFinActual);
+      fechaFin.setHours(0,0,0,0);
+      // Siempre quitar la clase primero
+      dayElem.classList.remove('fecha-reservada');
+      // Si es exactamente la fecha de fin actual, nunca ponerlo en rojo
+      if (dateStr === fechaFinActual) {
+        // No agregar clase, Flatpickr lo pondrá gris por estar deshabilitado
+        return;
+      }
+      // Solo los días posteriores a la fecha de salida actual pueden ser reservados
+      if (date > fechaFin && blockedDates.includes(dateStr)) {
         dayElem.classList.add('fecha-reservada');
       }
     },

@@ -29,13 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
         return {
             dateFormat: 'Y-m-d',
             minDate: today,
-            disable: blockedDates,
+            disable: [
+                function(date) {
+                    const todayDate = new Date();
+                    todayDate.setHours(0,0,0,0);
+                    return date.getTime() === todayDate.getTime();
+                }
+            ].concat(blockedDates),
             locale: 'es',
             allowInput: false,
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const date = dayElem.dateObj;
                 const dateStr = date.toISOString().slice(0,10);
-                if (blockedDates.includes(dateStr)) {
+                if (blockedDates.includes(dateStr) && dateStr >= today) {
                     dayElem.classList.add('fecha-reservada');
                 }
             }
@@ -47,13 +53,28 @@ document.addEventListener('DOMContentLoaded', function() {
             onChange: function(selectedDates, dateStr, instance) {
                 if (window.flatpickrFin) {
                     let disables = blockedDates.slice();
+                    let maxDate = null;
                     if (dateStr) {
                         disables.push(function(date) {
                             return date.toISOString().slice(0,10) < dateStr;
                         });
                         window.flatpickrFin.set('minDate', dateStr);
+                        // Calcular el primer día bloqueado posterior a la fecha de inicio
+                        let nextBlocked = blockedDates
+                            .filter(d => d > dateStr)
+                            .sort()[0];
+                        if (nextBlocked) {
+                            // El máximo permitido es el día anterior al primer bloqueado
+                            let max = new Date(nextBlocked);
+                            max.setDate(max.getDate() - 1);
+                            maxDate = max.toISOString().slice(0,10);
+                            window.flatpickrFin.set('maxDate', maxDate);
+                        } else {
+                            window.flatpickrFin.set('maxDate', null);
+                        }
                     } else {
                         window.flatpickrFin.set('minDate', today);
+                        window.flatpickrFin.set('maxDate', null);
                     }
                     window.flatpickrFin.set('disable', disables);
                     // Forzar redibujado visual del calendario de fin
@@ -64,6 +85,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Si la fecha de fin es menor a la de inicio, limpiar
                     const finVal = document.getElementById('fecha_fin').value;
                     if (finVal && finVal < dateStr) {
+                        document.getElementById('fecha_fin').value = '';
+                    }
+                    // Si la fecha de fin es mayor al máximo permitido, limpiar
+                    if (maxDate && finVal && finVal > maxDate) {
                         document.getElementById('fecha_fin').value = '';
                     }
                 }
@@ -84,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayElem.classList.add('flatpickr-disabled-day');
                     dayElem.setAttribute('aria-disabled', 'true');
                 }
-                if (blockedDates.includes(dateStr)) {
+                if (blockedDates.includes(dateStr) && dateStr >= today) {
                     dayElem.classList.add('fecha-reservada');
                 }
             }
