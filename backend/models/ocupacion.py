@@ -8,6 +8,7 @@ class Ocupacion(db.Model):
     fecha_fin = db.Column(db.Date, nullable=False)
     administrador_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     propiedad_id = db.Column(db.Integer, db.ForeignKey('propiedad.id'), nullable=False)
+    tipo = db.Column(db.String(32), nullable=True)
 
     administrador = db.relationship('Administrador', backref='ocupaciones')
     propiedad = db.relationship('Propiedad', back_populates='ocupaciones')

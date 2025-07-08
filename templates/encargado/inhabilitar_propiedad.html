@@ -1,0 +1,87 @@
+{% extends "base_hero.html" %}
+
+{% block title %}Inhabilitar Propiedad (Encargado) - Alquilando{% endblock %}
+
+{% block hero_content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<div class="container mt-4 fade-in">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+          <h4 class="mb-0">
+            <i class="fas fa-ban"></i> Inhabilitar Propiedad (Encargado)
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="info-panel">
+            <h6><i class="fas fa-info-circle"></i> Información de la Propiedad</h6>
+            <p class="mb-1"><strong>Nombre:</strong> {{ propiedad.nombre }}</p>
+            <p class="mb-1"><strong>Ubicación:</strong> {{ propiedad.ubicacion }}</p>
+            <p class="mb-0"><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+          </div>
+
+          <form method="POST" action="{{ url_for('encargado.inhabilitar_propiedad', propiedad_id=propiedad.id) }}" id="form-inhabilitar">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="fecha_inicio"><strong>Fecha de Inicio:</strong></label>
+                  <input type="text" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}" required readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="fecha_fin"><strong>Fecha de Fin:</strong></label>
+                  <input type="text" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}" required readonly>
+                </div>
+              </div>
+            </div>
+
+            <div id="reservas-afectadas" style="display:none; margin-bottom:1rem;">
+              <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Reservas afectadas en el rango seleccionado:</h6>
+                <div id="lista-reservas"></div>
+                <hr>
+                <p class="mb-2"><strong>Seleccione una acción:</strong></p>
+                <input type="hidden" name="accion_reserva" id="accion_reserva" value="">
+                <button type="button" class="btn btn-danger me-2" id="btn-reintegrar">
+                  <i class="fas fa-undo"></i> Reintegrar dinero
+                </button>
+                <button type="button" class="btn btn-info" id="btn-upgrade">
+                  <i class="fas fa-arrow-up"></i> Upgrade a otra propiedad
+                </button>
+              </div>
+            </div>
+
+            <div id="ocupaciones-afectadas" style="display:none; margin-bottom:1rem;">
+              <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Ocupaciones Afectadas</h6>
+                <p>Se han detectado ocupaciones que se solapan con el período seleccionado:</p>
+                <div id="lista-ocupaciones"></div>
+              </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-warning btn-lg" id="btn-inhabilitar" disabled>
+                <i class="fas fa-check"></i> Confirmar
+              </button>
+              <a href="{{ url_for('encargado.mis_propiedades') }}" class="btn btn-secondary btn-lg ml-2">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ url_for('static', filename='js/inhabilitar_propiedad_fecha.js') }}"></script>
+<script>
+  window.fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
+  window.fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+  window.propiedadId = {{ propiedad.id|tojson|safe }};
+</script>
+
+{% endblock %}
