@@ -360,9 +360,12 @@
                 <a href="{{ url_for('main.ver_favoritos') }}" class="btn btn-secondary">Volver a favoritos</a>
             {% endif %}
             {% if session.rol == 'cliente' %}
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReservar">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReservar" {% if not cliente or not cliente.tarjeta %}disabled style="opacity:0.6; cursor:not-allowed;"{% endif %}>
                     Reservar
                 </button>
+                {% if not cliente or not cliente.tarjeta %}
+                    <div class="text-danger mt-2">Debes registrar una tarjeta en tu perfil para poder reservar.</div>
+                {% endif %}
             {% endif %}
         </div>
     {% endif %}

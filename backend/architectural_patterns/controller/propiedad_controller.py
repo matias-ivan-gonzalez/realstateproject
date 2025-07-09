@@ -180,7 +180,8 @@ class PropiedadController:
                              fechas_ocupadas=fechas_ocupadas,
                              fechas_reservadas=fechas_reservadas,
                              dias_ocupados_encargado=dias_ocupados_encargado,
-                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY)
+                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY,
+                             cliente=cliente)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
