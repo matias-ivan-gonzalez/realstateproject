@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     let maxDate = null;
                     if (dateStr) {
                         disables.push(function(date) {
-                            return date.toISOString().slice(0,10) < dateStr;
+                            // Deshabilitar fechas menores o iguales a la de inicio
+                            return date.toISOString().slice(0,10) <= dateStr;
                         });
                         window.flatpickrFin.set('minDate', dateStr);
                         // Calcular el primer día bloqueado posterior a la fecha de inicio
@@ -82,9 +83,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.flatpickrFin.close();
                         window.flatpickrFin.open();
                     }
-                    // Si la fecha de fin es menor a la de inicio, limpiar
+                    // Si la fecha de fin es menor o igual a la de inicio, limpiar
                     const finVal = document.getElementById('fecha_fin').value;
-                    if (finVal && finVal < dateStr) {
+                    if (finVal && finVal <= dateStr) {
                         document.getElementById('fecha_fin').value = '';
                     }
                     // Si la fecha de fin es mayor al máximo permitido, limpiar
@@ -102,9 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const date = dayElem.dateObj;
                 const dateStr = date.toISOString().slice(0,10);
-                // Bloquear visualmente fechas menores a la de inicio
+                // Bloquear visualmente fechas menores o iguales a la de inicio
                 const inicioVal = document.getElementById('fecha_inicio').value;
-                if (inicioVal && dateStr < inicioVal) {
+                if (inicioVal && dateStr <= inicioVal) {
                     dayElem.classList.add('flatpickr-disabled');
                     dayElem.classList.add('flatpickr-disabled-day');
                     dayElem.setAttribute('aria-disabled', 'true');
