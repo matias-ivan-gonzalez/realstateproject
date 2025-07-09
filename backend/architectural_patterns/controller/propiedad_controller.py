@@ -119,6 +119,7 @@ class PropiedadController:
     def get_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
         user_favoritos = []
+        cliente = None
         if session.get('rol') == 'cliente':
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
