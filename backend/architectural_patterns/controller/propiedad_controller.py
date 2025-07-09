@@ -151,14 +151,21 @@ class PropiedadController:
                 'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
                 'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
             })
+        from models.user import Usuario
         fechas_reservadas = []
         for res in propiedad.reservas:
             if str(res.estado).lower() in ('futura', 'en_curso'):
+                nombre_cliente = "-"
+                if res.cliente_id:
+                    cliente_obj = Usuario.query.get(res.cliente_id)
+                    if cliente_obj:
+                        nombre_cliente = f"{cliente_obj.nombre} {cliente_obj.apellido}"
                 fechas_reservadas.append({
                     'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
                     'fin': res.fecha_fin.strftime('%Y-%m-%d'),
                     'estado': str(res.estado),
-                    'cliente_id': res.cliente_id
+                    'cliente_id': res.cliente_id,
+                    'cliente_nombre': nombre_cliente
                 })
         # Mostrar días ocupados si es encargado y la propiedad está asignada
         dias_ocupados_encargado = None
@@ -433,6 +440,7 @@ class PropiedadController:
                 'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
                 'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
             })
+        from models.user import Usuario
         fechas_reservadas = []
         for res in propiedad.reservas:
             if str(res.estado).lower() in ('futura', 'en_curso'):
