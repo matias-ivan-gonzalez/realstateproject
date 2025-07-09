@@ -902,3 +902,21 @@ def realizar_checkout(reserva_id):
     # Si no, recargar la página de check-outs pendientes
     flash('Check-out realizado.', 'success')
     return redirect(url_for('main.check_outs_pendientes'))
+
+@main.route('/api/usuarios_info', methods=['POST'])
+@login_required
+def api_usuarios_info():
+    data = request.get_json()
+    ids = data.get('ids', [])
+    if not isinstance(ids, list) or not all(isinstance(i, int) for i in ids):
+        return jsonify({'error': 'Formato de datos inválido'}), 400
+    from models.user import Usuario
+    usuarios = Usuario.query.filter(Usuario.id.in_(ids)).all()
+    usuarios_info = [
+        {
+            'id': u.id,
+            'nombre': u.nombre,
+            'apellido': u.apellido
+        } for u in usuarios
+    ]
+    return jsonify({'usuarios': usuarios_info})

@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    console.log('reservasPendientes:', reservasPendientes);
 
     // Clasificar ocupaciones
     if (window.fechasOcupadas) {
@@ -155,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         // Mostrar SIEMPRE los botones si hay reservas futuras, aunque haya reservas/ocupaciones en curso
+        console.log('reservasPendientesEnRango:', reservasPendientesEnRango);
         mostrarReservasAfectadas(reservasPendientesEnRango);
         // Ocupaciones futuras en el rango
         const ocupacionesFuturasEnRango = hayOcupacionFuturaEnRango(inicio, fin);
@@ -220,36 +222,65 @@ document.addEventListener('DOMContentLoaded', function() {
         if (accionReserva) accionReserva.value = '';
         panel.style.display = 'none';
         if (reservas.length > 0) {
-            reservas.forEach(function(reserva) {
-                const item = document.createElement('div');
-                item.className = 'reserva-afectada';
-                item.innerHTML = `
-                    <p class="mb-1"><strong>Cliente ID:</strong> ${reserva.cliente_id || 'N/A'}</p>
-                    <p class="mb-1"><strong>Fechas:</strong> ${reserva.inicio} a ${reserva.fin}</p>
-                    <p class="mb-0"><strong>Estado:</strong> ${reserva.estado}</p>
-                `;
-                lista.appendChild(item);
+            // Filtrar reservas válidas (que tengan cliente_id, inicio y fin)
+            const reservasValidas = reservas.filter(r => r.cliente_id && r.inicio && r.fin);
+            // Filtrar reservas duplicadas por cliente_id + fechas
+            const reservasUnicas = [];
+            const seen = new Set();
+            reservasValidas.forEach(r => {
+                const key = `${r.cliente_id}-${r.inicio}-${r.fin}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    reservasUnicas.push(r);
+                }
             });
-            panel.style.display = 'block';
-            // Mostrar SIEMPRE los botones si hay reservas futuras
-            if (btnReintegrar && btnUpgrade && accionReserva && btnConfirmar) {
-                btnReintegrar.style.display = 'inline-block';
-                btnUpgrade.style.display = 'inline-block';
-                btnReintegrar.onclick = function() {
-                    accionReserva.value = 'reintegrar';
-                    btnConfirmar.disabled = false;
-                    btnReintegrar.classList.add('active');
-                    btnUpgrade.classList.remove('active');
-                };
-                btnUpgrade.onclick = function() {
-                    accionReserva.value = 'upgrade';
-                    btnConfirmar.disabled = false;
-                    btnUpgrade.classList.add('active');
-                    btnReintegrar.classList.remove('active');
-                };
-                // El botón de confirmar debe estar deshabilitado hasta que se seleccione una acción
-                btnConfirmar.disabled = true;
-            }
+            // Obtener los IDs únicos de cliente
+            const clienteIds = [...new Set(reservasUnicas.map(r => r.cliente_id).filter(Boolean))];
+            // Llamar al backend para obtener los nombres
+            fetch('/api/usuarios_info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: clienteIds })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const usuariosMap = {};
+                if (data.usuarios) {
+                    data.usuarios.forEach(u => {
+                        usuariosMap[u.id] = `${u.nombre} ${u.apellido}`;
+                    });
+                }
+                reservasUnicas.forEach(function(reserva) {
+                    const item = document.createElement('div');
+                    item.className = 'reserva-afectada';
+                    const nombreCliente = usuariosMap[reserva.cliente_id] || 'Desconocido';
+                    item.innerHTML = `
+                        <p class=\"mb-1\"><strong>Cliente:</strong> ${nombreCliente}</p>
+                        <p class=\"mb-1\"><strong>Fechas:</strong> ${reserva.inicio} a ${reserva.fin}</p>
+                    `;
+                    lista.appendChild(item);
+                });
+                panel.style.display = 'block';
+                // Mostrar SIEMPRE los botones si hay reservas futuras
+                if (btnReintegrar && btnUpgrade && accionReserva && btnConfirmar) {
+                    btnReintegrar.style.display = 'inline-block';
+                    btnUpgrade.style.display = 'inline-block';
+                    btnReintegrar.onclick = function() {
+                        accionReserva.value = 'reintegrar';
+                        btnConfirmar.disabled = false;
+                        btnReintegrar.classList.add('active');
+                        btnUpgrade.classList.remove('active');
+                    };
+                    btnUpgrade.onclick = function() {
+                        accionReserva.value = 'upgrade';
+                        btnConfirmar.disabled = false;
+                        btnUpgrade.classList.add('active');
+                        btnReintegrar.classList.remove('active');
+                    };
+                    // El botón de confirmar debe estar deshabilitado hasta que se seleccione una acción
+                    btnConfirmar.disabled = true;
+                }
+            });
         } else {
             // Si no hay reservas futuras, ocultar panel y botones
             panel.style.display = 'none';
@@ -284,16 +315,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Limpiar acción seleccionada si se cambia el rango
-    document.getElementById('fecha_inicio').addEventListener('change', function() {
-        const accionReserva = document.getElementById('accion_reserva');
-        if (accionReserva) accionReserva.value = '';
-        checkRangoSeleccionado();
-    });
-    document.getElementById('fecha_fin').addEventListener('change', function() {
-        const accionReserva = document.getElementById('accion_reserva');
-        if (accionReserva) accionReserva.value = '';
-        checkRangoSeleccionado();
-    });
     
     // Verificar estado inicial del botón
     checkRangoSeleccionado();
