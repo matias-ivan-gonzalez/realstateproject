@@ -503,11 +503,21 @@ class PropiedadController:
                     'cliente_id': res.cliente_id
                 })
         
+        # Fechas inhabilitadas (ocupaciones de tipo 'inhabilitacion')
+        fechas_inhabilitadas = []
+        for ocup in propiedad.ocupaciones:
+            if getattr(ocup, 'tipo', None) == 'inhabilitacion':
+                fechas_inhabilitadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+        
         return render_template(
             'inhabilitar_propiedad.html',
             propiedad=propiedad,
             fechas_ocupadas=fechas_ocupadas,
             fechas_reservadas=fechas_reservadas,
+            fechas_inhabilitadas=fechas_inhabilitadas,
             request=request
         )
 
