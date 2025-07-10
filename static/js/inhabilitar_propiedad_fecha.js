@@ -92,7 +92,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const fechaFin = flatpickr("#fecha_fin", {
         dateFormat: "Y-m-d",
         minDate: "today",
-        disable: [isFechaBloqueada],
+        disable: [
+            function(date) {
+                const fechaInicioVal = document.getElementById('fecha_inicio').value;
+                if (!fechaInicioVal) return true; // No permitir si no hay inicio
+                const inicio = new Date(fechaInicioVal);
+                const fin = date;
+                // Contar reservas futuras en el rango
+                let reservasEnRango = 0;
+                for (let r of reservasPendientes) {
+                    let rIni = new Date(r.inicio);
+                    let rFin = new Date(r.fin);
+                    if (!(fin < rIni || inicio > rFin)) reservasEnRango++;
+                }
+                // Contar ocupaciones futuras en el rango
+                let ocupacionesEnRango = 0;
+                for (let o of ocupacionesFuturas) {
+                    let oIni = new Date(o.inicio);
+                    let oFin = new Date(o.fin);
+                    if (!(fin < oIni || inicio > oFin)) ocupacionesEnRango++;
+                }
+                // Permitir solo si la suma es 0 o 1 (máximo una reserva o una ocupación)
+                return (reservasEnRango + ocupacionesEnRango) > 1;
+            },
+            isFechaBloqueada
+        ],
         onChange: function(selectedDates, dateStr, instance) {
             checkRangoSeleccionado();
         }
@@ -294,20 +318,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const panel = document.getElementById('ocupaciones-afectadas');
         const lista = document.getElementById('lista-ocupaciones');
         if (!panel || !lista) return;
-        
+
         if (ocupaciones.length > 0) {
-            lista.innerHTML = '';
-            ocupaciones.forEach(function(ocupacion) {
-                const item = document.createElement('div');
-                item.className = 'ocupacion-afectada';
-                const tipo = ocupacion.tipo === 'encargado' ? 'Encargado' : 'Administrador';
-                item.innerHTML = `
-                    <p class="mb-1"><strong>Tipo:</strong> ${tipo}</p>
-                    <p class="mb-1"><strong>Fechas:</strong> ${ocupacion.inicio} a ${ocupacion.fin}</p>
-                    ${ocupacion.encargado_id ? `<p class="mb-0"><strong>Encargado ID:</strong> ${ocupacion.encargado_id}</p>` : ''}
-                `;
-                lista.appendChild(item);
-            });
+            lista.innerHTML = '<div class="ocupacion-afectada"><p class="mb-1">Hay ocupaciones afectadas.</p></div>';
             panel.style.display = 'block';
         } else {
             panel.style.display = 'none';
