@@ -257,12 +257,13 @@ def init_db():
         prop8.reembolsable = False
     prop9 = Propiedad.query.filter_by(nombre='Casa Tigre Delta').first()
     if not prop9:
-        prop9 = Propiedad(nombre='Casa Tigre Delta', ubicacion='Tigre, Buenos Aires', direccion='Río Sarmiento 300, Tigre, Buenos Aires', precio=270000, cantidad_habitaciones=4, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa isleña con muelle propio en el Delta de Tigre.', superusuario=superuser, encargado=encargado, latitud=-34.4089, longitud=-58.5796, porcentaje_pago_reserva=100, reembolsable=True)
+        prop9 = Propiedad(nombre='Casa Tigre Delta', ubicacion='Tigre, Buenos Aires', direccion='Río Sarmiento 300, Tigre, Buenos Aires', precio=270000, cantidad_habitaciones=4, limite_personas=8, pet_friendly=True, cochera=True, wifi=True, piscina=True, patio_trasero=True, descripcion='Casa isleña con muelle propio en el Delta de Tigre.', superusuario=superuser, encargado=None, latitud=-34.4089, longitud=-58.5796, porcentaje_pago_reserva=100, reembolsable=True)
         db.session.add(prop9)
     else:
         prop9.latitud = -34.4089
         prop9.longitud = -58.5796
         prop9.reembolsable = True
+        prop9.encargado = None
     prop10 = Propiedad.query.filter_by(nombre='Depto Salta Balcarce').first()
     if not prop10:
         prop10 = Propiedad(nombre='Depto Salta Balcarce', ubicacion='Salta', direccion='Balcarce 500, Salta', precio=90000, cantidad_habitaciones=2, limite_personas=3, pet_friendly=False, cochera=False, wifi=True, piscina=False, patio_trasero=False, descripcion='Departamento turístico en la zona de peñas y bares.', superusuario=superuser, encargado=encargado, latitud=-24.7883, longitud=-65.4106, porcentaje_pago_reserva=20, reembolsable=False)
