@@ -11,7 +11,6 @@
                     <th>Cliente</th>
                     <th>Fecha inicio</th>
                     <th>Fecha fin</th>
-                    <th>Estado</th>
                     <th>Personas</th>
                     <th>Precio total</th>
                 </tr>
@@ -22,7 +21,6 @@
                     <td>{{ reserva.cliente.nombre }} {{ reserva.cliente.apellido }}</td>
                     <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
                     <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ reserva.estado }}</td>
                     <td>{{ reserva.cantidad_personas }}</td>
                     <td>
                         {% set dias = (reserva.fecha_fin - reserva.fecha_inicio).days %}
