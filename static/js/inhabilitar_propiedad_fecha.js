@@ -20,6 +20,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let reservasEnCurso = [];
     let ocupacionesFuturas = [];
     let ocupacionesEnCurso = [];
+    let fechasInhabilitadas = [];
+    if (window.fechasInhabilitadas) {
+        window.fechasInhabilitadas.forEach(function(rango) {
+            let ini = new Date(rango.inicio);
+            let fin = new Date(rango.fin);
+            while (ini <= fin) {
+                fechasInhabilitadas.push(ini.toISOString().slice(0,10));
+                ini.setDate(ini.getDate() + 1);
+            }
+        });
+    }
 
     // Clasificar reservas
     if (window.fechasReservadas) {
@@ -48,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    console.log('reservasPendientes:', reservasPendientes);
 
     // Clasificar ocupaciones
     if (window.fechasOcupadas) {
@@ -62,7 +74,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Flatpickr: bloquear fechas con reservas/ocupaciones en curso ---
+    function isFechaInhabilitada(date) {
+        return fechasInhabilitadas.includes(date.toISOString().slice(0,10));
+    }
+
+    // --- Flatpickr: bloquear fechas con reservas/ocupaciones en curso e inhabilitadas ---
     function isFechaBloqueada(date) {
         // Bloquear reservas en curso
         for (let reserva of reservasEnCurso) {
@@ -76,13 +92,16 @@ document.addEventListener('DOMContentLoaded', function() {
             let oFin = new Date(ocup.fin);
             if (date >= oIni && date <= oFin) return true;
         }
+        // Bloquear fechas inhabilitadas
+        if (isFechaInhabilitada(date)) return true;
         return false;
     }
 
+    // Flatpickr config: agregar isFechaInhabilitada a disable
     const fechaInicio = flatpickr("#fecha_inicio", {
         dateFormat: "Y-m-d",
         minDate: "today",
-        disable: [isFechaBloqueada],
+        disable: [isFechaBloqueada, isFechaInhabilitada],
         onChange: function(selectedDates, dateStr, instance) {
             if (fechaFin) fechaFin.set('minDate', dateStr);
             checkRangoSeleccionado();
@@ -91,7 +110,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const fechaFin = flatpickr("#fecha_fin", {
         dateFormat: "Y-m-d",
         minDate: "today",
-        disable: [isFechaBloqueada],
+        disable: [
+            function(date) {
+                const fechaInicioVal = document.getElementById('fecha_inicio').value;
+                if (!fechaInicioVal) return true; // No permitir si no hay inicio
+                const inicio = new Date(fechaInicioVal);
+                const fin = date;
+                // Contar reservas futuras en el rango
+                let reservasEnRango = 0;
+                for (let r of reservasPendientes) {
+                    let rIni = new Date(r.inicio);
+                    let rFin = new Date(r.fin);
+                    if (!(fin < rIni || inicio > rFin)) reservasEnRango++;
+                }
+                // Contar ocupaciones futuras en el rango
+                let ocupacionesEnRango = 0;
+                for (let o of ocupacionesFuturas) {
+                    let oIni = new Date(o.inicio);
+                    let oFin = new Date(o.fin);
+                    if (!(fin < oIni || inicio > oFin)) ocupacionesEnRango++;
+                }
+                // Contar fechas inhabilitadas en el rango
+                let inhabilitadasEnRango = 0;
+                let current = new Date(inicio);
+                while (current <= fin) {
+                    if (isFechaInhabilitada(current)) inhabilitadasEnRango++;
+                    current.setDate(current.getDate() + 1);
+                }
+                // Permitir solo si la suma es 0 o 1 (máximo una reserva, ocupación o inhabilitación)
+                return (reservasEnRango + ocupacionesEnRango + inhabilitadasEnRango) > 1;
+            },
+            isFechaBloqueada,
+            isFechaInhabilitada
+        ],
         onChange: function(selectedDates, dateStr, instance) {
             checkRangoSeleccionado();
         }
@@ -155,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         // Mostrar SIEMPRE los botones si hay reservas futuras, aunque haya reservas/ocupaciones en curso
+        console.log('reservasPendientesEnRango:', reservasPendientesEnRango);
         mostrarReservasAfectadas(reservasPendientesEnRango);
         // Ocupaciones futuras en el rango
         const ocupacionesFuturasEnRango = hayOcupacionFuturaEnRango(inicio, fin);
@@ -220,36 +272,65 @@ document.addEventListener('DOMContentLoaded', function() {
         if (accionReserva) accionReserva.value = '';
         panel.style.display = 'none';
         if (reservas.length > 0) {
-            reservas.forEach(function(reserva) {
-                const item = document.createElement('div');
-                item.className = 'reserva-afectada';
-                item.innerHTML = `
-                    <p class="mb-1"><strong>Cliente ID:</strong> ${reserva.cliente_id || 'N/A'}</p>
-                    <p class="mb-1"><strong>Fechas:</strong> ${reserva.inicio} a ${reserva.fin}</p>
-                    <p class="mb-0"><strong>Estado:</strong> ${reserva.estado}</p>
-                `;
-                lista.appendChild(item);
+            // Filtrar reservas válidas (que tengan cliente_id, inicio y fin)
+            const reservasValidas = reservas.filter(r => r.cliente_id && r.inicio && r.fin);
+            // Filtrar reservas duplicadas por cliente_id + fechas
+            const reservasUnicas = [];
+            const seen = new Set();
+            reservasValidas.forEach(r => {
+                const key = `${r.cliente_id}-${r.inicio}-${r.fin}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    reservasUnicas.push(r);
+                }
             });
-            panel.style.display = 'block';
-            // Mostrar SIEMPRE los botones si hay reservas futuras
-            if (btnReintegrar && btnUpgrade && accionReserva && btnConfirmar) {
-                btnReintegrar.style.display = 'inline-block';
-                btnUpgrade.style.display = 'inline-block';
-                btnReintegrar.onclick = function() {
-                    accionReserva.value = 'reintegrar';
-                    btnConfirmar.disabled = false;
-                    btnReintegrar.classList.add('active');
-                    btnUpgrade.classList.remove('active');
-                };
-                btnUpgrade.onclick = function() {
-                    accionReserva.value = 'upgrade';
-                    btnConfirmar.disabled = false;
-                    btnUpgrade.classList.add('active');
-                    btnReintegrar.classList.remove('active');
-                };
-                // El botón de confirmar debe estar deshabilitado hasta que se seleccione una acción
-                btnConfirmar.disabled = true;
-            }
+            // Obtener los IDs únicos de cliente
+            const clienteIds = [...new Set(reservasUnicas.map(r => r.cliente_id).filter(Boolean))];
+            // Llamar al backend para obtener los nombres
+            fetch('/api/usuarios_info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: clienteIds })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const usuariosMap = {};
+                if (data.usuarios) {
+                    data.usuarios.forEach(u => {
+                        usuariosMap[u.id] = `${u.nombre} ${u.apellido}`;
+                    });
+                }
+                reservasUnicas.forEach(function(reserva) {
+                    const item = document.createElement('div');
+                    item.className = 'reserva-afectada';
+                    const nombreCliente = usuariosMap[reserva.cliente_id] || 'Desconocido';
+                    item.innerHTML = `
+                        <p class=\"mb-1\"><strong>Cliente:</strong> ${nombreCliente}</p>
+                        <p class=\"mb-1\"><strong>Fechas:</strong> ${reserva.inicio} a ${reserva.fin}</p>
+                    `;
+                    lista.appendChild(item);
+                });
+                panel.style.display = 'block';
+                // Mostrar SIEMPRE los botones si hay reservas futuras
+                if (btnReintegrar && btnUpgrade && accionReserva && btnConfirmar) {
+                    btnReintegrar.style.display = 'inline-block';
+                    btnUpgrade.style.display = 'inline-block';
+                    btnReintegrar.onclick = function() {
+                        accionReserva.value = 'reintegrar';
+                        btnConfirmar.disabled = false;
+                        btnReintegrar.classList.add('active');
+                        btnUpgrade.classList.remove('active');
+                    };
+                    btnUpgrade.onclick = function() {
+                        accionReserva.value = 'upgrade';
+                        btnConfirmar.disabled = false;
+                        btnUpgrade.classList.add('active');
+                        btnReintegrar.classList.remove('active');
+                    };
+                    // El botón de confirmar debe estar deshabilitado hasta que se seleccione una acción
+                    btnConfirmar.disabled = true;
+                }
+            });
         } else {
             // Si no hay reservas futuras, ocultar panel y botones
             panel.style.display = 'none';
@@ -263,20 +344,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const panel = document.getElementById('ocupaciones-afectadas');
         const lista = document.getElementById('lista-ocupaciones');
         if (!panel || !lista) return;
-        
+
         if (ocupaciones.length > 0) {
-            lista.innerHTML = '';
-            ocupaciones.forEach(function(ocupacion) {
-                const item = document.createElement('div');
-                item.className = 'ocupacion-afectada';
-                const tipo = ocupacion.tipo === 'encargado' ? 'Encargado' : 'Administrador';
-                item.innerHTML = `
-                    <p class="mb-1"><strong>Tipo:</strong> ${tipo}</p>
-                    <p class="mb-1"><strong>Fechas:</strong> ${ocupacion.inicio} a ${ocupacion.fin}</p>
-                    ${ocupacion.encargado_id ? `<p class="mb-0"><strong>Encargado ID:</strong> ${ocupacion.encargado_id}</p>` : ''}
-                `;
-                lista.appendChild(item);
-            });
+            lista.innerHTML = '<div class="ocupacion-afectada"><p class="mb-1">Hay ocupaciones afectadas.</p></div>';
             panel.style.display = 'block';
         } else {
             panel.style.display = 'none';
@@ -284,16 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Limpiar acción seleccionada si se cambia el rango
-    document.getElementById('fecha_inicio').addEventListener('change', function() {
-        const accionReserva = document.getElementById('accion_reserva');
-        if (accionReserva) accionReserva.value = '';
-        checkRangoSeleccionado();
-    });
-    document.getElementById('fecha_fin').addEventListener('change', function() {
-        const accionReserva = document.getElementById('accion_reserva');
-        if (accionReserva) accionReserva.value = '';
-        checkRangoSeleccionado();
-    });
     
     // Verificar estado inicial del botón
     checkRangoSeleccionado();

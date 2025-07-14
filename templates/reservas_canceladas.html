@@ -12,7 +12,7 @@
                 <a href="/reservas/concluidas" class="btn btn-outline-primary mx-2">Reservas Concluidas</a>
                 <a href="/reservas/canceladas" class="btn btn-primary mx-2">Reservas Canceladas</a>
                 <a href="/reservas/pendientes" class="btn btn-outline-primary mx-2">Calificaciones Pendientes</a>
-                <a href="/reservas/editables" class="btn btn-outline-primary mx-2">Calificaciones Modificables</a>
+                <a href="/reservas/editables" class="btn btn-outline-primary mx-2">Calificaciones editables/eliminables</a>
                 <a href="/mis-pagos" class="btn btn-outline-primary mx-2">Mis Pagos</a>
             </div>
             <h2 class="mb-4 text-center">Reservas Canceladas</h2>
@@ -26,8 +26,6 @@
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Fin</th>
                                 <th>Cantidad de Personas</th>
-                                <th>Estado</th>
-                                <th>Chat</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,14 +36,6 @@
                                     <td>{{ reserva.fecha_inicio }}</td>
                                     <td>{{ reserva.fecha_fin }}</td>
                                     <td>{{ reserva.cantidad_personas }}</td>
-                                    <td><span class="badge bg-danger">Cancelada</span></td>
-                                    <td>
-                                        {% if reserva.chat_existio_curso or reserva.chat_existio_futuro %}
-                                            <a href="/chat?reserva_id={{ reserva.id }}&merge=1" class="btn btn-outline-primary">Ver chat</a>
-                                        {% else %}
-                                            <span class="text-muted">No hubo chat</span>
-                                        {% endif %}
-                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>

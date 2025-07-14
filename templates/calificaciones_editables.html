@@ -12,10 +12,10 @@
                 <a href="/reservas/concluidas" class="btn btn-outline-primary mx-2">Reservas Concluidas</a>
                 <a href="/reservas/canceladas" class="btn btn-outline-primary mx-2">Reservas Canceladas</a>
                 <a href="/reservas/pendientes" class="btn btn-outline-primary mx-2">Calificaciones Pendientes</a>
-                <a href="/reservas/editables" class="btn btn-primary mx-2">Calificaciones Modificables</a>
+                <a href="/reservas/editables" class="btn btn-primary mx-2">Calificaciones editables/eliminables</a>
                 <a href="/mis-pagos" class="btn btn-outline-primary mx-2">Mis Pagos</a>
             </div>
-            <h2 class="mb-4 text-center">Calificaciones Modificables</h2>
+            <h2 class="mb-4 text-center">Calificaciones editables y eliminables</h2>
             <div class="row g-3">
                 {% if reservas and reservas|length > 0 %}
                     <table class="table table-striped">
@@ -50,7 +50,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <div class="alert alert-info text-center">No tienes calificaciones modificables.</div>
+                    <div class="alert alert-info text-center">No tienes calificaciones editables ni eliminables.</div>
                 {% endif %}
             </div>
         </div>

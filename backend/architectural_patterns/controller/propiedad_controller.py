@@ -119,6 +119,7 @@ class PropiedadController:
     def get_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
         user_favoritos = []
+        cliente = None
         if session.get('rol') == 'cliente':
             cliente = Cliente.query.get(session.get('user_id'))
             if cliente:
@@ -150,14 +151,21 @@ class PropiedadController:
                 'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
                 'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
             })
+        from models.user import Usuario
         fechas_reservadas = []
         for res in propiedad.reservas:
             if str(res.estado).lower() in ('futura', 'en_curso'):
+                nombre_cliente = "-"
+                if res.cliente_id:
+                    cliente_obj = Usuario.query.get(res.cliente_id)
+                    if cliente_obj:
+                        nombre_cliente = f"{cliente_obj.nombre} {cliente_obj.apellido}"
                 fechas_reservadas.append({
                     'inicio': res.fecha_inicio.strftime('%Y-%m-%d'),
                     'fin': res.fecha_fin.strftime('%Y-%m-%d'),
                     'estado': str(res.estado),
-                    'cliente_id': res.cliente_id
+                    'cliente_id': res.cliente_id,
+                    'cliente_nombre': nombre_cliente
                 })
         # Mostrar días ocupados si es encargado y la propiedad está asignada
         dias_ocupados_encargado = None
@@ -180,7 +188,8 @@ class PropiedadController:
                              fechas_ocupadas=fechas_ocupadas,
                              fechas_reservadas=fechas_reservadas,
                              dias_ocupados_encargado=dias_ocupados_encargado,
-                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY)
+                             mercadopago_public_key=MERCADOPAGO_PUBLIC_KEY,
+                             cliente=cliente)
 
     def eliminar_propiedad(self, id):
         propiedad = Propiedad.query.get_or_404(id)
@@ -400,10 +409,10 @@ class PropiedadController:
             # Restricción de 15 días por año para encargados
             if rol == 'encargado':
                 year = fecha_inicio_dt.year
+                # Cambiado: sumar todas las ocupaciones del encargado en el año, sin importar la propiedad
                 ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=user_id).all()
                 dias_ocupados = 0
                 for ocup in ocupaciones_encargado:
-                    # Solo contar ocupaciones del mismo año y que NO sean de tipo inhabilitacion
                     if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
                         dias_ocupados += (ocup.fecha_fin - ocup.fecha_inicio).days + 1
                 dias_nueva_ocupacion = (fecha_fin_dt - fecha_inicio_dt).days + 1
@@ -431,6 +440,7 @@ class PropiedadController:
                 'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
                 'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
             })
+        from models.user import Usuario
         fechas_reservadas = []
         for res in propiedad.reservas:
             if str(res.estado).lower() in ('futura', 'en_curso'):
@@ -445,8 +455,8 @@ class PropiedadController:
             from models.ocupacion import Ocupacion
             from datetime import date
             year = date.today().year
-            # Solo contar ocupaciones activas en la base de datos, no soft-deleted
-            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id'), propiedad_id=propiedad.id).all()
+            # Cambiado: sumar todas las ocupaciones del encargado en el año, sin importar la propiedad
+            ocupaciones_encargado = Ocupacion.query.filter_by(administrador_id=session.get('user_id')).all()
             dias_ocupados = 0
             for ocup in ocupaciones_encargado:
                 if ocup.fecha_inicio.year == year and (not hasattr(ocup, 'tipo') or ocup.tipo != 'inhabilitacion'):
@@ -493,11 +503,21 @@ class PropiedadController:
                     'cliente_id': res.cliente_id
                 })
         
+        # Fechas inhabilitadas (ocupaciones de tipo 'inhabilitacion')
+        fechas_inhabilitadas = []
+        for ocup in propiedad.ocupaciones:
+            if getattr(ocup, 'tipo', None) == 'inhabilitacion':
+                fechas_inhabilitadas.append({
+                    'inicio': ocup.fecha_inicio.strftime('%Y-%m-%d'),
+                    'fin': ocup.fecha_fin.strftime('%Y-%m-%d')
+                })
+        
         return render_template(
             'inhabilitar_propiedad.html',
             propiedad=propiedad,
             fechas_ocupadas=fechas_ocupadas,
             fechas_reservadas=fechas_reservadas,
+            fechas_inhabilitadas=fechas_inhabilitadas,
             request=request
         )
 
@@ -644,7 +664,7 @@ class PropiedadController:
             )
             db.session.add(ocupacion)
             db.session.commit()
-            return True, f'Propiedad inhabilitada. Se eliminaron {len(ocupaciones_encargado_a_eliminar)} ocupación(es) de encargado(s) y {len(ocupaciones_futuras_admin)} ocupación(es) de administrador(es). Se devolvieron {dias_devueltos} día(s) al/los encargado(s).', 'success'
+            return True, f'Propiedad inhabilitada', 'success'
 
         # Si no hay reservas ni ocupaciones futuras, solo bloquear
         ocupacion = Ocupacion(

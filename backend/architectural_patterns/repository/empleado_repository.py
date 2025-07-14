@@ -8,8 +8,8 @@ class EmpleadoRepository(UserRepository):
         return Administrador.query.all()
     
     def get_encargados(self):
-        """Obtiene todos los encargados"""
-        return Encargado.query.all()
+        """Obtiene todos los encargados no eliminados"""
+        return Encargado.query.filter_by(eliminado=False).all()
     
     def get_empleado_by_id(self, id):
         """Obtiene un empleado por su ID"""
