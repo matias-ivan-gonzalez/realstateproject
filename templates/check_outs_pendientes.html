@@ -26,10 +26,6 @@
                 <td>
                     <form method="POST" action="{{ url_for('main.realizar_checkout', reserva_id=reserva.id) }}" class="d-flex flex-column gap-2 align-items-start checkout-form">
                         <input type="text" name="checkout_estado" class="form-control mb-1" placeholder="Estado de checkout" required>
-                        <div class="form-check mb-1">
-                            <input class="form-check-input" type="checkbox" name="inhabilitar_propiedad" id="inhabilitar-{{ reserva.id }}">
-                            <label class="form-check-label" for="inhabilitar-{{ reserva.id }}">Inhabilitar propiedad</label>
-                        </div>
                         <button type="submit" class="btn btn-success btn-sm">Realizar checkout</button>
                     </form>
                 </td>
