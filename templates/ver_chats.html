@@ -4,23 +4,21 @@
 <div class="container mt-4">
     <h2 class="mb-4">Gestión de Chats</h2>
     <div class="mb-3 d-flex gap-3">
-        <button id="btn-futuras" class="btn btn-outline-primary">Chats con reservas a futuro</button>
-        <button id="btn-curso" class="btn btn-outline-success">Chats con reservas en curso</button>
-        <button id="btn-futuras-cerradas" class="btn btn-outline-secondary">Chats con reservas a futuro cerrados</button>
-        <button id="btn-curso-cerradas" class="btn btn-outline-secondary">Chats con reservas en curso cerrados</button>
+        <button id="btn-futuras" class="btn btn-outline-primary">Chats con estadías a futuro</button>
+        <button id="btn-curso" class="btn btn-outline-success">Chats con estadías en curso</button>
+        <button id="btn-finalizadas" class="btn btn-outline-secondary">Chats con estadias finalizadas</button>
+        
     </div>
     <div id="listado-chats" class="mt-3"></div>
 </div>
 <script>
     var btnFuturas = document.getElementById('btn-futuras');
     var btnCurso = document.getElementById('btn-curso');
-    var btnFuturasCerradas = document.getElementById('btn-futuras-cerradas');
-    var btnCursoCerradas = document.getElementById('btn-curso-cerradas');
+    var btnFinalizadas = document.getElementById('btn-finalizadas');
     var listado = document.getElementById('listado-chats');
     var chatsFuturo = {{ chats_futuro|tojson }};
     var chatsCurso = {{ chats_curso|tojson }};
-    var chatsFuturoCerradas = {{ chats_futuro_cerradas|tojson }};           
-    var chatsCursoCerradas = {{ chats_curso_cerradas|tojson }};
+    var chatsCerradas = {{ chats_cerradas|tojson }};           
 
     function renderChats(chats, titulo) {
         if (chats.length === 0) {
@@ -29,31 +27,36 @@
         }
         var html = '<h5>' + titulo + '</h5><ul class="list-group">';
         chats.forEach(function(chat) {
-            html += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-                '<div style="display: flex; gap: 1rem;">' +
-                    '<span><strong>Propiedad:</strong> ' + chat.casa_nombre + '</span>' +
-                    '<span><strong>Fecha de inicio:</strong> ' + chat.fecha_inicio + '</span>' +
-                    '<span><strong>Fecha de fin:</strong> ' + chat.fecha_fin + '</span>' +
-                    '<span><strong>Cliente:</strong> ' + chat.cliente_nombre + '</span>' +
-                '</div>' +
-                '<a href="/chat?conversacion_id=' + chat.id + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>' +
-                '</li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += '<div style="display: flex; gap: 1rem;">';
+            html += '<span><strong>Propiedad:</strong> ' + chat.casa_nombre + '</span>';
+            html += '<span><strong>Fecha de inicio:</strong> ' + chat.fecha_inicio + '</span>';
+            html += '<span><strong>Fecha de fin:</strong> ' + chat.fecha_fin + '</span>';
+            html += '<span><strong>Cliente:</strong> ' + chat.cliente_nombre + '</span>';
+            html += '</div>';
+            // Solo mostrar un botón por chat, nunca repetir el nombre
+            if (chat.conversacion_ids) {
+                html += '<a href="/chat?fusion=1&conversacion_ids=' + chat.conversacion_ids.join(',') + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>';
+            } else {
+                html += '<a href="/chat?conversacion_id=' + chat.id + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>';
+            }
+            html += '</li>';
         });
         html += '</ul>';
         listado.innerHTML = html;
+        // Agregar listeners para mostrar/ocultar mensajes al hacer click en "Ver chat"
+        // Ya no hay mensajes ocultos ni listeners, solo el botón "Ver chat" para cada fila
     }
 
     btnFuturas.onclick = function() {
-        renderChats(chatsFuturo, 'Chats con reservas a futuro');
+        renderChats(chatsFuturo, 'Chats con estadías a futuro');
     };
     btnCurso.onclick = function() {
-        renderChats(chatsCurso, 'Chats con reservas en curso');
+        renderChats(chatsCurso, 'Chats con estadías en curso');
     };
-    btnFuturasCerradas.onclick = function() {
-        renderChats(chatsFuturoCerradas, 'Chats con reservas a futuros cerrados');
+    btnFinalizadas.onclick = function() {
+        renderChats(chatsCerradas, 'Chats con estadías finalizadas');
     };
-    btnCursoCerradas.onclick = function() {
-        renderChats(chatsCursoCerradas, 'Chats con reservas en curso cerrados');
-    };
+  
 </script>
 {% endblock %}
