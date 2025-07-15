@@ -27,18 +27,25 @@
         }
         var html = '<h5>' + titulo + '</h5><ul class="list-group">';
         chats.forEach(function(chat) {
-            html += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-                '<div style="display: flex; gap: 1rem;">' +
-                    '<span><strong>Propiedad:</strong> ' + chat.casa_nombre + '</span>' +
-                    '<span><strong>Fecha de inicio:</strong> ' + chat.fecha_inicio + '</span>' +
-                    '<span><strong>Fecha de fin:</strong> ' + chat.fecha_fin + '</span>' +
-                    '<span><strong>Cliente:</strong> ' + chat.cliente_nombre + '</span>' +
-                '</div>' +
-                '<a href="/chat?conversacion_id=' + chat.id + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>' +
-                '</li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += '<div style="display: flex; gap: 1rem;">';
+            html += '<span><strong>Propiedad:</strong> ' + chat.casa_nombre + '</span>';
+            html += '<span><strong>Fecha de inicio:</strong> ' + chat.fecha_inicio + '</span>';
+            html += '<span><strong>Fecha de fin:</strong> ' + chat.fecha_fin + '</span>';
+            html += '<span><strong>Cliente:</strong> ' + chat.cliente_nombre + '</span>';
+            html += '</div>';
+            // Solo mostrar un botón por chat, nunca repetir el nombre
+            if (chat.conversacion_ids) {
+                html += '<a href="/chat?fusion=1&conversacion_ids=' + chat.conversacion_ids.join(',') + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>';
+            } else {
+                html += '<a href="/chat?conversacion_id=' + chat.id + '&cliente_nombre=' + encodeURIComponent(chat.cliente_nombre) + '" class="btn btn-sm btn-outline-primary">Ver chat</a>';
+            }
+            html += '</li>';
         });
         html += '</ul>';
         listado.innerHTML = html;
+        // Agregar listeners para mostrar/ocultar mensajes al hacer click en "Ver chat"
+        // Ya no hay mensajes ocultos ni listeners, solo el botón "Ver chat" para cada fila
     }
 
     btnFuturas.onclick = function() {

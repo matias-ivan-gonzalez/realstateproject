@@ -478,7 +478,14 @@ def init_db():
         db.session.add(calificacion4)
         
         
-    
+    fecha_inicio10 = '2025-2-20'
+    fecha_fin10 = '2025-2-25'
+    fecha_inicio_convertida10 = datetime.strptime(fecha_inicio10, '%Y-%m-%d')
+    fecha_fin_convertida10 = datetime.strptime(fecha_fin10, '%Y-%m-%d')
+    reserva10 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop9.id, fecha_inicio=fecha_inicio_convertida10, fecha_fin=fecha_fin_convertida10).first()
+    if not reserva10:
+        reserva10 = Reserva(cliente=cliente, propiedad=prop9, fecha_inicio=fecha_inicio_convertida10, fecha_fin=fecha_fin_convertida10, cantidad_personas=2, estado='concretada')
+        db.session.add(reserva10)
         
         
     db.session.commit()
@@ -535,7 +542,51 @@ def init_db():
     if not msj_10:
         msj_10 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion2, msg='Las térmicas están en el pasillo, al lado de la cocina.')
         db.session.add(msj_10)
+        
+
+        
+    conversacion3 = Conversacion.query.filter_by(cliente_id=cliente.id, estado='cerrada', reserva_id=reserva10.id, tipo='futuro').first()
+    if not conversacion3:
+        conversacion3 = Conversacion(cliente_id=cliente.id, estado='cerrada', reserva_id=reserva10.id, tipo='futuro')
+        db.session.add(conversacion3)
     
+    msj_11 = MensajeChat.query.filter_by(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion3, msg='Hola, me gustaria contactarme con Alquilando').first()
+    if not msj_11:
+        msj_11 = MensajeChat(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion3, msg='Hola, me gustaria contactarme con Alquilando')
+        db.session.add(msj_11)
+    msj_12 = MensajeChat.query.filter_by(user=superuser.nombre, rol=superuser.tipo, conversacion_id=conversacion3.id, msg='Gracias por contactarnos, en un momento estamos con usted.').first()
+    if not msj_12:
+        msj_12 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion3, msg='Gracias por contactarnos, en un momento estamos con usted.')
+        db.session.add(msj_12)
+    msj_13 = MensajeChat.query.filter_by(user=cliente.nombre, rol=cliente.tipo, conversacion_id=conversacion3.id, msg='Hola si, sabe el pronostico?').first()
+    if not msj_13:
+        msj_13 = MensajeChat(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion3, msg='Hola si, sabe el pronostico?')
+        db.session.add(msj_13)
+    msj_14 = MensajeChat.query.filter_by(user=superuser.nombre, rol=superuser.tipo, conversacion_id=conversacion3.id, msg='Honestamente no').first()
+    if not msj_14:
+        msj_14 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion3, msg='Honestamente no')
+        db.session.add(msj_14)
+        
+    conversacion4 = Conversacion.query.filter_by(cliente_id=cliente.id, estado='cerrada', reserva_id=reserva10.id, tipo='curso').first()
+    if not conversacion4:
+        conversacion4 = Conversacion(cliente_id=cliente.id, estado='cerrada', reserva_id=reserva10.id, tipo='curso')
+        db.session.add(conversacion4)
+    msj_15 = MensajeChat.query.filter_by(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion4, msg='Hola, me gustaria contactarme con Alquilando').first()
+    if not msj_15:
+        msj_15 = MensajeChat(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion4, msg='Hola, me gustaria contactarme con Alquilando')
+        db.session.add(msj_15)
+    msj_16 = MensajeChat.query.filter_by(user=superuser.nombre, rol=superuser.tipo, conversacion_id=conversacion4.id, msg='Gracias por contactarnos, en un momento estamos con usted.').first()
+    if not msj_16:
+        msj_16 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion4, msg='Gracias por contactarnos, en un momento estamos con usted.')
+        db.session.add(msj_16)
+    msj_17 = MensajeChat.query.filter_by(user=cliente.nombre, rol=cliente.tipo, conversacion_id=conversacion4.id, msg='No encuentro las ollas').first()
+    if not msj_17:
+        msj_17 = MensajeChat(user=cliente.nombre, rol=cliente.tipo, conversacion=conversacion4, msg='No encuentro las ollas')
+        db.session.add(msj_17)
+    msj_18 = MensajeChat.query.filter_by(user=superuser.nombre, rol=superuser.tipo, conversacion_id=conversacion4.id, msg='Las ollas están en el mueble de la cocina, al lado del horno.').first()
+    if not msj_18:
+        msj_18 = MensajeChat(user=superuser.nombre, rol=superuser.tipo, conversacion=conversacion4, msg='Las ollas están en el mueble de la cocina, al lado del horno.')
+        db.session.add(msj_18)
     db.session.commit()
 
     # Favoritos
