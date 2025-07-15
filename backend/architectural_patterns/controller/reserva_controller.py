@@ -35,10 +35,10 @@ class ReservaController:
             db.session.add(reserva)
             db.session.commit()
             # Calcular el monto del pago según el porcentaje de la propiedad
-            noches = (fecha_fin_dt - fecha_inicio_dt).days
-            if noches < 1:
-                noches = 1
-            monto_total = float(propiedad.precio * noches)
+            dias = (fecha_fin_dt - fecha_inicio_dt).days + 1
+            if dias < 1:
+                dias = 1
+            monto_total = float(propiedad.precio * dias)
             porcentaje = propiedad.porcentaje_pago_reserva
             fecha_cobro_total = fecha_inicio_dt
             print(f"[DEBUG] porcentaje_pago_reserva: {porcentaje} (type: {type(porcentaje)})")
@@ -177,10 +177,10 @@ class ReservaController:
             fecha_fin = data['fecha_fin']
             cantidad_huespedes = int(data['huespedes'])
             propiedad = Propiedad.query.get_or_404(propiedad_id)
-            noches = (datetime.strptime(fecha_fin, '%Y-%m-%d') - datetime.strptime(fecha_inicio, '%Y-%m-%d')).days
-            if noches < 1:
-                noches = 1
-            monto_total = float(propiedad.precio * noches)
+            dias = (datetime.strptime(fecha_fin, '%Y-%m-%d') - datetime.strptime(fecha_inicio, '%Y-%m-%d')).days + 1
+            if dias < 1:
+                dias = 1
+            monto_total = float(propiedad.precio * dias)
             porcentaje = propiedad.porcentaje_pago_reserva
             monto_a_pagar = round(monto_total * (porcentaje / 100), 2) if porcentaje > 0 else monto_total
             sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
