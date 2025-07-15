@@ -1,10 +1,10 @@
 {% extends "base_hero.html" %}
 
-{% block title %}Clientes calificables{% endblock %}
+{% block title %}Calificaciones pendientes{% endblock %}
 
 {% block hero_content %}
 <div class="container mt-4">
-    <h2 class="mb-4 text-center">Clientes calificables</h2>
+    <h2 class="mb-4 text-center">Calificaciones pendientes</h2>
     {% if reservas %}
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
@@ -25,7 +25,7 @@
                     <td>{{ reserva.fecha_inicio.strftime('%d/%m/%Y') }}</td>
                     <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
                     <td>
-                        <a href="{{ url_for('main.calificar_cliente', reserva_id=reserva.id) }}" class="btn btn-primary btn-sm">Calificar cliente</a>
+                        <a href="{{ url_for('main.calificar_cliente', reserva_id=reserva.id) }}" class="btn btn-primary btn-sm">Calificar estadía</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -33,7 +33,7 @@
         </table>
     </div>
     {% else %}
-    <div class="alert alert-info text-center">No hay clientes calificables en este momento.</div>
+    <div class="alert alert-info text-center">No hay estadías calificables en este momento.</div>
     {% endif %}
 </div>
 {% endblock %} 
