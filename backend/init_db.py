@@ -298,13 +298,22 @@ def init_db():
     
         
     # Reservas
-    fecha_inicio = '2025-6-24'	
+    hoy = datetime.now().date()
+    def estado_reserva(fecha_inicio, fecha_fin):
+        if fecha_fin < hoy:
+            return 'concretada'
+        elif fecha_inicio > hoy:
+            return 'futura'
+        else:
+            return 'curso'
+
+    fecha_inicio = '2025-6-24'    
     fecha_fin = '2025-6-30'
     fecha_inicio_convertida = datetime.strptime(fecha_inicio, '%Y-%m-%d')
     fecha_fin_convertida = datetime.strptime(fecha_fin, '%Y-%m-%d')
     reserva1 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida).first()
     if not reserva1:
-        reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3, estado='concretada')
+        reserva1 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida, fecha_fin=fecha_fin_convertida, cantidad_personas=3, estado=estado_reserva(fecha_inicio_convertida.date(), fecha_fin_convertida.date()))
         db.session.add(reserva1)
 
     # Segunda reserva para pruebas de calificación (junio, concretada)
@@ -314,7 +323,7 @@ def init_db():
     fecha_fin_convertida2 = datetime.strptime(fecha_fin2, '%Y-%m-%d')
     reserva2 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2).first()
     if not reserva2:
-        reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2, estado='concretada')
+        reserva2 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida2, fecha_fin=fecha_fin_convertida2, cantidad_personas=2, estado=estado_reserva(fecha_inicio_convertida2.date(), fecha_fin_convertida2.date()))
         db.session.add(reserva2)
 
     # Tercera reserva en el pasado para probar 'No calificada' (pendiente)
@@ -324,7 +333,7 @@ def init_db():
     fecha_fin_convertida3 = datetime.strptime(fecha_fin3, '%Y-%m-%d')
     reserva3 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3).first()
     if not reserva3:
-        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2, estado='futura')
+        reserva3 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida3, fecha_fin=fecha_fin_convertida3, cantidad_personas=2, estado=estado_reserva(fecha_inicio_convertida3.date(), fecha_fin_convertida3.date()))
         db.session.add(reserva3)
 
     # Cuarta reserva en julio (pendiente) - Casa Palermo
@@ -334,7 +343,7 @@ def init_db():
     fecha_fin_convertida4 = datetime.strptime(fecha_fin4, '%Y-%m-%d')
     reserva4 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4).first()
     if not reserva4:
-        reserva4 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado='futura')
+        reserva4 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida4, fecha_fin=fecha_fin_convertida4, cantidad_personas=2, estado=estado_reserva(fecha_inicio_convertida4.date(), fecha_fin_convertida4.date()))
         db.session.add(reserva4)
 
     # Reserva en agosto (pendiente) - Casa Palermo, fechas no superpuestas
@@ -344,7 +353,7 @@ def init_db():
     fecha_fin_convertida6 = datetime.strptime(fecha_fin6, '%Y-%m-%d')
     reserva6 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6).first()
     if not reserva6:
-        reserva6 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6, cantidad_personas=3, estado='futura')
+        reserva6 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida6, fecha_fin=fecha_fin_convertida6, cantidad_personas=3, estado=estado_reserva(fecha_inicio_convertida6.date(), fecha_fin_convertida6.date()))
         db.session.add(reserva6)
 
     # Reserva concretada en agosto (Casa Palermo, fechas no superpuestas)
@@ -354,7 +363,7 @@ def init_db():
     fecha_fin_convertida7 = datetime.strptime(fecha_fin7, '%Y-%m-%d')
     reserva7 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop1.id, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7).first()
     if not reserva7:
-        reserva7 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7, cantidad_personas=2, estado='concretada')
+        reserva7 = Reserva(cliente=cliente, propiedad=prop1, fecha_inicio=fecha_inicio_convertida7, fecha_fin=fecha_fin_convertida7, cantidad_personas=2, estado=estado_reserva(fecha_inicio_convertida7.date(), fecha_fin_convertida7.date()))
         db.session.add(reserva7)
 
     # Reserva concretada en prop10 (junio-julio, fechas no superpuestas con prop2)
@@ -364,16 +373,15 @@ def init_db():
     fecha_fin_convertida5 = datetime.strptime(fecha_fin5, '%Y-%m-%d')
     reserva5 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop10.id, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5).first()
     if not reserva5:    
-        reserva5 = Reserva(cliente=cliente, propiedad=prop10, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5, cantidad_personas=2, estado='concretada')
+        reserva5 = Reserva(cliente=cliente, propiedad=prop10, fecha_inicio=fecha_inicio_convertida5, fecha_fin=fecha_fin_convertida5, cantidad_personas=2, estado=estado_reserva(fecha_inicio_convertida5.date(), fecha_fin_convertida5.date()))
         db.session.add(reserva5)
 
     # Reserva en curso para pruebas
-    hoy = datetime.now().date()
     fecha_inicio_curso = hoy - timedelta(days=1)
     fecha_fin_curso = hoy + timedelta(days=3)
     reserva_curso = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop2.id, fecha_inicio=fecha_inicio_curso, fecha_fin=fecha_fin_curso).first()
     if not reserva_curso:
-        reserva_curso = Reserva(cliente=cliente, propiedad=prop2, fecha_inicio=fecha_inicio_curso, fecha_fin=fecha_fin_curso, cantidad_personas=2, estado='curso')
+        reserva_curso = Reserva(cliente=cliente, propiedad=prop2, fecha_inicio=fecha_inicio_curso, fecha_fin=fecha_fin_curso, cantidad_personas=2, estado=estado_reserva(fecha_inicio_curso, fecha_fin_curso))
         db.session.add(reserva_curso)
     # Quitar el encargado asignado a prop2
     prop2.encargado_id = None

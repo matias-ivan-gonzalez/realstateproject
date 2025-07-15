@@ -24,9 +24,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const blockedDates = getBlockedDates();
     const today = new Date().toISOString().slice(0,10);
+    const currentYear = new Date().getFullYear();
 
     function flatpickrOptions(inputId) {
-        return {
+        let options = {
             dateFormat: 'Y-m-d',
             minDate: today,
             disable: [
@@ -46,6 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         };
+        // Para encargados, limitar solo al año actual
+        if (window.esEncargado) {
+            options.maxDate = `${currentYear}-12-31`;
+            options.minDate = today;
+        }
+        return options;
     }
 
     if (document.getElementById('fecha_inicio')) {
@@ -71,11 +78,21 @@ document.addEventListener('DOMContentLoaded', function() {
                             maxDate = max.toISOString().slice(0,10);
                             window.flatpickrFin.set('maxDate', maxDate);
                         } else {
-                            window.flatpickrFin.set('maxDate', null);
+                            // Para encargados, limitar al año actual
+                            if (window.esEncargado) {
+                                window.flatpickrFin.set('maxDate', `${currentYear}-12-31`);
+                            } else {
+                                window.flatpickrFin.set('maxDate', null);
+                            }
                         }
                     } else {
                         window.flatpickrFin.set('minDate', today);
-                        window.flatpickrFin.set('maxDate', null);
+                        // Para encargados, limitar al año actual
+                        if (window.esEncargado) {
+                            window.flatpickrFin.set('maxDate', `${currentYear}-12-31`);
+                        } else {
+                            window.flatpickrFin.set('maxDate', null);
+                        }
                     }
                     window.flatpickrFin.set('disable', disables);
                     // Forzar redibujado visual del calendario de fin
@@ -117,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }));
     }
 
-    // --- Enable/disable Ocupar button for admin/superuser ---
+    // --- Enable/disable Ocupar button for admin/superuser/encargado ---
     var btnOcupar = document.getElementById('btn-ocupar-admin');
     var inputInicio = document.getElementById('fecha_inicio');
     var inputFin = document.getElementById('fecha_fin');

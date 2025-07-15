@@ -57,5 +57,7 @@
 <script>
   window.fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
   window.fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+  window.diasOcupadosEncargado = {{ dias_ocupados_encargado|default(0)|tojson|safe }};
+  window.esEncargado = {{ (session.rol == 'encargado' and propiedad.encargado_id == session.user_id)|tojson|safe }};
 </script>
 {% endblock %} 

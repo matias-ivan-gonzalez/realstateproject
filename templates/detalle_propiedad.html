@@ -344,7 +344,10 @@
             <a href="{{ url_for('main.inhabilitar_propiedad_form', propiedad_id=propiedad.id) }}" class="btn btn-warning">
                 <i class="fas fa-ban"></i> Inhabilitar Propiedad
             </a>
-            <a href="{{ url_for('main.ocupar_propiedad_form', propiedad_id=propiedad.id) }}" class="btn btn-primary">
+            {% set disable_ocupar = session.rol == 'encargado' and propiedad.encargado_id == session.user_id and dias_ocupados_encargado is not none and dias_ocupados_encargado >= 15 %}
+            <a href="{{ url_for('main.ocupar_propiedad_form', propiedad_id=propiedad.id) }}"
+               class="btn btn-primary{% if disable_ocupar %} disabled{% endif %}"
+               {% if disable_ocupar %} tabindex="-1" aria-disabled="true" title="Ya has ocupado 15 días este año" style="pointer-events:none;opacity:0.6;"{% endif %}>
                 <i class="fa-solid fa-user-check me-1"></i> Ocupar Propiedad
             </a>
         </div>
