@@ -382,8 +382,17 @@ def ver_chats():
 
     chats_futuro = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='abierta').all(), 'futuro')
     chats_curso = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='abierta').all(), 'curso')
+
     chats_futuro_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all(), 'futuro')
     chats_curso_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='cerrada').all(), 'curso')
+    todas_cerradas = chats_futuro_cerradas + chats_curso_cerradas
+    # Agrupar por reserva_id y quedarnos con una sola conversacion por reserva (la más reciente por id)
+    chats_cerradas_dict = {}
+    for chat in todas_cerradas:
+        # Si ya hay una conversacion para esa reserva, dejamos la de mayor id (más reciente)
+        if chat.reserva_id not in chats_cerradas_dict or chat.id > chats_cerradas_dict[chat.reserva_id].id:
+            chats_cerradas_dict[chat.reserva_id] = chat
+    chats_cerradas = list(chats_cerradas_dict.values())
 
     def serializar_chat(chat):
         cliente = Cliente.query.get(chat.cliente_id)
@@ -401,9 +410,8 @@ def ver_chats():
 
     chats_futuro = [serializar_chat(c) for c in chats_futuro]
     chats_curso = [serializar_chat(c) for c in chats_curso]
-    chats_futuro_cerradas = [serializar_chat(c) for c in chats_futuro_cerradas]
-    chats_curso_cerradas = [serializar_chat(c) for c in chats_curso_cerradas]
-    return render_template('ver_chats.html', chats_futuro=chats_futuro, chats_curso=chats_curso, chats_futuro_cerradas=chats_futuro_cerradas, chats_curso_cerradas=chats_curso_cerradas)
+    chats_cerradas = [serializar_chat(c) for c in chats_cerradas]
+    return render_template('ver_chats.html', chats_futuro=chats_futuro, chats_curso=chats_curso, chats_cerradas=chats_cerradas)
 
 
 from architectural_patterns.controller.user_controller import UserController
