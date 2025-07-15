@@ -40,7 +40,7 @@
                                         Pagado
                                     {% elif pago.status == 'pending' %}
                                         Pendiente
-                                        <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="El pago se debitará de la tarjeta registrada por el cliente en el día de cobro indicado">
+                                        <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="El pago se programó en la tarjeta registrada en la próxima liquidación diaria">
                                             <span class="badge bg-info text-dark" style="cursor:pointer; margin-left:4px; font-size:0.85em;">info</span>
                                         </span>
                                     {% elif pago.status == 'cancelled' %}
