@@ -26,32 +26,46 @@ Chat
 <div class="container mt-4">
     <h2 class="mb-4" id="chat-title-h2"></h2>
     <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ccc; border-radius:8px; padding:1rem; background:#fafbfc;"></div>
-    {% raw %}
     <div id="chat-cerrado-aviso" style="display:none;" class="alert alert-warning mt-2 mb-0 py-2 px-3">Este chat está cerrado, no se pueden enviar mensajes.</div>
-    {% endraw %}
     <form id="chat-form" class="mt-3 d-flex gap-2">
         <input id="chat-input" type="text" class="form-control" placeholder="Escribe un mensaje..." autocomplete="off" required>
         <button type="submit" class="btn btn-primary" id="chat-send-btn">Enviar</button>
     </form>
     <script>
-    // Esperar a que el DOM y los scripts de abajo estén listos
-    window.addEventListener('DOMContentLoaded', function() {
+// Variables inyectadas por el backend para soporte de fusión
+var chatCerrado = {{ chat_cerrado|tojson|default('false') }};
+var mensajes = {{ mensajes|tojson|default('null') }};
+// Esperar a que el DOM y los scripts de abajo estén listos
+window.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
             var chatInput = document.getElementById('chat-input');
             var chatSendBtn = document.getElementById('chat-send-btn');
             var chatCerradoAviso = document.getElementById('chat-cerrado-aviso');
-            if (window.estado_chat === 'cerrada') {
+            // Detectar si la URL tiene fusion=1 (o merge=1) y deshabilitar el chat para el cliente
+            var urlParams = new URLSearchParams(window.location.search);
+            var isFusion = urlParams.get('fusion') === '1' || urlParams.get('merge') === '1';
+            if (window.estado_chat === 'cerrada' || chatCerrado || (window.isCliente && isFusion)) {
                 if (chatInput) chatInput.disabled = true;
                 if (chatSendBtn) {
                     chatSendBtn.disabled = true;
                     chatSendBtn.textContent = 'Chat cerrado';
                 }
                 if (chatCerradoAviso) chatCerradoAviso.style.display = 'block';
+                if (document.getElementById('chat-form')) {
+                    document.getElementById('chat-form').style.display = 'none';
+                }
+            }
+            // Si el backend pasó mensajes fusionados, renderizarlos directamente
+            if (mensajes && Array.isArray(mensajes) && mensajes.length > 0) {
+                var chatBox = document.getElementById('chat-box');
+                chatBox.innerHTML = '';
+                mensajes.forEach(function(data) {
+                    renderChatMessage(data);
+                });
             }
         }, 0);
     });
     </script>
-    
 </div>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
@@ -165,27 +179,7 @@ Chat
             socket.emit('listar_conversaciones');
 
             socket.on('conversaciones_list', function(convs) {
-                convs.forEach(function(c) {
-                    var row = document.createElement('div');
-                    row.className = 'conversation-row';
-                    row.textContent = c.cliente_nombre || 'Cliente ' + c.cliente_id;
-
-                    var btn = document.createElement('button');
-                    btn.textContent = 'Ver chat';
-                    btn.className = 'btn btn-primary btn-sm ms-2';
-                    btn.onclick = function() {
-                        conversacionId = c.id;
-                        chatBox.innerHTML = '';
-                        chatForm.style.display = '';
-                        socket.emit('join_chat', { conversacion_id: conversacionId });
-                        socket.emit('get_chat_history', { conversacion_id: conversacionId });
-
-                        document.title = 'Chat con ' + (c.cliente_nombre || 'Cliente ' + c.cliente_id);
-                        if (chatTitleH2) chatTitleH2.textContent = 'Chat con ' + (c.cliente_nombre || 'Cliente ' + c.cliente_id);
-                    };
-                    row.appendChild(btn);
-                    listaDiv.appendChild(row);
-                });
+                // Eliminar la lista y los botones, no mostrar nada aquí
             });
         }
     }

@@ -26,6 +26,9 @@ main = Blueprint('main', __name__)
 
 @main.route('/propiedad/<int:propiedad_id>/estadisticas')
 def estadisticas_propiedad(propiedad_id):
+    if 'rol' not in session or session['rol'] not in ['administrador', 'superusuario']:
+        flash('Solo los administradores pueden acceder a las estadísticas de propiedad.', 'danger')
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     from architectural_patterns.controller.propiedad_controller import PropiedadController
     from datetime import datetime
     mes = request.args.get('mes', datetime.now().month, type=int)
@@ -312,35 +315,56 @@ from flask import request
 def chat():
     from flask import session
     from models.conversacion import Conversacion
+    from models.mensaje_chat import MensajeChat
     reserva_id = request.args.get('reserva_id')
     tipo = request.args.get('tipo')
     conversacion_id = request.args.get('conversacion_id')
-    merge = request.args.get('merge') == '1'
-    conversacion = None
+    fusion = request.args.get('fusion') == '1'
+    conversacion_ids = request.args.get('conversacion_ids')
+    mensajes = []
     estado_chat = 'abierta'
-    if conversacion_id:
-        conversacion = Conversacion.query.get(conversacion_id)
-        if conversacion:
-            reserva_id = conversacion.reserva_id
-            tipo = conversacion.tipo
-            estado_chat = conversacion.estado
-    elif session.get('rol') == 'cliente':
-        if merge and reserva_id:
-            # Buscar todas las conversaciones de la reserva para el cliente
-            convs = Conversacion.query.filter_by(reserva_id=reserva_id, cliente_id=session.get('user_id')).all()
-            if convs:
-                # Si todas están cerradas, el chat está cerrado; si alguna está abierta, está abierto
-                if all(c.estado == 'cerrada' for c in convs):
-                    estado_chat = 'cerrada'
-                else:
-                    estado_chat = 'abierta'
+    chat_cerrado = False
+    conversacion = None
+
+    if fusion and conversacion_ids:
+        # Fusionar mensajes de varias conversaciones
+        ids = [int(cid) for cid in conversacion_ids.split(',') if cid.isdigit()]
+        conversaciones = Conversacion.query.filter(Conversacion.id.in_(ids)).all()
+        if conversaciones:
+            reserva_id = conversaciones[0].reserva_id
+            tipo = conversaciones[0].tipo
+            # Obtener todos los mensajes de todas las conversaciones
+            for conv in conversaciones:
+                mensajes += MensajeChat.query.filter_by(conversacion_id=conv.id).all()
+            mensajes.sort(key=lambda m: m.timestamp)
+            mensajes = [m.to_dict() for m in mensajes]
+            # Si todas las conversaciones están cerradas, marcar como cerrado
+            if all(conv.estado == 'cerrada' for conv in conversaciones):
+                estado_chat = 'cerrada'
+                chat_cerrado = True
             else:
                 estado_chat = 'abierta'
         else:
+            mensajes = []
+    else:
+        if conversacion_id:
+            conversacion = Conversacion.query.get(conversacion_id)
+            if conversacion:
+                reserva_id = conversacion.reserva_id
+                tipo = conversacion.tipo
+                estado_chat = conversacion.estado
+                mensajes = [m.to_dict() for m in MensajeChat.query.filter_by(conversacion_id=conversacion.id).order_by(MensajeChat.timestamp).all()]
+                if conversacion.estado == 'cerrada':
+                    chat_cerrado = True
+        elif session.get('rol') == 'cliente':
             conversacion = Conversacion.query.filter_by(reserva_id=reserva_id, tipo=tipo, cliente_id=session.get('user_id')).first()
             if conversacion:
                 estado_chat = conversacion.estado
-    return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo, estado_chat=estado_chat)
+                mensajes = [m.to_dict() for m in MensajeChat.query.filter_by(conversacion_id=conversacion.id).order_by(MensajeChat.timestamp).all()]
+                if conversacion.estado == 'cerrada':
+                    chat_cerrado = True
+
+    return render_template('chat.html', session=session, reserva_id=reserva_id, tipo=tipo, estado_chat=estado_chat, mensajes=mensajes, chat_cerrado=chat_cerrado)
 
 @main.route('/ver-chats')
 @login_required
@@ -382,8 +406,49 @@ def ver_chats():
 
     chats_futuro = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='abierta').all(), 'futuro')
     chats_curso = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='abierta').all(), 'curso')
+
     chats_futuro_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='futuro', estado='cerrada').all(), 'futuro')
     chats_curso_cerradas = filtrar_chats_para_admin(Conversacion.query.filter_by(tipo='curso', estado='cerrada').all(), 'curso')
+    todas_cerradas = chats_futuro_cerradas + chats_curso_cerradas
+    # Fusionar conversaciones cerradas por reserva_id
+    from models.mensaje_chat import MensajeChat
+    chats_cerradas_dict = {}
+    for chat in todas_cerradas:
+        if chat.reserva_id not in chats_cerradas_dict:
+            chats_cerradas_dict[chat.reserva_id] = []
+        chats_cerradas_dict[chat.reserva_id].append(chat)
+    chats_cerradas_fusionadas = []
+    for reserva_id, chats in chats_cerradas_dict.items():
+        # Fusionar mensajes de todas las conversaciones cerradas de la reserva
+        mensajes = []
+        for chat in chats:
+            mensajes += MensajeChat.query.filter_by(conversacion_id=chat.id).all()
+        mensajes.sort(key=lambda m: (getattr(m, 'timestamp', None) or getattr(m, 'fecha_envio', None) or m.id))
+        chat_base = chats[0]
+        cliente = Cliente.query.get(chat_base.cliente_id)
+        reserva = Reserva.query.get(reserva_id)
+        propiedad = Propiedad.query.get(reserva.propiedad_id) if reserva else None
+        chats_cerradas_fusionadas.append({
+            'id': max([c.id for c in chats]),
+            'cliente_id': chat_base.cliente_id,
+            'cliente_nombre': f"{cliente.nombre} {cliente.apellido}" if cliente else f"Cliente {chat_base.cliente_id}",
+            'reserva_id': reserva_id,
+            'casa_nombre': propiedad.nombre if propiedad else "Propiedad desconocida",
+            'fecha_inicio': reserva.fecha_inicio.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'fecha_fin': reserva.fecha_fin.strftime('%Y-%m-%d') if reserva else "Fecha desconocida",
+            'mensajes': [
+                {
+                    'id': m.id,
+                    'conversacion_id': m.conversacion_id,
+                    'user': m.user,
+                    'rol': m.rol,
+                    'msg': m.msg,
+                    'timestamp': m.timestamp.strftime('%Y-%m-%d %H:%M:%S') if getattr(m, 'timestamp', None) else None
+                } for m in mensajes
+            ],
+            'conversacion_ids': [c.id for c in chats],
+            'tipo': ','.join(sorted(set([c.tipo for c in chats])))
+        })
 
     def serializar_chat(chat):
         cliente = Cliente.query.get(chat.cliente_id)
@@ -401,9 +466,8 @@ def ver_chats():
 
     chats_futuro = [serializar_chat(c) for c in chats_futuro]
     chats_curso = [serializar_chat(c) for c in chats_curso]
-    chats_futuro_cerradas = [serializar_chat(c) for c in chats_futuro_cerradas]
-    chats_curso_cerradas = [serializar_chat(c) for c in chats_curso_cerradas]
-    return render_template('ver_chats.html', chats_futuro=chats_futuro, chats_curso=chats_curso, chats_futuro_cerradas=chats_futuro_cerradas, chats_curso_cerradas=chats_curso_cerradas)
+    # chats_cerradas_fusionadas ya está serializado y contiene los mensajes fusionados
+    return render_template('ver_chats.html', chats_futuro=chats_futuro, chats_curso=chats_curso, chats_cerradas=chats_cerradas_fusionadas)
 
 
 from architectural_patterns.controller.user_controller import UserController
@@ -412,7 +476,7 @@ user_controller = UserController()
 @main.route('/reservas/futuras')
 def reservas_futuras():
     if session.pop('show_extension_flash', None):
-        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
+        flash('Reserva extendida, se programa el cobro en la tarjeta registrada en la próxima liquidación diaria', 'success')
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
     # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
@@ -455,7 +519,7 @@ def calificaciones_editables():
 @main.route('/reservas/activas')
 def reservas_activas():
     if session.pop('show_extension_flash', None):
-        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
+        flash('Reserva extendida, se programa el cobro en la tarjeta registrada en la próxima liquidación diaria', 'success')
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
@@ -776,25 +840,11 @@ def ver_pago_reserva(reserva_id):
     from datetime import datetime, timedelta
     reserva = Reserva.query.get_or_404(reserva_id)
     pagos = reserva.pagos
-    hoy = datetime.now().date()
-    porcentaje = reserva.propiedad.porcentaje_pago_reserva
-    dias_antes = (reserva.fecha_inicio - hoy).days
     pagos_vista = []
-    regla_especial = dias_antes <= 2 and porcentaje in [0, 20]
     for pago in pagos:
         pago_dict = pago.__dict__.copy()
-        # Si es el pago del 20% (anticipo), la fecha de cobro siempre es hoy
-        if porcentaje == 20 and pago.monto == round((reserva.propiedad.precio * (reserva.fecha_fin - reserva.fecha_inicio).days) * 0.2, 2):
-            pago_dict['fecha_cobro_total'] = datetime.now()
-            if regla_especial:
-                pago_dict['status'] = 'paid'
-        # Si aplica la regla especial (reserva inmediata), todos los pagos son pagados hoy
-        elif regla_especial:
-            pago_dict['status'] = 'paid'
-            pago_dict['fecha_cobro_total'] = datetime.now()
-        # Si es porcentaje 0 o 100, la fecha de cobro es hoy
-        elif porcentaje in [0, 100]:
-            pago_dict['fecha_cobro_total'] = datetime.now()
+        # Mostrar el estado real del pago
+        pago_dict['status'] = pago.status
         pagos_vista.append(pago_dict)
     return render_template('detalle_pago.html', reserva=reserva, pagos=pagos_vista, timedelta=timedelta)
 

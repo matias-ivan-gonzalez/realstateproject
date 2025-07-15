@@ -10,34 +10,32 @@ class PropiedadService:
         reservas_mes = [r for r in reservas if r.fecha_inicio.month == mes and r.fecha_inicio.year == anio]
         reservas_concretadas = len([r for r in reservas_mes if r.estado == 'concretada'])
         reservas_canceladas = len([r for r in reservas_mes if r.estado == 'cancelada'])
-        total_noches = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_mes if r.estado == 'concretada')
-        promedio_dias_reserva = round(total_noches / reservas_concretadas, 2) if reservas_concretadas else 0
+        total_dias = sum((r.fecha_fin - r.fecha_inicio).days + 1 for r in reservas_mes if r.estado == 'concretada')
+        promedio_dias_reserva = round(total_dias / reservas_concretadas, 2) if reservas_concretadas else 0
         # Porcentaje de ocupación mensual
         dias_mes = (date(anio, mes % 12 + 1, 1) - date(anio, mes, 1)).days if mes < 12 else 31
-        porcentaje_ocupacion = round((total_noches / dias_mes) * 100, 2) if dias_mes else 0
-        ingresos_estimados = round(total_noches * propiedad.precio, 2)
+        porcentaje_ocupacion = round((total_dias / dias_mes) * 100, 2) if dias_mes else 0
+        ingresos_estimados = round(total_dias * propiedad.precio, 2)
 
         # Estadísticas anuales
         reservas_anio_list = [r for r in reservas if r.fecha_inicio.year == anio]
         reservas_anio_concretadas = len([r for r in reservas_anio_list if r.estado == 'concretada'])
         reservas_anio_canceladas = len([r for r in reservas_anio_list if r.estado == 'cancelada'])
-        total_noches_anio = sum((r.fecha_fin - r.fecha_inicio).days for r in reservas_anio_list if r.estado == 'concretada')
-        promedio_dias_reserva_anio = round(total_noches_anio / reservas_anio_concretadas, 2) if reservas_anio_concretadas else 0
+        total_dias_anio = sum((r.fecha_fin - r.fecha_inicio).days + 1 for r in reservas_anio_list if r.estado == 'concretada')
+        promedio_dias_reserva_anio = round(total_dias_anio / reservas_anio_concretadas, 2) if reservas_anio_concretadas else 0
         dias_anio = 366 if ((anio % 4 == 0 and anio % 100 != 0) or (anio % 400 == 0)) else 365
-        porcentaje_ocupacion_anio = round((total_noches_anio / dias_anio) * 100, 2) if dias_anio else 0
-        ingresos_estimados_anio = round(total_noches_anio * propiedad.precio, 2)
+        porcentaje_ocupacion_anio = round((total_dias_anio / dias_anio) * 100, 2) if dias_anio else 0
+        ingresos_estimados_anio = round(total_dias_anio * propiedad.precio, 2)
 
         return {
             'reservas_concretadas': reservas_concretadas,
             'reservas_canceladas': reservas_canceladas,
             'promedio_dias_reserva': promedio_dias_reserva,
-            'total_noches': total_noches,
             'porcentaje_ocupacion': porcentaje_ocupacion,
             'ingresos_estimados': ingresos_estimados,
             'reservas_anio_concretadas': reservas_anio_concretadas,
             'reservas_anio_canceladas': reservas_anio_canceladas,
             'promedio_dias_reserva_anio': promedio_dias_reserva_anio,
-            'total_noches_anio': total_noches_anio,
             'porcentaje_ocupacion_anio': porcentaje_ocupacion_anio,
             'ingresos_estimados_anio': ingresos_estimados_anio
         }

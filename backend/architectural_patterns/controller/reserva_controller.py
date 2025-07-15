@@ -303,8 +303,8 @@ class ReservaController:
                 monto=monto_total,
                 reserva_id=reserva.id,
                 fecha_emision=datetime.utcnow(),
-                status='paid',
-                fecha_cobro_total=datetime.now()
+                status='pending',
+                fecha_cobro_total=None
             )
             db.session.add(pago_ext)
             db.session.commit()
