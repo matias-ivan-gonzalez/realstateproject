@@ -488,6 +488,15 @@ def init_db():
         db.session.add(reserva10)
         
         
+    fecha_inicio11 = '2025-7-14'
+    fecha_fin11 = '2025-7-20'
+    fecha_inicio_convertida11 = datetime.strptime(fecha_inicio11, '%Y-%m-%d')
+    fecha_fin_convertida11 = datetime.strptime(fecha_fin11, '%Y-%m-%d')
+    reserva11 = Reserva.query.filter_by(cliente_id=cliente.id, propiedad_id=prop8.id, fecha_inicio=fecha_inicio_convertida11, fecha_fin=fecha_fin_convertida11).first()
+    if not reserva11:
+        reserva11 = Reserva(cliente=cliente, propiedad=prop8, fecha_inicio=fecha_inicio_convertida11, fecha_fin=fecha_fin_convertida11, cantidad_personas=2, estado='concretada')
+        db.session.add(reserva11)
+        
     db.session.commit()
     
     # Conversaciones
