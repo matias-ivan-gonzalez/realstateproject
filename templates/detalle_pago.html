@@ -28,11 +28,14 @@
                             <tr>
                                 <td>${{ pago.monto }}</td>
                                 <td>
-                                    {% if pago.fecha_cobro_total %}
+                                    {% if pago.status == 'cancelled' %}
+                                        -
+                                    {% elif pago.status == 'pending' %}
+                                        Se programa el cobro en la tarjeta registrada en la próxima liquidación diaria
+                                    {% elif pago.fecha_cobro_total %}
                                         {{ pago.fecha_cobro_total.strftime('%d/%m/%Y') }}
                                     {% else %}
-                                        {% set fecha_cobro = (reserva.fecha_fin - timedelta(days=2)) %}
-                                        {{ fecha_cobro.strftime('%d/%m/%Y') }}
+                                        -
                                     {% endif %}
                                 </td>
                                 <td>
@@ -40,9 +43,6 @@
                                         Pagado
                                     {% elif pago.status == 'pending' %}
                                         Pendiente
-                                        <span tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="El pago se debitará de la tarjeta registrada por el cliente en el día de cobro indicado">
-                                            <span class="badge bg-info text-dark" style="cursor:pointer; margin-left:4px; font-size:0.85em;">info</span>
-                                        </span>
                                     {% elif pago.status == 'cancelled' %}
                                         Cancelado
                                     {% else %}

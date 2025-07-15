@@ -476,7 +476,7 @@ user_controller = UserController()
 @main.route('/reservas/futuras')
 def reservas_futuras():
     if session.pop('show_extension_flash', None):
-        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
+        flash('Reserva extendida, se programa el cobro en la tarjeta registrada en la próxima liquidación diaria', 'success')
     reservas = user_controller.obtener_reservas_futuras(session)
     current_date = datetime.now().date()
     # Armar fechas ocupadas y reservadas para todas las propiedades de las reservas
@@ -519,7 +519,7 @@ def calificaciones_editables():
 @main.route('/reservas/activas')
 def reservas_activas():
     if session.pop('show_extension_flash', None):
-        flash('Reserva extendida exitosamente, se debitará de su tarjeta asociada.', 'success')
+        flash('Reserva extendida, se programa el cobro en la tarjeta registrada en la próxima liquidación diaria', 'success')
     user_controller = UserController()
     reservas = user_controller.obtener_reservas_activas(session)
     current_date = datetime.now().date()
@@ -840,25 +840,11 @@ def ver_pago_reserva(reserva_id):
     from datetime import datetime, timedelta
     reserva = Reserva.query.get_or_404(reserva_id)
     pagos = reserva.pagos
-    hoy = datetime.now().date()
-    porcentaje = reserva.propiedad.porcentaje_pago_reserva
-    dias_antes = (reserva.fecha_inicio - hoy).days
     pagos_vista = []
-    regla_especial = dias_antes <= 2 and porcentaje in [0, 20]
     for pago in pagos:
         pago_dict = pago.__dict__.copy()
-        # Si es el pago del 20% (anticipo), la fecha de cobro siempre es hoy
-        if porcentaje == 20 and pago.monto == round((reserva.propiedad.precio * (reserva.fecha_fin - reserva.fecha_inicio).days) * 0.2, 2):
-            pago_dict['fecha_cobro_total'] = datetime.now()
-            if regla_especial:
-                pago_dict['status'] = 'paid'
-        # Si aplica la regla especial (reserva inmediata), todos los pagos son pagados hoy
-        elif regla_especial:
-            pago_dict['status'] = 'paid'
-            pago_dict['fecha_cobro_total'] = datetime.now()
-        # Si es porcentaje 0 o 100, la fecha de cobro es hoy
-        elif porcentaje in [0, 100]:
-            pago_dict['fecha_cobro_total'] = datetime.now()
+        # Mostrar el estado real del pago
+        pago_dict['status'] = pago.status
         pagos_vista.append(pago_dict)
     return render_template('detalle_pago.html', reserva=reserva, pagos=pagos_vista, timedelta=timedelta)
 
