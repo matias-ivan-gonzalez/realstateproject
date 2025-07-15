@@ -26,6 +26,9 @@ main = Blueprint('main', __name__)
 
 @main.route('/propiedad/<int:propiedad_id>/estadisticas')
 def estadisticas_propiedad(propiedad_id):
+    if 'rol' not in session or session['rol'] not in ['administrador', 'superusuario']:
+        flash('Solo los administradores pueden acceder a las estadísticas de propiedad.', 'danger')
+        return redirect(url_for('main.detalle_propiedad', id=propiedad_id))
     from architectural_patterns.controller.propiedad_controller import PropiedadController
     from datetime import datetime
     mes = request.args.get('mes', datetime.now().month, type=int)
