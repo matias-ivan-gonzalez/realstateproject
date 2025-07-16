@@ -647,14 +647,14 @@ function confirmarQuitarFavorito(e, btn) {
   function calcularMonto() {
     const fechaInicio = document.getElementById('fecha_inicio').value;
     const fechaFin = document.getElementById('fecha_fin').value;
-    let noches = 1;
+    let dias = 1;
     if (fechaInicio && fechaFin) {
       const d1 = new Date(fechaInicio);
       const d2 = new Date(fechaFin);
-      noches = (d2 - d1) / (1000*60*60*24);
-      if (noches < 1) noches = 1;
+      dias = Math.floor((d2 - d1) / (1000*60*60*24)) + 1;
+      if (dias < 1) dias = 1;
     }
-    const total = precioNoche * noches;
+    const total = precioNoche * dias;
     document.getElementById('precio_total').value = `$${total}`;
     const monto = Math.round(total * (porcentajePago/100));
     return monto;

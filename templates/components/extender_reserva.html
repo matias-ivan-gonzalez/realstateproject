@@ -38,14 +38,7 @@
             <label class="form-label">Precio total por la extensión</label>
             <input type="text" class="form-control" id="precioTotalExtension" readonly>
           </div>
-          <div class="mb-2">
-            <label class="form-label">Porcentaje cobrado por reserva</label>
-            <input type="text" class="form-control" id="porcentajeCobrado" readonly>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Monto a pagar por la extensión</label>
-            <input type="text" class="form-control" id="montoExtension" readonly>
-          </div>
+          {# Eliminados los campos de porcentaje y monto a pagar #}
         </form>
       </div>
       <div class="modal-footer">
@@ -63,7 +56,7 @@
 <script>
 // Setea las fechas ocupadas/reservadas localmente para este componente
 var fechasOcupadas = {{ fechas_ocupadas|tojson|safe }};
-var fechasReservadas = {{ fechas_reservadas|tojson|safe }};
+var fechasReservadas = {{ fechas_reservadas|tojson|safe }}; 
 window.fechasOcupadas = fechasOcupadas;
 window.fechasReservadas = fechasReservadas;
 
@@ -192,37 +185,30 @@ function setupFlatpickrExtenderReserva(fechaFinActual) {
     var inputReservaId = document.getElementById('extenderReservaId');
     var inputNuevaFechaFin = document.getElementById('nuevaFechaFin');
     var inputFechaFinActual = document.getElementById('fechaFinActual');
-    var inputMonto = document.getElementById('montoExtension');
     var inputPrecioTotal = document.getElementById('precioTotalExtension');
-    var inputPorcentaje = document.getElementById('porcentajeCobrado');
     inputReservaId.value = reservaId;
     inputFechaFinActual.value = fechaFinActual;
     inputNuevaFechaFin.value = '';
-    inputMonto.value = '';
     inputPrecioTotal.value = '';
-    inputPorcentaje.value = porcentaje + '%';
     document.getElementById('msgNuevaFechaFin').textContent = '';
     document.getElementById('btnConfirmarExtension').disabled = true;
     setupFlatpickrExtenderReserva(fechaFinActual);
     inputNuevaFechaFin.oninput = function() {
       var nueva = inputNuevaFechaFin.value;
       if (!nueva || nueva <= fechaFinActual) {
-        inputMonto.value = '';
         inputPrecioTotal.value = '';
         return;
       }
       var fecha1 = new Date(fechaFinActual);
       var fecha2 = new Date(nueva);
-      var noches = (fecha2 - fecha1) / (1000*60*60*24);
-      if (noches < 1) {
-        inputMonto.value = '';
+      // Calcular días completos de diferencia
+      var dias = Math.floor((fecha2 - fecha1) / (1000*60*60*24));
+      if (dias < 1) {
         inputPrecioTotal.value = '';
         return;
       }
-      var total = precio * noches;
-      var monto = Math.round(total * (porcentaje/100));
+      var total = precio * dias;
       inputPrecioTotal.value = `$${total}`;
-      inputMonto.value = monto > 0 ? `$${monto}` : `$${total}`;
     };
   });
   var btnConfirmar = document.getElementById('btnConfirmarExtension');
