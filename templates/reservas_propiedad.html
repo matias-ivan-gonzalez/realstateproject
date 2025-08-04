@@ -23,7 +23,7 @@
                     <td>{{ reserva.fecha_fin.strftime('%d/%m/%Y') }}</td>
                     <td>{{ reserva.cantidad_personas }}</td>
                     <td>
-                        {% set dias = (reserva.fecha_fin - reserva.fecha_inicio).days %}
+                        {% set dias = (reserva.fecha_fin - reserva.fecha_inicio).days +1 %}
                         {% set precio_noche = propiedad.precio %}
                         ${{ (precio_noche * dias)|round(2) }}
                     </td>
